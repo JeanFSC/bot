@@ -1,0 +1,8 @@
+MetaTrader5>=5.0.45
+pandas>=2.2
+numpy>=2.0
+PyYAML>=6.0
+python-dotenv>=1.0
+
+[dev]
+pytest>=8.0

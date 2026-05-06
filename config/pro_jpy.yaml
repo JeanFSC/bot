@@ -1,0 +1,103 @@
+# --- PRO JPY - USDJPY Multi-timeframe trend-following ------------------------
+#
+#  Misma arquitectura que pro.yaml pero para USDJPY:
+#    - Correlacion baja con EURUSD/GBPUSD -> diversificacion real
+#    - JPY reacciona a BoJ/noticias asiaticas -> oportunidades distintas
+#    - ATR mas alto en pips nominales (1 pip = 0.01 para JPY)
+#    - Magic 260435 (independiente)
+#    - DB separada: data/pro_jpy.sqlite
+#
+# CHANGES v2:
+#   - ADX 20->18: captura early trends
+#   - TP 4.0->2.5x ATR: mayor win rate
+#   - use_trend_filter: false (JPY opera en sesion Asia donde H1 London no aplica)
+# -----------------------------------------------------------------------------
+
+symbol:           USDJPY
+timeframe:        M15
+trend_timeframe:  H1
+poll_seconds:     15
+demo_only:        true
+
+# Risk limits
+max_spread_pips:      1.5
+max_open_positions:   1
+max_daily_loss_pct:   5.0
+max_trades_per_day:   30
+use_global_risk_guard:  true
+max_total_margin_pct: 85.0
+max_portfolio_open_positions: 5
+max_same_currency_positions: 2
+cooldown_seconds:     30
+
+use_partial_close:    true
+partial_close_ratio:  0.5
+
+profit_target_usd: null
+
+database_path: data/pro_jpy.sqlite
+
+# -- Risk sizing --------------------------------------------------------------
+risk:
+  mode:       percent_equity
+  risk_pct:   1.2
+  fixed_lot:  0.5
+  sl_pips:    25
+  tp_pips:    50
+
+# -- News filter --------------------------------------------------------------
+use_news_filter:      true
+news_minutes_before:  30
+news_minutes_after:   15
+
+# -- Equity curve management --------------------------------------------------
+use_equity_curve_filter:  true
+max_consecutive_losses:   3
+lot_reduction_factor:     0.5
+
+# -- Strategy -----------------------------------------------------------------
+strategy:
+  fast_ema: 9
+  slow_ema: 21
+
+  trend_ema:        50
+  use_trend_filter: true       # H1 EMA50 trend filter aplica en cualquier sesion
+
+  rsi_period:    14
+  rsi_buy_max:   65
+  rsi_sell_min:  35
+  use_rsi_filter: true
+  use_rsi_momentum: false
+
+  atr_period:    14
+  min_atr_pips:  3.0           # JPY: pip = 0.01, ATR tipico 8-20 pips
+  use_atr_filter: true
+
+  adx_period:    14
+  adx_min_value: 18            # Lowered 20->18: captura early trends
+  use_adx_filter: true
+
+  atr_sl_multiplier: 1.5
+  atr_tp_multiplier: 2.5       # Lowered 4.0->2.5: mayor win rate
+  use_atr_sl_tp: true
+
+  session_start_hour: 7
+  session_end_hour:   20
+  use_session_filter: true
+
+  session2_start_hour: 0       # Tokyo session (USDJPY mas activo 0-4 UTC)
+  session2_end_hour:   4
+  use_session2:        true
+
+  use_trailing_stop:          true
+  breakeven_atr_multiplier:   1.0
+  trailing_atr_multiplier:    1.5
+
+  use_retest_filter: false
+
+# -- Execution ----------------------------------------------------------------
+execution:
+  magic:        260435
+  deviation:    20
+  filling_mode: AUTO
+  trade_enabled: false   # Sobreescrito por --trade-enabled en el .bat. NO cambiar a true aqui.

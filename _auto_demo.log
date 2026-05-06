@@ -1,0 +1,20 @@
+ 
+[jue 30/04/2026 14:19:55.94] === Verificando Python y dependencias === 
+Python 3.13.13
+MT5 OK
+mt5_bot OK
+[jue 30/04/2026 14:19:56.36] === PASO 1: CHECK (conexion MT5) === 
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot\src\mt5_bot\__main__.py", line 1, in <module>
+    from mt5_bot.cli import main
+  File "C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot\src\mt5_bot\cli.py", line 9, in <module>
+    from mt5_bot.backtest import run_backtest
+  File "C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot\src\mt5_bot\backtest.py", line 7, in <module>
+    from mt5_bot.config import BotConfig
+  File "C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot\src\mt5_bot\config.py", line 173
+    sitions != 1:
+                ^
+SyntaxError: invalid syntax
+[jue 30/04/2026 14:19:56.93] CHECK FALLO 

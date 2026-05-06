@@ -1,0 +1,37 @@
+# ─── Scalper DEMO ────────────────────────────────────────────────────────────
+# Estrategia: EMA 3/8 en M1 para entrada, cierre inmediato al llegar a
+# profit_target_usd. 1 lot fijo → cada pip vale $10 → $150 target = 15 pips.
+# SL en el orden (20 pips = $200) como red de seguridad. TP amplio (60 pips)
+# para que el bot cierre antes via profit_target.
+# Objetivo: 5+ operaciones por sesión, $100-300 por trade.
+# ─────────────────────────────────────────────────────────────────────────────
+
+symbol: EURUSD
+timeframe: M1
+poll_seconds: 2          # revisa cada 2s el profit flotante
+demo_only: true
+max_spread_pips: 1.5     # solo entra si el spread es ≤ 1.5 pips
+max_open_positions: 1
+max_daily_loss_pct: 10.0 # para si caemos 10% en el día
+max_trades_per_day: 100
+cooldown_seconds: 15     # 15s de espera entre entrada y entrada
+profit_target_usd: 150.0 # cierra la posición al alcanzar $150 de profit flotante
+database_path: data/scalper.sqlite
+
+risk:
+  mode: fixed_lot
+  fixed_lot: 1.0    # 1 lot = $10/pip → 15 pips = $150 target
+  sl_pips: 20       # SL en la orden = $200 de pérdida máxima
+  tp_pips: 60       # TP amplio como red; el bot cierra antes al $150
+
+strategy:
+  fast_ema: 3       # EMA rápida para señales frecuentes en M1
+  slow_ema: 8       # EMA lenta
+  use_rsi_filter: false
+  use_atr_filter: false
+
+execution:
+  magic: 260432
+  deviation: 20
+  filling_mode: AUTO
+  trade_enabled: false  # el bat activa esto con --trade-enabled

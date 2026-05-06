@@ -1,0 +1,38 @@
+2026-05-04 22:20:25,763 INFO - Telegram Commander iniciado. Bot listo para recibir comandos.
+2026-05-04 22:20:28,213 WARNING - Telegram API error: HTTP Error 403: Forbidden
+2026-05-04 22:20:38,616 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:20:49,015 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:20:59,422 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:21:09,825 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:21:20,229 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:21:30,627 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:21:41,032 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:21:51,425 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:22:00,037 INFO - Telegram Commander iniciado. Bot listo para recibir comandos.
+2026-05-04 22:22:00,798 WARNING - Telegram API error: HTTP Error 403: Forbidden
+2026-05-04 22:22:42,961 INFO - Telegram Commander iniciado. Bot listo para recibir comandos.
+2026-05-04 22:22:43,715 WARNING - Telegram API error: HTTP Error 403: Forbidden
+2026-05-04 22:22:54,117 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:23:04,507 WARNING - Telegram API error: The read operation timed out
+2026-05-04 22:23:14,903 WARNING - Telegram API error: The read operation timed out
+2026-05-05 06:52:44,929 INFO - Telegram Commander iniciado. Chat ID: 6146399455 | Token suffix: ...ko5ywU7I
+2026-05-05 06:52:44,929 INFO - Drenando actualizaciones pendientes...
+2026-05-05 06:52:45,550 INFO - Enviando mensaje de inicio a chat_id=6146399455 ...
+2026-05-05 06:52:46,260 INFO - Mensaje de inicio enviado OK.
+2026-05-05 06:52:46,260 INFO - Esperando comandos...
+2026-05-05 06:52:53,391 INFO - Telegram Commander iniciado. Chat ID: 6146399455 | Token suffix: ...ko5ywU7I
+2026-05-05 06:52:53,391 INFO - Drenando actualizaciones pendientes...
+2026-05-05 06:52:54,002 WARNING - Telegram API error [getUpdates]: HTTP Error 409: Conflict
+2026-05-05 06:52:57,592 WARNING - Telegram API error [getUpdates]: HTTP Error 409: Conflict
+2026-05-05 06:52:57,592 INFO - Enviando mensaje de inicio a chat_id=6146399455 ...
+2026-05-05 06:52:58,324 INFO - Mensaje de inicio enviado OK.
+2026-05-05 06:52:58,324 INFO - Esperando comandos...
+2026-05-05 06:52:58,902 WARNING - Telegram API error [getUpdates]: HTTP Error 409: Conflict
+2026-05-05 06:53:02,497 WARNING - Telegram API error [getUpdates]: HTTP Error 409: Conflict
+2026-05-05 06:53:03,084 WARNING - Telegram API error [getUpdates]: HTTP Error 409: Conflict
+2026-05-05 06:53:06,663 WARNING - Telegram API error [getUpdates]: HTTP Error 409: Conflict
+2026-05-05 06:53:08,989 INFO - Telegram Commander iniciado. Chat ID: 6146399455 | Token suffix: ...ko5ywU7I
+2026-05-05 06:53:08,989 INFO - Drenando actualizaciones pendientes...
+2026-05-05 06:53:29,597 INFO - Enviando mensaje de inicio a chat_id=6146399455 ...
+2026-05-05 06:53:30,322 INFO - Mensaje de inicio enviado OK.
+2026-05-05 06:53:30,322 INFO - Esperando comandos...

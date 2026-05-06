@@ -1,0 +1,44 @@
+# Config de TESTING para verificar que el bot ejecuta órdenes DEMO
+# Diferencias vs demo.yaml:
+#   - timeframe M5 (más cruces de EMA por hora que M1)
+#   - EMA 5/13 en lugar de 9/21 (señales más frecuentes)
+#   - RSI filter desactivado (menos filtros = más señales)
+#   - cooldown_seconds 30 (en lugar de 60)
+#   - DB separada para no mezclar con datos de producción
+#   - risk: fixed_lot 0.01 (lote mínimo para minimizar exposición en prueba)
+
+symbol: EURUSD
+timeframe: M5
+poll_seconds: 5
+tick_window_seconds: 30
+demo_only: true
+max_spread_pips: 2.5
+max_open_positions: 1
+max_daily_loss_pct: 2.0
+max_trades_per_day: 10
+cooldown_seconds: 30
+database_path: data/demo_test.sqlite
+
+risk:
+  mode: fixed_lot
+  fixed_lot: 0.01      # lote mínimo — solo para verificar la ejecución
+  risk_pct: 0.25
+  sl_pips: 20
+  tp_pips: 40
+
+strategy:
+  fast_ema: 5
+  slow_ema: 13
+  rsi_period: 14
+  rsi_buy_max: 75      # filtro amplio
+  rsi_sell_min: 25     # filtro amplio
+  atr_period: 14
+  min_atr_pips: 0.5    # umbral bajo para no bloquear señales
+  use_rsi_filter: false
+  use_atr_filter: false
+
+execution:
+  magic: 260430
+  deviation: 20        # tolerancia mayor para demo
+  filling_mode: AUTO
+  trade_enabled: false  # sigue siendo dry-run por defecto; usar --trade-enabled para ejecutar

@@ -1,0 +1,3 @@
+5/05/2026 09:10:46 p. m. VBS started, botDir=C:\Users\jean_\Desktop\mt5_trading_bot\
+5/05/2026 09:10:46 p. m. About to run: cmd.exe /k "C:\Users\jean_\Desktop\mt5_trading_bot\START_BOTS.bat"
+5/05/2026 09:10:47 p. m. wsh.Run called

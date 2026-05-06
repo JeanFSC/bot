@@ -1,0 +1,1739 @@
+2026-04-30 15:35:54 INFO mt5_bot - MT5 permissions: account_server=MetaQuotes-Demo account_trade_allowed=True account_trade_expert=True terminal_trade_allowed=True terminal_build=5836
+2026-04-30 15:35:54 INFO mt5_bot - Starting DEMO loop: symbol=EURUSD timeframe=M1 trade_enabled=True
+2026-04-30 15:35:54 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:35:54 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:35:54 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:35:56 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:35:56 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:35:56 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:35:58 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:35:58 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:35:58 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:00 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:02 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.60 pips
+2026-04-30 15:36:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:04 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.60 pips
+2026-04-30 15:36:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:06 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:08 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:10 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:12 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:14 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:16 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:16 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:16 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:18 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:18 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:18 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:20 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:20 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:20 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:22 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:22 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:22 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:24 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:24 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:24 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:26 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:26 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:26 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:28 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:28 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:28 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:30 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.50 pips
+2026-04-30 15:36:30 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:30 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:32 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.60 pips
+2026-04-30 15:36:32 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:32 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:34 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:37 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:39 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:41 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:43 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:45 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:36:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:47 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:49 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:51 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:53 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:55 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:57 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:36:59 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:36:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:36:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:01 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.50 pips
+2026-04-30 15:37:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:03 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:05 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:07 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:09 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:11 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:13 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:15 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:17 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:19 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:21 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:23 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:25 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:27 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:29 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:31 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:33 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:35 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:37 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:39 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:41 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:43 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:45 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:47 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:49 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:51 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:53 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:55 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:57 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:37:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:37:59 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:37:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:37:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:01 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:03 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:05 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:07 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:09 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:11 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:13 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:15 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:17 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:19 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:21 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:23 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:25 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:27 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:29 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:31 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:33 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:35 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:37 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:39 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.40 pips
+2026-04-30 15:38:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:41 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:43 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:45 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:47 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:49 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:51 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.50 pips
+2026-04-30 15:38:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:53 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.60 pips
+2026-04-30 15:38:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:55 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.60 pips
+2026-04-30 15:38:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:57 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:38:59 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:38:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:38:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:39:01 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:39:01 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:02 INFO mt5_bot - Execution status=sent reason=order_send_retcode_10009
+2026-04-30 15:39:04 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:04 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:04 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:39:06 INFO mt5_bot - Balance=100000.26 Equity=99920.26 Spread=0.40 pips
+2026-04-30 15:39:06 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:06 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:39:08 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:08 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:08 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:10 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:10 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:10 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:12 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:12 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:12 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:14 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:14 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:14 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:16 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:16 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:16 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:18 INFO mt5_bot - Balance=100000.26 Equity=99900.26 Spread=0.40 pips
+2026-04-30 15:39:18 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:18 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:20 INFO mt5_bot - Balance=100000.26 Equity=99880.26 Spread=0.50 pips
+2026-04-30 15:39:20 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:20 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:22 INFO mt5_bot - Balance=100000.26 Equity=99880.26 Spread=0.50 pips
+2026-04-30 15:39:22 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:22 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:24 INFO mt5_bot - Balance=100000.26 Equity=99880.26 Spread=0.70 pips
+2026-04-30 15:39:24 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:24 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:26 INFO mt5_bot - Balance=100000.26 Equity=99940.26 Spread=0.40 pips
+2026-04-30 15:39:26 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:26 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:28 INFO mt5_bot - Balance=100000.26 Equity=99940.26 Spread=0.40 pips
+2026-04-30 15:39:28 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:28 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:30 INFO mt5_bot - Balance=100000.26 Equity=99960.26 Spread=0.30 pips
+2026-04-30 15:39:30 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:30 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:32 INFO mt5_bot - Balance=100000.26 Equity=99960.26 Spread=0.30 pips
+2026-04-30 15:39:32 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:32 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:34 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:39:34 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:34 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:36 INFO mt5_bot - Balance=100000.26 Equity=100000.26 Spread=0.30 pips
+2026-04-30 15:39:36 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:36 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:38 INFO mt5_bot - Balance=100000.26 Equity=100060.26 Spread=0.30 pips
+2026-04-30 15:39:38 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:38 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:40 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.40 pips
+2026-04-30 15:39:40 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:40 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:42 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.40 pips
+2026-04-30 15:39:42 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:42 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:44 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.30 pips
+2026-04-30 15:39:44 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:44 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:46 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.30 pips
+2026-04-30 15:39:46 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:46 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:48 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.30 pips
+2026-04-30 15:39:48 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:48 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:50 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.30 pips
+2026-04-30 15:39:50 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:50 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:52 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.30 pips
+2026-04-30 15:39:52 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:52 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:54 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.30 pips
+2026-04-30 15:39:54 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:54 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:56 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.30 pips
+2026-04-30 15:39:56 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:56 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:39:58 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.30 pips
+2026-04-30 15:39:58 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.1733500000000001
+2026-04-30 15:39:58 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:40:00 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.40 pips
+2026-04-30 15:40:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:02 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:40:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:04 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:40:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:06 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:40:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:08 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:40:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:10 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:40:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:12 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.30 pips
+2026-04-30 15:40:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:14 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.30 pips
+2026-04-30 15:40:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:16 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.30 pips
+2026-04-30 15:40:16 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:16 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:18 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:40:18 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:18 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:20 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.30 pips
+2026-04-30 15:40:20 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:20 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:22 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.40 pips
+2026-04-30 15:40:22 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:22 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:24 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:24 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:24 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:26 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:26 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:26 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:28 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:28 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:28 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:30 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.60 pips
+2026-04-30 15:40:30 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:30 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:32 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.60 pips
+2026-04-30 15:40:32 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:32 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:34 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.60 pips
+2026-04-30 15:40:34 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:34 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:36 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:36 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:36 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:38 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:38 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:38 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:40 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:40 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:40 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:42 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:42 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:42 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:44 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:44 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:44 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:46 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:40:46 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:46 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:48 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.60 pips
+2026-04-30 15:40:48 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:48 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:50 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.60 pips
+2026-04-30 15:40:50 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:50 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:52 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:40:52 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:52 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:54 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:40:54 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:54 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:56 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:40:56 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:56 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:40:58 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:40:58 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:40:58 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:00 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:02 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:04 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:06 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:08 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:10 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:12 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:41:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:14 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.30 pips
+2026-04-30 15:41:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:16 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:19 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:41:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:21 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:41:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:23 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:41:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:25 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:41:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:27 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:41:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:29 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.30 pips
+2026-04-30 15:41:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:31 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.30 pips
+2026-04-30 15:41:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:33 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.30 pips
+2026-04-30 15:41:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:35 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.30 pips
+2026-04-30 15:41:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:37 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.50 pips
+2026-04-30 15:41:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:39 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.50 pips
+2026-04-30 15:41:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:41 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:41:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:43 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:41:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:45 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:41:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:47 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:41:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:49 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:41:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:51 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:41:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:53 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:41:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:55 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:41:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:57 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:41:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:41:59 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:41:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:41:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:01 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:03 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:42:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:05 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:07 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:09 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:11 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:42:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:13 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:42:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:15 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:42:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:17 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:42:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:19 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:42:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:21 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:42:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:23 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:42:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:25 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:42:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:27 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:42:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:29 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.80 pips
+2026-04-30 15:42:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:31 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.90 pips
+2026-04-30 15:42:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:33 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:42:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:35 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:42:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:37 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:42:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:39 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:41 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:43 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:45 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:47 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:49 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:42:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:51 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:42:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:53 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:42:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:55 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:42:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:57 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:42:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:42:59 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:42:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:42:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:01 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:43:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:03 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:05 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:07 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:43:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:09 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:43:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:11 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:13 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:15 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:17 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:19 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:21 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:23 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.30 pips
+2026-04-30 15:43:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:25 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:27 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:29 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:43:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:31 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:43:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:33 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:43:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:35 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:43:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:37 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:43:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:39 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:43:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:41 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:43:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:43 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.50 pips
+2026-04-30 15:43:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:45 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.50 pips
+2026-04-30 15:43:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:48 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:43:48 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:48 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:50 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:43:50 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:50 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:52 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:43:52 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:52 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:54 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:43:54 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:54 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:56 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.30 pips
+2026-04-30 15:43:56 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:56 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:43:58 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.30 pips
+2026-04-30 15:43:58 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:43:58 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:00 INFO mt5_bot - Balance=100000.26 Equity=100380.26 Spread=0.30 pips
+2026-04-30 15:44:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:02 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.40 pips
+2026-04-30 15:44:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:04 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.40 pips
+2026-04-30 15:44:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:06 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.40 pips
+2026-04-30 15:44:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:08 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.40 pips
+2026-04-30 15:44:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:10 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.40 pips
+2026-04-30 15:44:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:12 INFO mt5_bot - Balance=100000.26 Equity=100360.26 Spread=0.40 pips
+2026-04-30 15:44:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:14 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.50 pips
+2026-04-30 15:44:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:16 INFO mt5_bot - Balance=100000.26 Equity=100420.26 Spread=0.50 pips
+2026-04-30 15:44:16 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:16 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:18 INFO mt5_bot - Balance=100000.26 Equity=100420.26 Spread=0.50 pips
+2026-04-30 15:44:18 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:18 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:20 INFO mt5_bot - Balance=100000.26 Equity=100420.26 Spread=0.50 pips
+2026-04-30 15:44:20 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:20 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:22 INFO mt5_bot - Balance=100000.26 Equity=100420.26 Spread=0.50 pips
+2026-04-30 15:44:22 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:22 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:24 INFO mt5_bot - Balance=100000.26 Equity=100420.26 Spread=0.40 pips
+2026-04-30 15:44:24 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:24 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:26 INFO mt5_bot - Balance=100000.26 Equity=100400.26 Spread=0.60 pips
+2026-04-30 15:44:26 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:26 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:28 INFO mt5_bot - Balance=100000.26 Equity=100480.26 Spread=0.40 pips
+2026-04-30 15:44:28 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:28 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:30 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.50 pips
+2026-04-30 15:44:30 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:30 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:32 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:32 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:32 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:34 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:34 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:34 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:36 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:36 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:36 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:38 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:38 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:38 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:40 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:40 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:40 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:42 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:42 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:42 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:44 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:44 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:44 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:46 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.40 pips
+2026-04-30 15:44:46 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:46 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:48 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:48 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:48 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:50 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:50 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:50 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:52 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:52 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:52 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:54 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:54 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:54 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:56 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:56 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:56 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:44:58 INFO mt5_bot - Balance=100000.26 Equity=100440.26 Spread=0.60 pips
+2026-04-30 15:44:58 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:44:58 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:00 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.30 pips
+2026-04-30 15:45:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:02 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.40 pips
+2026-04-30 15:45:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:04 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:45:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:06 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:45:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:08 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.30 pips
+2026-04-30 15:45:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:10 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.40 pips
+2026-04-30 15:45:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:12 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:45:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:14 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:45:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:16 INFO mt5_bot - Balance=100000.26 Equity=100140.26 Spread=0.50 pips
+2026-04-30 15:45:16 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:16 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:18 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.40 pips
+2026-04-30 15:45:18 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:18 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:20 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:45:20 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:20 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:22 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:45:22 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:22 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:24 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:45:24 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:24 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:26 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.40 pips
+2026-04-30 15:45:26 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:26 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:28 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:45:28 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:28 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:30 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.40 pips
+2026-04-30 15:45:30 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:30 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:32 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:45:32 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:32 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:34 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.50 pips
+2026-04-30 15:45:34 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:34 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:36 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.40 pips
+2026-04-30 15:45:36 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:36 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:38 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.40 pips
+2026-04-30 15:45:38 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:38 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:40 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.40 pips
+2026-04-30 15:45:40 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:40 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:42 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.40 pips
+2026-04-30 15:45:42 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:42 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:44 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:45:44 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:44 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:46 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:45:46 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:46 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:48 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:45:48 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:48 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:50 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:45:50 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:50 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:52 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:45:52 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:52 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:54 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:45:54 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:54 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:56 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.50 pips
+2026-04-30 15:45:56 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:56 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:45:58 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.50 pips
+2026-04-30 15:45:58 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:45:58 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:00 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.50 pips
+2026-04-30 15:46:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:02 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:04 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:06 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:46:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:08 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:46:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:10 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:46:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:12 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:46:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:14 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.60 pips
+2026-04-30 15:46:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:16 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.60 pips
+2026-04-30 15:46:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:19 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.70 pips
+2026-04-30 15:46:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:21 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:46:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:23 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:46:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:25 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.50 pips
+2026-04-30 15:46:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:27 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.60 pips
+2026-04-30 15:46:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:29 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.60 pips
+2026-04-30 15:46:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:31 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.50 pips
+2026-04-30 15:46:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:33 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:35 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:37 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:39 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.70 pips
+2026-04-30 15:46:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:41 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.60 pips
+2026-04-30 15:46:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:43 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.60 pips
+2026-04-30 15:46:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:45 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.70 pips
+2026-04-30 15:46:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:47 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.70 pips
+2026-04-30 15:46:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:49 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:51 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:53 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.60 pips
+2026-04-30 15:46:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:55 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.40 pips
+2026-04-30 15:46:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:57 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.30 pips
+2026-04-30 15:46:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:46:59 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.30 pips
+2026-04-30 15:46:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:46:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:01 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.30 pips
+2026-04-30 15:47:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:03 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.30 pips
+2026-04-30 15:47:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:05 INFO mt5_bot - Balance=100000.26 Equity=100240.26 Spread=0.30 pips
+2026-04-30 15:47:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:07 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.50 pips
+2026-04-30 15:47:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:09 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.50 pips
+2026-04-30 15:47:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:11 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.50 pips
+2026-04-30 15:47:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:13 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.50 pips
+2026-04-30 15:47:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:15 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.50 pips
+2026-04-30 15:47:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:17 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.50 pips
+2026-04-30 15:47:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:19 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.60 pips
+2026-04-30 15:47:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:21 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.60 pips
+2026-04-30 15:47:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:23 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.50 pips
+2026-04-30 15:47:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:25 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:47:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:27 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:47:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:29 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:47:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:31 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.30 pips
+2026-04-30 15:47:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:33 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.30 pips
+2026-04-30 15:47:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:35 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:47:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:37 INFO mt5_bot - Balance=100000.26 Equity=100340.26 Spread=0.40 pips
+2026-04-30 15:47:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:39 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:41 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:43 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:45 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:47 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:49 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:51 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.60 pips
+2026-04-30 15:47:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:53 INFO mt5_bot - Balance=100000.26 Equity=100320.26 Spread=0.50 pips
+2026-04-30 15:47:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:55 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.60 pips
+2026-04-30 15:47:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:57 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.50 pips
+2026-04-30 15:47:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:47:59 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.50 pips
+2026-04-30 15:47:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:47:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:01 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.60 pips
+2026-04-30 15:48:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:03 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.60 pips
+2026-04-30 15:48:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:05 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:07 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:09 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:11 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:13 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:15 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:17 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:19 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:21 INFO mt5_bot - Balance=100000.26 Equity=100280.26 Spread=0.40 pips
+2026-04-30 15:48:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:23 INFO mt5_bot - Balance=100000.26 Equity=100300.26 Spread=0.40 pips
+2026-04-30 15:48:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:25 INFO mt5_bot - Balance=100000.26 Equity=100260.26 Spread=0.60 pips
+2026-04-30 15:48:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:27 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:48:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:29 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.50 pips
+2026-04-30 15:48:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:31 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.50 pips
+2026-04-30 15:48:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:33 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:48:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:35 INFO mt5_bot - Balance=100000.26 Equity=100220.26 Spread=0.40 pips
+2026-04-30 15:48:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:37 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:48:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:39 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.50 pips
+2026-04-30 15:48:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:41 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.40 pips
+2026-04-30 15:48:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:43 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.40 pips
+2026-04-30 15:48:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:45 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.40 pips
+2026-04-30 15:48:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:47 INFO mt5_bot - Balance=100000.26 Equity=100200.26 Spread=0.40 pips
+2026-04-30 15:48:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:49 INFO mt5_bot - Balance=100000.26 Equity=100180.26 Spread=0.50 pips
+2026-04-30 15:48:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:51 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.50 pips
+2026-04-30 15:48:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:53 INFO mt5_bot - Balance=100000.26 Equity=100160.26 Spread=0.40 pips
+2026-04-30 15:48:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:55 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.40 pips
+2026-04-30 15:48:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:48:58 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.40 pips
+2026-04-30 15:48:58 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:48:58 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:49:00 INFO mt5_bot - Balance=100000.26 Equity=100120.26 Spread=0.40 pips
+2026-04-30 15:49:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:49:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:49:02 INFO mt5_bot - Balance=100000.26 Equity=100100.26 Spread=0.50 pips
+2026-04-30 15:49:02 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:02 INFO mt5_bot - Execution status=sent reason=order_send_retcode_10009
+2026-04-30 15:49:04 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:49:04 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:04 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:49:06 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.60 pips
+2026-04-30 15:49:06 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:06 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:49:08 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:49:08 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:08 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:10 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:49:10 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:10 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:12 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.40 pips
+2026-04-30 15:49:12 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:12 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:14 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.40 pips
+2026-04-30 15:49:14 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:14 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:16 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.50 pips
+2026-04-30 15:49:16 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:16 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:18 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.50 pips
+2026-04-30 15:49:18 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:18 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:20 INFO mt5_bot - Balance=100060.26 Equity=99860.06 Spread=0.40 pips
+2026-04-30 15:49:20 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:20 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:22 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.30 pips
+2026-04-30 15:49:22 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:22 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:24 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.30 pips
+2026-04-30 15:49:24 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:24 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:26 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.60 pips
+2026-04-30 15:49:26 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:26 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:28 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.60 pips
+2026-04-30 15:49:28 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:28 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:30 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.60 pips
+2026-04-30 15:49:30 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:30 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:32 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.60 pips
+2026-04-30 15:49:32 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:32 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:34 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.60 pips
+2026-04-30 15:49:34 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:34 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:36 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.40 pips
+2026-04-30 15:49:36 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:36 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:38 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.40 pips
+2026-04-30 15:49:38 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:38 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:40 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.40 pips
+2026-04-30 15:49:40 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:40 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:42 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.40 pips
+2026-04-30 15:49:42 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:42 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:44 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.40 pips
+2026-04-30 15:49:44 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:44 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:46 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.50 pips
+2026-04-30 15:49:46 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:46 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:48 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:49:48 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:48 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:50 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:49:50 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:50 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:52 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:49:52 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:52 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:54 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:49:54 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:54 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:56 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:49:56 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:56 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:49:58 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:49:58 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17324
+2026-04-30 15:49:58 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:50:00 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.50 pips
+2026-04-30 15:50:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:02 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:04 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:06 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:08 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:10 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:12 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:14 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:16 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.50 pips
+2026-04-30 15:50:16 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:16 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:18 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:50:18 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:18 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:20 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:50:20 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:20 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:22 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:50:22 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:22 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:24 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:50:24 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:24 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:26 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:50:26 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:26 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:28 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.40 pips
+2026-04-30 15:50:28 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:28 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:30 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.40 pips
+2026-04-30 15:50:30 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:30 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:32 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.40 pips
+2026-04-30 15:50:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:35 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:37 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:39 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:41 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:43 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:45 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:47 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:50:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:49 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:51 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:53 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:55 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:57 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:50:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:50:59 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.60 pips
+2026-04-30 15:50:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:50:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:01 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:03 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:05 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:07 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:09 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:11 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.50 pips
+2026-04-30 15:51:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:13 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:51:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:15 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:51:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:17 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:19 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:51:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:21 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:23 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:51:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:25 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:27 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:51:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:29 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:51:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:31 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:51:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:33 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.60 pips
+2026-04-30 15:51:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:35 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.50 pips
+2026-04-30 15:51:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:37 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.50 pips
+2026-04-30 15:51:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:39 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.60 pips
+2026-04-30 15:51:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:41 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.60 pips
+2026-04-30 15:51:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:43 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.40 pips
+2026-04-30 15:51:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:45 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.30 pips
+2026-04-30 15:51:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:47 INFO mt5_bot - Balance=100060.26 Equity=99980.18 Spread=0.30 pips
+2026-04-30 15:51:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:49 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:51:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:51 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:51:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:53 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:51:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:55 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:51:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:57 INFO mt5_bot - Balance=100060.26 Equity=99960.16 Spread=0.40 pips
+2026-04-30 15:51:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:51:59 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.40 pips
+2026-04-30 15:51:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:51:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:01 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.50 pips
+2026-04-30 15:52:01 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:01 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:03 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:03 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:03 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:05 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:05 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:05 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:07 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:07 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:07 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:09 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:09 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:09 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:11 INFO mt5_bot - Balance=100060.26 Equity=99880.08 Spread=0.30 pips
+2026-04-30 15:52:11 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:11 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:13 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.30 pips
+2026-04-30 15:52:13 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:13 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:15 INFO mt5_bot - Balance=100060.26 Equity=99900.10 Spread=0.40 pips
+2026-04-30 15:52:15 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:15 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:17 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.30 pips
+2026-04-30 15:52:17 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:17 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:19 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.40 pips
+2026-04-30 15:52:19 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:19 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:21 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:21 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:21 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:23 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:23 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:23 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:25 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:25 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:25 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:27 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:27 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:27 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:29 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:29 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:29 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:31 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:31 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:31 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:33 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:33 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:33 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:35 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:35 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:35 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:37 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:37 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:37 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:39 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:39 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:39 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:41 INFO mt5_bot - Balance=100060.26 Equity=99940.14 Spread=0.30 pips
+2026-04-30 15:52:41 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:41 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:43 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:43 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:43 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:45 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.50 pips
+2026-04-30 15:52:45 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:45 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:47 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.50 pips
+2026-04-30 15:52:47 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:47 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:49 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:51 INFO mt5_bot - Balance=100060.26 Equity=99920.12 Spread=0.40 pips
+2026-04-30 15:52:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:53 INFO mt5_bot - Balance=100060.26 Equity=99840.04 Spread=0.40 pips
+2026-04-30 15:52:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:55 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.50 pips
+2026-04-30 15:52:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:57 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.50 pips
+2026-04-30 15:52:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:52:59 INFO mt5_bot - Balance=100060.26 Equity=99739.94 Spread=0.30 pips
+2026-04-30 15:52:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:52:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:53:01 INFO mt5_bot - Balance=100060.26 Equity=99820.02 Spread=0.30 pips
+2026-04-30 15:53:01 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:02 INFO mt5_bot - Execution status=sent reason=order_send_retcode_10009
+2026-04-30 15:53:04 INFO mt5_bot - Balance=99779.98 Equity=99700.14 Spread=0.30 pips
+2026-04-30 15:53:04 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:04 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:53:06 INFO mt5_bot - Balance=99779.98 Equity=99680.18 Spread=0.40 pips
+2026-04-30 15:53:06 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:06 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:53:08 INFO mt5_bot - Balance=99779.98 Equity=99680.18 Spread=0.40 pips
+2026-04-30 15:53:08 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:08 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:10 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.40 pips
+2026-04-30 15:53:10 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:10 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:12 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.90 pips
+2026-04-30 15:53:12 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:12 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:14 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.50 pips
+2026-04-30 15:53:14 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:14 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:16 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.50 pips
+2026-04-30 15:53:16 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:16 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:18 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.50 pips
+2026-04-30 15:53:18 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:18 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:20 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.50 pips
+2026-04-30 15:53:20 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:20 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:22 INFO mt5_bot - Balance=99779.98 Equity=99720.10 Spread=0.50 pips
+2026-04-30 15:53:22 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:22 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:24 INFO mt5_bot - Balance=99779.98 Equity=99700.14 Spread=0.40 pips
+2026-04-30 15:53:24 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:24 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:26 INFO mt5_bot - Balance=99779.98 Equity=99700.14 Spread=0.40 pips
+2026-04-30 15:53:26 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:26 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:28 INFO mt5_bot - Balance=99779.98 Equity=99700.14 Spread=0.40 pips
+2026-04-30 15:53:28 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:28 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:30 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.50 pips
+2026-04-30 15:53:30 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:30 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:32 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:53:32 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:32 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:34 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:53:34 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:34 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:36 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:36 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:36 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:38 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:38 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:38 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:40 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:40 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:40 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:42 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:42 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:42 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:44 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:44 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:44 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:46 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:46 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:46 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:48 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:48 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:48 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:50 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:53:50 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:50 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:52 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:53:52 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:52 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:54 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.50 pips
+2026-04-30 15:53:54 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:54 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:56 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:53:56 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:56 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:53:58 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:53:58 INFO mt5_bot - Signal=SELL reason=ema_cross_below price=1.17315
+2026-04-30 15:53:58 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:54:00 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.50 pips
+2026-04-30 15:54:00 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:00 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:02 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.30 pips
+2026-04-30 15:54:02 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:02 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:04 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:04 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:04 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:06 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:06 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:06 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:08 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:08 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:08 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:10 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:10 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:10 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:12 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:12 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:12 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:14 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:14 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:14 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:16 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:16 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:16 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:18 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:18 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:18 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:20 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:20 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:20 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:22 INFO mt5_bot - Balance=99779.98 Equity=99640.26 Spread=0.40 pips
+2026-04-30 15:54:22 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:22 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:24 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:54:24 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:24 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:26 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:54:26 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:26 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:28 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:54:28 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:28 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:30 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:54:30 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:30 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:32 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.30 pips
+2026-04-30 15:54:32 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:32 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:34 INFO mt5_bot - Balance=99779.98 Equity=99580.38 Spread=0.50 pips
+2026-04-30 15:54:34 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:34 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:36 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.30 pips
+2026-04-30 15:54:36 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:36 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:38 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.40 pips
+2026-04-30 15:54:38 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:38 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:40 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.40 pips
+2026-04-30 15:54:40 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:40 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:42 INFO mt5_bot - Balance=99779.98 Equity=99620.30 Spread=0.40 pips
+2026-04-30 15:54:42 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:42 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:44 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:54:44 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:44 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:46 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:54:46 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:46 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:49 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:54:49 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:49 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:51 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:54:51 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:51 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:53 INFO mt5_bot - Balance=99779.98 Equity=99600.34 Spread=0.40 pips
+2026-04-30 15:54:53 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:53 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:55 INFO mt5_bot - Balance=99779.98 Equity=99580.38 Spread=0.40 pips
+2026-04-30 15:54:55 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:55 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:57 INFO mt5_bot - Balance=99779.98 Equity=99580.38 Spread=0.30 pips
+2026-04-30 15:54:57 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:57 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:54:59 INFO mt5_bot - Balance=99779.98 Equity=99520.50 Spread=0.50 pips
+2026-04-30 15:54:59 INFO mt5_bot - Signal=NONE reason=no_closed_bar_crossover price=None
+2026-04-30 15:54:59 INFO mt5_bot - Execution status=skipped reason=no_closed_bar_crossover
+2026-04-30 15:55:01 INFO mt5_bot - Balance=99779.98 Equity=99580.38 Spread=0.40 pips
+2026-04-30 15:55:01 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:01 INFO mt5_bot - Execution status=sent reason=order_send_retcode_10009
+2026-04-30 15:55:03 INFO mt5_bot - Balance=99560.42 Equity=99460.87 Spread=0.70 pips
+2026-04-30 15:55:03 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:03 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:55:05 INFO mt5_bot - Balance=99560.42 Equity=99460.87 Spread=0.70 pips
+2026-04-30 15:55:05 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:05 INFO mt5_bot - Execution status=skipped reason=cooldown
+2026-04-30 15:55:07 INFO mt5_bot - Balance=99560.42 Equity=99460.87 Spread=0.40 pips
+2026-04-30 15:55:07 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:07 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:55:09 INFO mt5_bot - Balance=99560.42 Equity=99460.87 Spread=0.40 pips
+2026-04-30 15:55:09 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:09 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:55:11 INFO mt5_bot - Balance=99560.42 Equity=99460.87 Spread=0.40 pips
+2026-04-30 15:55:11 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:11 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:55:13 INFO mt5_bot - Balance=99560.42 Equity=99460.87 Spread=0.40 pips
+2026-04-30 15:55:13 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:13 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:55:15 INFO mt5_bot - Balance=99560.42 Equity=99381.23 Spread=0.50 pips
+2026-04-30 15:55:15 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:15 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:55:17 INFO mt5_bot - Balance=99560.42 Equity=99321.50 Spread=0.40 pips
+2026-04-30 15:55:17 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:17 INFO mt5_bot - Execution status=skipped reason=same_direction_position
+2026-04-30 15:55:19 INFO mt5_bot - Balance=99560.42 Equity=99321.50 Spread=0.40 pips
+2026-04-30 15:55:19 INFO mt5_bot - Signal=BUY reason=ema_cross_above price=1.17326
+2026-04-30 15:55:19 INFO mt5_bot - Execution status=skipped reason=same_direction_position

@@ -1,0 +1,35 @@
+symbol: EURUSD
+timeframe: M1
+poll_seconds: 5
+tick_window_seconds: 30
+demo_only: true
+max_spread_pips: 2.0
+max_open_positions: 1
+max_daily_loss_pct: 2.0
+max_trades_per_day: 20
+cooldown_seconds: 60
+database_path: data/trades.sqlite
+
+risk:
+  mode: percent_equity
+  fixed_lot: 0.1
+  risk_pct: 0.25
+  sl_pips: 20
+  tp_pips: 40
+
+strategy:
+  fast_ema: 9
+  slow_ema: 21
+  rsi_period: 14
+  rsi_buy_max: 70
+  rsi_sell_min: 30
+  atr_period: 14
+  min_atr_pips: 1.0
+  use_rsi_filter: true
+  use_atr_filter: true
+
+execution:
+  magic: 260430
+  deviation: 10
+  filling_mode: AUTO
+  trade_enabled: false

@@ -1,0 +1,253 @@
+"""
+MT5 Telegram Commander
+======================
+Controla los bots de trading via Telegram.
+Comandos: /start_bots /stop_bots /status /log /balance /help
+"""
+from __future__ import annotations
+
+import os, subprocess, sys, time, json
+import urllib.request, urllib.parse, urllib.error
+from datetime import datetime
+from pathlib import Path
+
+BOT_DIR   = Path(__file__).resolve().parent.parent.parent
+BAT_START = BOT_DIR / "_run_all_pro_autorestart.bat"
+LOG_DIR   = BOT_DIR / "logs"
+ENV_FILE  = BOT_DIR / ".env"
+BOT_TITLES = ["PRO EURUSD","PRO GBPUSD","PRO USDJPY","PRO GOLD","PRO AUDUSD"]
+FLAGS = 0x08000000  # CREATE_NO_WINDOW
+
+def _load_env():
+    env = {}
+    if ENV_FILE.exists():
+        for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and "=" in line and not line.startswith("#"):
+                k, _, v = line.partition("=")
+                env[k.strip()] = v.strip()
+    for k in ("MT5_TELEGRAM_TOKEN","MT5_TELEGRAM_CHAT_ID"):
+        if k in os.environ:
+            env[k] = os.environ[k]
+    return env
+
+class TelegramBot:
+    API = "https://api.telegram.org/bot{token}/{method}"
+    def __init__(self, token, allowed_chat_id):
+        self.token = token
+        self.allowed_chat_id = allowed_chat_id
+        self._offset = 0
+
+    def _call(self, method, payload=None, timeout=30):
+        import logging as _lg
+        url = self.API.format(token=self.token, method=method)
+        data = json.dumps(payload or {}).encode("utf-8")
+        req = urllib.request.Request(url, data=data,
+              headers={"Content-Type":"application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            _lg.getLogger("commander").warning("Telegram API error [%s]: %s", method, e)
+            return {}
+
+    def send(self, chat_id, text):
+        self._call("sendMessage", {"chat_id":chat_id,"text":text,"parse_mode":"Markdown"})
+
+    def get_updates(self):
+        r = self._call("getUpdates", {"offset":self._offset,"timeout":20}, timeout=30)
+        updates = r.get("result", [])
+        if updates:
+            self._offset = updates[-1]["update_id"] + 1
+        return updates
+
+    def reply(self, update, text):
+        self.send(update["message"]["chat"]["id"], text)
+
+    def is_allowed(self, update):
+        return update.get("message",{}).get("chat",{}).get("id") == self.allowed_chat_id
+
+# ─── Helper functions ──────────────────────────────────────────────────────────
+
+def _count_bots():
+    try:
+        r = subprocess.run(
+            ["wmic","process","where",
+             "name=\'python.exe\' and commandline like \'%mt5_bot%\'",
+             "get","ProcessId","/format:list"],
+            capture_output=True, text=True, timeout=8, creationflags=FLAGS)
+        return sum(1 for l in r.stdout.splitlines() if l.strip().startswith("ProcessId="))
+    except:
+        return -1
+
+def _start_bots():
+    try:
+        subprocess.Popen(["cmd.exe","/c",str(BAT_START)],
+                         cwd=str(BOT_DIR),
+                         creationflags=subprocess.CREATE_NEW_CONSOLE)
+        time.sleep(3)
+        n = _count_bots()
+        return f"Bots iniciados. Procesos activos: {n}"
+    except Exception as e:
+        return f"Error al iniciar: {e}"
+
+def _stop_bots():
+    try:
+        subprocess.run(
+            ["wmic","process","where",
+             "name=\'python.exe\' and commandline like \'%mt5_bot%\'",
+             "call","terminate"],
+            capture_output=True, creationflags=FLAGS)
+        for t in BOT_TITLES:
+            subprocess.run(["taskkill","/F","/FI",f"WINDOWTITLE eq {t}"],
+                           capture_output=True, creationflags=FLAGS)
+        time.sleep(2)
+        return "Bots detenidos."
+    except Exception as e:
+        return f"Error al detener: {e}"
+
+def _get_status():
+    n = _count_bots()
+    if n < 0:
+        return "No se pudo verificar el estado."
+    today = datetime.now().strftime("%Y%m%d")
+    log = LOG_DIR / f"bot_{today}.log"
+    if not log.exists():
+        logs = sorted(LOG_DIR.glob("bot_*.log"),reverse=True) if LOG_DIR.exists() else []
+        log = logs[0] if logs else None
+    last_line = ""
+    if log:
+        try:
+            lines = log.read_text(encoding="utf-8",errors="replace").splitlines()
+            last_line = lines[-1].strip() if lines else ""
+        except:
+            pass
+    status = "ACTIVOS" if n > 0 else "DETENIDOS"
+    return (
+        f"*Estado: {status}*\n"
+        f"Procesos: {n}\n"
+        f"UTC: {datetime.utcnow().strftime(chr(37)+'H:%M:%S')}\n"
+        f"Ultimo log: `{last_line[:120]}`"
+    )
+
+def _get_log():
+    today = datetime.now().strftime("%Y%m%d")
+    log = LOG_DIR / f"bot_{today}.log"
+    if not log.exists():
+        logs = sorted(LOG_DIR.glob("bot_*.log"),reverse=True) if LOG_DIR.exists() else []
+        if not logs: return "Sin datos."
+        log = logs[0]
+    try:
+        lines = log.read_text(encoding="utf-8",errors="replace").splitlines()
+        last = "\n".join(lines[-20:])
+        return f"*Log (ultimas 20 lineas):*\n`{last[:3500]}`"
+    except Exception as e:
+        return f"Error: {e}"
+
+def _get_balance():
+    today = datetime.now().strftime("%Y%m%d")
+    log = LOG_DIR / f"bot_{today}.log"
+    if not log.exists():
+        logs = sorted(LOG_DIR.glob("bot_*.log"), reverse=True) if LOG_DIR.exists() else []
+        if not logs: return "Sin datos."
+        log = logs[0]
+    try:
+        lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
+        bal = [l for l in lines if "Balance=" in l and "Equity=" in l]
+        return f"*Ultimo balance:*\n`{bal[-1].strip()}`" if bal else "Sin datos de balance."
+    except Exception as e:
+        return f"Error: {e}"
+
+HELP_TEXT = (
+    "*MT5 Bot Commander*\n\n"
+    "/start\\_bots  - Iniciar los bots\n"
+    "/stop\\_bots   - Detener todos los bots\n"
+    "/status      - Estado actual\n"
+    "/log         - Ultimas 20 lineas del log\n"
+    "/balance     - Ultimo balance/equity registrado\n"
+    "/help        - Este mensaje"
+)
+
+def handle_command(bot, update):
+    text = update.get("message",{}).get("text","").strip()
+    cmd = text.split()[0].lower().split("@")[0]
+    if cmd == "/start_bots":
+        bot.reply(update, "Iniciando bots...")
+        bot.reply(update, _start_bots())
+    elif cmd == "/stop_bots":
+        bot.reply(update, "Deteniendo bots...")
+        bot.reply(update, _stop_bots())
+    elif cmd == "/status":
+        bot.reply(update, _get_status())
+    elif cmd == "/log":
+        bot.reply(update, _get_log())
+    elif cmd == "/balance":
+        bot.reply(update, _get_balance())
+    elif cmd in ("/help", "/start"):
+        bot.reply(update, HELP_TEXT)
+    else:
+        bot.reply(update, f"Comando no reconocido: `{text}`\nUsa /help.")
+
+def main():
+    import logging
+    log_file = str(LOG_DIR / "telegram_commander.log")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(log_file, encoding="utf-8"),
+        ],
+    )
+    log = logging.getLogger("commander")
+
+    env = _load_env()
+    token = env.get("MT5_TELEGRAM_TOKEN","")
+    chat_id_str = env.get("MT5_TELEGRAM_CHAT_ID","")
+    if not token or not chat_id_str:
+        log.error("Falta MT5_TELEGRAM_TOKEN o MT5_TELEGRAM_CHAT_ID en .env")
+        sys.exit(1)
+    allowed_chat_id = int(chat_id_str)
+    bot = TelegramBot(token, allowed_chat_id)
+    log.info("Telegram Commander iniciado. Chat ID: %s | Token suffix: ...%s",
+             allowed_chat_id, token[-8:])
+
+    log.info("Drenando actualizaciones pendientes...")
+    bot.get_updates()
+
+    log.info("Enviando mensaje de inicio a chat_id=%s ...", allowed_chat_id)
+    result = bot._call("sendMessage", {
+        "chat_id": allowed_chat_id,
+        "text": f"*MT5 Commander conectado*\nUTC: {datetime.utcnow().strftime(chr(37)+'Y-%m-%d %H:%M:%S')}\nUsa /help para ver comandos.",
+        "parse_mode": "Markdown",
+    })
+    if result.get("ok"):
+        log.info("Mensaje de inicio enviado OK.")
+    else:
+        log.warning("No se pudo enviar mensaje de inicio: %s", result)
+        log.warning("Verifica que MT5_TELEGRAM_CHAT_ID sea tu ID personal (no el del bot).")
+        log.warning("Usa @userinfobot en Telegram para obtener tu ID.")
+
+    log.info("Esperando comandos...")
+    while True:
+        try:
+            for update in bot.get_updates():
+                if "message" not in update:
+                    continue
+                if not bot.is_allowed(update):
+                    cid = update["message"]["chat"]["id"]
+                    log.info("Acceso denegado a chat_id=%s", cid)
+                    bot.send(cid, "No autorizado.")
+                    continue
+                text = update.get("message",{}).get("text","")
+                log.info("Comando recibido: %r", text)
+                handle_command(bot, update)
+        except KeyboardInterrupt:
+            log.info("Commander detenido por teclado.")
+            break
+        except Exception as e:
+            log.error("Error en bucle principal: %s", e)
+            time.sleep(5)
+
+if __name__ == "__main__":
+    main()

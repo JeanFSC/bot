@@ -1,0 +1,13 @@
+===DEBUG=== 
+Python 3.13.13
+PYTHONPATH=C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot\src 
+CWD=C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot 
+STDERR TEST
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import sys; sys.stderr.write('STDERR TEST\n'); import mt5_bot.config; print('config OK')
+                                                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jean_\Desktop\Pagina web\mt5_trading_bot\src\mt5_bot\config.py", line 173
+    sitions != 1:
+                ^
+SyntaxError: invalid syntax
