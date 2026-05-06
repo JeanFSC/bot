@@ -29,6 +29,7 @@ max_same_currency_positions: 2
 cooldown_seconds:     30
 
 profit_target_usd: null
+baseline_equity: 102000.0
 
 database_path: data/pro_gbp.sqlite
 
@@ -49,7 +50,7 @@ partial_close_ratio:  0.5
 # -- Risk sizing --------------------------------------------------------------
 risk:
   mode:       percent_equity
-  risk_pct:   1.2
+  risk_pct:   1.8
   fixed_lot:  0.5
   sl_pips:    25
   tp_pips:    50

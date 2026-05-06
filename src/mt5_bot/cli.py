@@ -407,6 +407,17 @@ def run_trade(
             from dataclasses import replace as dc_replace
             base_risk_pct = config.risk.risk_pct * _corr_risk_factor
 
+            # Compounding: +10% risk_pct por cada 5% de ganancia sobre baseline
+            _baseline = getattr(config, "baseline_equity", 0.0)
+            if _baseline > 0:
+                _growth_pct = max(0.0, (float(account.equity) - _baseline) / _baseline * 100.0)
+                _compound_factor = 1.0 + (_growth_pct // 5) * 0.10
+                _compound_factor = min(_compound_factor, 2.5)
+                if _compound_factor > 1.0:
+                    base_risk_pct = base_risk_pct * _compound_factor
+                    LOGGER.info("Compound boost: equity_growth=%.1f%% → factor=%.2fx risk_pct=%.2f%%",
+                                _growth_pct, _compound_factor, base_risk_pct)
+
             # Compute adaptive cooldown from consecutive losses
             _consec = storage.get_consecutive_losses(config.symbol, config.execution.magic) if config.use_equity_curve_filter else 0
             if _consec == 1:
@@ -416,12 +427,17 @@ def run_trade(
             elif _consec >= 3:
                 _adaptive_cooldown = 300.0
 
-            # ── MEJORA 6: Dynamic ADX risk scaling ───────────────────────────
-            # ADX > 30 = strong trend → boost risk 25%
-            # ADX < adx_min_value = weak trend → reduce risk 25%
+            # ── MEJORA 6: Dynamic ADX risk scaling (tiered) ──────────────────
+            # ADX > 50 = extremo → 2.0x | > 40 → 1.75x | > 30 → 1.25x | débil → 0.75x
             if entry_signal.adx is not None:
                 adx_val = entry_signal.adx
-                if adx_val > 30:
+                if adx_val > 50:
+                    base_risk_pct = base_risk_pct * 2.0
+                    LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                elif adx_val > 40:
+                    base_risk_pct = base_risk_pct * 1.75
+                    LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                elif adx_val > 30:
                     base_risk_pct = base_risk_pct * 1.25
                     LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val < strategy_config.adx_min_value:

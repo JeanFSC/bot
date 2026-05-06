@@ -98,6 +98,7 @@ class BotConfig:
     max_total_margin_pct: float = 85.0
     max_portfolio_open_positions: int = 3
     max_same_currency_positions: int = 2
+    baseline_equity: float = 0.0
     account: Optional[AccountConfig] = None
     risk: RiskConfig = field(default_factory=RiskConfig)
     strategy: StrategySettings = field(default_factory=StrategySettings)
@@ -169,6 +170,7 @@ def load_config(path: str | Path) -> BotConfig:
         max_total_margin_pct=float(raw.get("max_total_margin_pct", 85.0)),
         max_portfolio_open_positions=int(raw.get("max_portfolio_open_positions", 3)),
         max_same_currency_positions=int(raw.get("max_same_currency_positions", 2)),
+        baseline_equity=float(raw.get("baseline_equity", 0.0)),
         account=account,
         risk=RiskConfig(**risk_raw),
         strategy=StrategySettings(**strategy_kwargs),
