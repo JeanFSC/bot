@@ -73,11 +73,11 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 18            # Lowered 22->18: captura early trends
+  adx_min_value: 22
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
-  atr_tp_multiplier: 2.5       # Lowered 4.0->2.5: mayor win rate
+  atr_tp_multiplier: 3.0
   use_atr_sl_tp: true
 
   session_start_hour: 7
