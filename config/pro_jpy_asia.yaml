@@ -7,7 +7,7 @@
 
 symbol:           USDJPY
 timeframe:        M15
-trend_timeframe:  H1
+trend_timeframe:  M30
 poll_seconds:     15
 demo_only:        true
 
@@ -50,8 +50,8 @@ strategy:
   use_trend_filter: true
 
   rsi_period:    14
-  rsi_buy_max:   65
-  rsi_sell_min:  35
+  rsi_buy_max:   70
+  rsi_sell_min:  30
   use_rsi_filter: true
   use_rsi_momentum: false
 
@@ -78,7 +78,8 @@ strategy:
   breakeven_atr_multiplier:   0.8
   trailing_atr_multiplier:    1.5
 
-  use_retest_filter: false
+  use_retest_filter: true
+  retest_timeout_bars: 4
 
 execution:
   magic:        260445
