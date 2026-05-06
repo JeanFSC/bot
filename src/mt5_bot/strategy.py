@@ -63,6 +63,8 @@ class StrategyConfig:
     use_trailing_stop: bool = False
     breakeven_atr_multiplier: float = 1.0
     trailing_atr_multiplier: float = 1.5
+    # ── Retest filter timeout ─────────────────────────────────────────────────
+    retest_timeout_bars: int = 0   # 0 = no timeout; N = expire pending retest after N bars
 
 
 @dataclass(frozen=True)

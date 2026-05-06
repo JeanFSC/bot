@@ -189,6 +189,7 @@ def run_trade(
     # pull back to the slow EMA before entering. pending_retest holds the
     # original crossover signal until the retest fires or is invalidated.
     pending_retest: Signal | None = None
+    _pending_retest_bars: int = 0
     _adaptive_cooldown: float = 0.0   # extra sleep after a loss
 
     try:
@@ -357,33 +358,61 @@ def run_trade(
             # EURUSD & GBPUSD ~85% correlated. If both signal same direction
             # simultaneously, effective risk doubles. Detect via open positions
             # on correlated magic numbers and halve size if conflict found.
+            # Direct correlation: same currency exposure in same direction
             _correlated_pairs = {
                 "EURUSD": [("GBPUSD", 260434), ("AUDUSD", 260437)],
-                "GBPUSD": [("EURUSD", 260433), ("AUDUSD", 260437)],
+                "GBPUSD": [("EURUSD", 260433), ("AUDUSD", 260437), ("GBPJPY", 260443)],
                 "AUDUSD": [("EURUSD", 260433), ("GBPUSD", 260434), ("NZDUSD", 260442)],
                 "NZDUSD": [("AUDUSD", 260437)],
+                "GBPJPY": [("GBPUSD", 260434)],
+            }
+            # Inverse correlation: same USD directional exposure when signal directions differ
+            # e.g. EURUSD BUY (short USD) + USDCHF SELL (short USD) = doubled USD short
+            _inverse_pairs = {
+                "USDCHF": [("EURUSD", 260433)],
+                "USDCAD": [("EURUSD", 260433), ("GBPUSD", 260434)],
             }
             _corr_risk_factor = 1.0
-            if signal.type is not SignalType.NONE and config.symbol in _correlated_pairs:
+            if signal.type is not SignalType.NONE:
                 try:
                     all_positions = gateway.positions_get()
-                    for _corr_sym, _corr_magic in _correlated_pairs[config.symbol]:
-                        _corr_pos = [
-                            p for p in (all_positions or [])
-                            if p.symbol == _corr_sym and int(p.magic) == _corr_magic
-                        ]
-                        if _corr_pos:
-                            _corr_type = int(_corr_pos[0].type)  # 0=buy, 1=sell
-                            _same_dir = (
-                                (signal.type is SignalType.BUY  and _corr_type == 0) or
-                                (signal.type is SignalType.SELL and _corr_type == 1)
-                            )
-                            if _same_dir:
-                                _corr_risk_factor = 0.5
-                                LOGGER.info(
-                                    "Correlation guard: %s already %s → halving risk for %s",
-                                    _corr_sym, signal.type.value, config.symbol,
+                    if config.symbol in _correlated_pairs:
+                        for _corr_sym, _corr_magic in _correlated_pairs[config.symbol]:
+                            _corr_pos = [
+                                p for p in (all_positions or [])
+                                if p.symbol == _corr_sym and int(p.magic) == _corr_magic
+                            ]
+                            if _corr_pos:
+                                _corr_type = int(_corr_pos[0].type)  # 0=buy, 1=sell
+                                _same_dir = (
+                                    (signal.type is SignalType.BUY  and _corr_type == 0) or
+                                    (signal.type is SignalType.SELL and _corr_type == 1)
                                 )
+                                if _same_dir:
+                                    _corr_risk_factor = 0.5
+                                    LOGGER.info(
+                                        "Correlation guard: %s already %s → halving risk for %s",
+                                        _corr_sym, signal.type.value, config.symbol,
+                                    )
+                    if config.symbol in _inverse_pairs:
+                        for _corr_sym, _corr_magic in _inverse_pairs[config.symbol]:
+                            _corr_pos = [
+                                p for p in (all_positions or [])
+                                if p.symbol == _corr_sym and int(p.magic) == _corr_magic
+                            ]
+                            if _corr_pos:
+                                _corr_type = int(_corr_pos[0].type)  # 0=buy, 1=sell
+                                _same_exposure = (
+                                    (signal.type is SignalType.SELL and _corr_type == 0) or
+                                    (signal.type is SignalType.BUY  and _corr_type == 1)
+                                )
+                                if _same_exposure:
+                                    _corr_risk_factor = 0.5
+                                    LOGGER.info(
+                                        "Inverse correlation guard: %s %s + %s %s → same USD exposure → halving risk",
+                                        _corr_sym, "BUY" if _corr_type == 0 else "SELL",
+                                        config.symbol, signal.type.value,
+                                    )
                 except Exception:
                     pass  # non-blocking
 
@@ -398,10 +427,22 @@ def run_trade(
                 if signal.type is not SignalType.NONE:
                     # Fresh crossover — save as pending (wait for retest)
                     pending_retest = signal
+                    _pending_retest_bars = 0
                     LOGGER.info("Retest filter: crossover detected, waiting for pullback to slow EMA")
+                elif pending_retest is not None:
+                    _pending_retest_bars += 1
+                    _retest_timeout = getattr(strategy_config, "retest_timeout_bars", 0)
+                    if _retest_timeout > 0 and _pending_retest_bars >= _retest_timeout:
+                        LOGGER.info(
+                            "Retest filter: timeout after %d bars — pending retest expired",
+                            _pending_retest_bars,
+                        )
+                        pending_retest = None
+                        _pending_retest_bars = 0
                 if entry_signal.type is not SignalType.NONE and entry_signal is not signal:
                     LOGGER.info("Retest filter: retest confirmed — entering trade")
-                    pending_retest = None  # consumed
+                    pending_retest = None
+                    _pending_retest_bars = 0
 
             # ── MEJORA 5: Equity curve management ────────────────────────────
             # After N consecutive losses, apply lot_reduction_factor to config
@@ -667,13 +708,33 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
                 config.symbol, config.timeframe, 0, 50
             )
             from mt5_bot.strategy import detect_signal, StrategyConfig
+            from dataclasses import replace as _dc_replace
             sc = StrategyConfig(**{
                 f: getattr(config.strategy, f)
                 for f in StrategyConfig.__dataclass_fields__
             })
             sig = detect_signal(signal_rates, sc)
             if sig.atr_pips and sig.atr_pips > 0:
-                for tr in executor.manage_trailing_stops(sig.atr_pips):
+                # Adaptive trailing: tighten multiplier when ADX weakens below threshold
+                _trailing_config = config
+                if (
+                    sig.adx is not None
+                    and config.strategy.use_adx_filter
+                    and sig.adx < config.strategy.adx_min_value
+                    and config.strategy.trailing_atr_multiplier > 1.0
+                ):
+                    _tight_strategy = _dc_replace(
+                        config.strategy, trailing_atr_multiplier=1.0
+                    )
+                    _trailing_config = _dc_replace(config, strategy=_tight_strategy)
+                    LOGGER.info(
+                        "Adaptive trailing: ADX=%.1f < %.1f → tightening to 1.0x ATR",
+                        sig.adx, config.strategy.adx_min_value,
+                    )
+                _trail_executor = TradeExecutor(
+                    executor.gateway, executor.storage, _trailing_config
+                )
+                for tr in _trail_executor.manage_trailing_stops(sig.atr_pips):
                     LOGGER.info("TrailingStop (idle) status=%s reason=%s", tr.status, tr.reason)
                 if config.use_partial_close:
                     for pc in executor.manage_partial_close(sig.atr_pips):

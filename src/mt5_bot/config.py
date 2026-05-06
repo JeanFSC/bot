@@ -60,6 +60,7 @@ class StrategySettings:
     breakeven_atr_multiplier: float = 1.0
     trailing_atr_multiplier: float = 1.5
     use_retest_filter: bool = False
+    retest_timeout_bars: int = 0
 
 
 @dataclass(frozen=True)

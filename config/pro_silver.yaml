@@ -76,7 +76,8 @@ strategy:
   breakeven_atr_multiplier:   0.8
   trailing_atr_multiplier:    2.0
 
-  use_retest_filter: false
+  use_retest_filter: true
+  retest_timeout_bars: 4
 
 execution:
   magic:        260444
