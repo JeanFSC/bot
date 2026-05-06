@@ -67,7 +67,7 @@ strategy:
   use_atr_sl_tp: true
 
   session_start_hour: 0
-  session_end_hour:   23
+  session_end_hour:   24
   use_session_filter: true
 
   use_trailing_stop:          true

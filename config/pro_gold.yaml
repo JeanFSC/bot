@@ -43,7 +43,6 @@ database_path: data/pro_gold.sqlite
 use_news_filter:      true
 news_minutes_before:  45      # Gold reacciona fuerte a NFP/FOMC
 news_minutes_after:   20
-news_symbols:         ["XAUUSD", "USD"]
 
 # -- Equity curve management --------------------------------------------------
 use_equity_curve_filter:  true

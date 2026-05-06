@@ -70,7 +70,7 @@ strategy:
   session_start_hour: 20
   session_end_hour:   24
   use_session_filter: true
-  session2_start_hour: 0
+  session2_start_hour: 4
   session2_end_hour:   7
   use_session2:        true
 

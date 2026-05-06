@@ -63,7 +63,7 @@ strategy:
   slow_ema: 21
 
   trend_ema:        50
-  use_trend_filter: true       # H1 EMA50 trend filter aplica en cualquier sesion
+  use_trend_filter: true
 
   rsi_period:    14
   rsi_buy_max:   65

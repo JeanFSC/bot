@@ -360,7 +360,8 @@ def run_trade(
             _correlated_pairs = {
                 "EURUSD": [("GBPUSD", 260434), ("AUDUSD", 260437)],
                 "GBPUSD": [("EURUSD", 260433), ("AUDUSD", 260437)],
-                "AUDUSD": [("EURUSD", 260433), ("GBPUSD", 260434)],
+                "AUDUSD": [("EURUSD", 260433), ("GBPUSD", 260434), ("NZDUSD", 260442)],
+                "NZDUSD": [("AUDUSD", 260437)],
             }
             _corr_risk_factor = 1.0
             if signal.type is not SignalType.NONE and config.symbol in _correlated_pairs:
