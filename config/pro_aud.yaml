@@ -76,7 +76,7 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 22
+  adx_min_value: 20
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5

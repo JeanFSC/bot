@@ -82,7 +82,7 @@ strategy:
 
   # ADX trend-strength gate
   adx_period:    14
-  adx_min_value: 22
+  adx_min_value: 20
   use_adx_filter: true
 
   # Dynamic SL/TP based on ATR

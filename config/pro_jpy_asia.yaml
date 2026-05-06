@@ -38,7 +38,7 @@ lot_reduction_factor:     0.5
 
 risk:
   mode:       percent_equity
-  risk_pct:   1.5
+  risk_pct:   1.8
   fixed_lot:  0.5
   sl_pips:    25
   tp_pips:    50
@@ -60,7 +60,7 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 22
+  adx_min_value: 20
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
@@ -75,7 +75,7 @@ strategy:
   use_session2:        true
 
   use_trailing_stop:          true
-  breakeven_atr_multiplier:   1.0
+  breakeven_atr_multiplier:   0.8
   trailing_atr_multiplier:    1.5
 
   use_retest_filter: false
