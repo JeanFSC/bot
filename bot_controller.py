@@ -280,7 +280,7 @@ def _fmt(raw: str):
     bm = re.match(r'\[(\d{2}:\d{2}:\d{2})[^\]]*\]\s*(.*)', raw)
     if bm:
         hm, msg = bm.group(1)[:5], bm.group(2).strip()
-        if "iniciando" in msg:
+        if "=====" in msg:
             return f"{hm}  ▶   {msg}", "sep"
         if "CHECK OK" in msg:
             return f"{hm}  ✓   CHECK OK — trade loop arrancando", "sent"
