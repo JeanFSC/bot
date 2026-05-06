@@ -2,23 +2,25 @@
 cd /d "%~dp0"
 set PYTHONPATH=%~dp0src
 set PYTHONUNBUFFERED=1
+set BOTLOG=logs\bot_eurusd.log
 title PRO EURUSD
+if not exist logs mkdir logs
 
 :loop
-echo.
-echo [%TIME%] ========== PRO EURUSD — iniciando ==========
-python -m mt5_bot check --config config/pro.yaml 2>> logs\check_errors_eurusd.log
+echo. >> %BOTLOG%
+echo [%TIME%] ===== PRO EURUSD iniciando ===== >> %BOTLOG%
+python -m mt5_bot check --config config/pro.yaml >> %BOTLOG% 2>&1
 if errorlevel 1 (
-    echo [%TIME%] [EURUSD] CHECK failed — reintentando en 30s...
-    timeout /t 30 /nobreak >nul
+    echo [%TIME%] [EURUSD] CHECK failed -- reintentando en 30s >> %BOTLOG%
+    timeout /t 30 /nobreak >/dev/null
     goto loop
 )
-echo [%TIME%] [EURUSD] CHECK OK — arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro.yaml --db data/pro.sqlite --trade-enabled 2>> logs\trade_errors_eurusd.log
+echo [%TIME%] [EURUSD] CHECK OK -- arrancando trade loop >> %BOTLOG%
+python -m mt5_bot trade --config config/pro.yaml --db data/pro.sqlite --trade-enabled >> %BOTLOG% 2>&1
 if errorlevel 1 (
-    echo [%TIME%] [EURUSD] Bot crasheo — reiniciando en 10s...
-    timeout /t 10 /nobreak >nul
+    echo [%TIME%] [EURUSD] Bot crasheo -- reiniciando en 10s >> %BOTLOG%
+    timeout /t 10 /nobreak >/dev/null
     goto loop
 )
-echo [%TIME%] [EURUSD] Bot detenido por el usuario.
+echo [%TIME%] [EURUSD] Bot detenido por el usuario >> %BOTLOG%
 pause
