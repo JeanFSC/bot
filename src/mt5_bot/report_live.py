@@ -111,7 +111,7 @@ def format_pnl_report(results: list[dict[str, Any]], days: int) -> str:
     sep = "=" * 64
     lines = [
         sep,
-        f"  P&L AISLADO POR BOT — últimos {days} día(s)  [{_now_utc()}]",
+        f"  P&L AISLADO POR BOT - ultimos {days} dia(s)  [{_now_utc()}]",
         sep,
     ]
 
@@ -132,11 +132,11 @@ def format_pnl_report(results: list[dict[str, Any]], days: int) -> str:
 
         lines += [
             "",
-            f"  ▸ {r['label']}   (magic {r['magic']})",
+            f"  > {r['label']}   (magic {r['magic']})",
             f"    Trades cerrados : {r['trades']:>3}   {wl}   Win rate: {wr}",
             f"    Net P&L         : {net_s}",
-            f"      └ bruto {'+' if r['gross_profit']>=0 else ''}{r['gross_profit']:.2f}"
-            f"  comisión {r['commission']:.2f}  swap {r['swap']:.2f}",
+            f"      bruto {'+' if r['gross_profit']>=0 else ''}{r['gross_profit']:.2f}"
+            f"  comision {r['commission']:.2f}  swap {r['swap']:.2f}",
             f"    Profit factor   : {pf}",
             f"    Avg win / loss  : {avg_w} / {avg_l}",
         ]

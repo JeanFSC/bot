@@ -1,193 +1,273 @@
 """
-MT5 Bot Controller v2 -- Panel de control simple
-Bugs fixes: no state=disabled (Windows black text bug),
-            wmic kill (no mata el controller), pythonw path robusto
+MT5 Bot Controller v3 — dashboard 12 bots
+
+Metodología Claude: operación agresiva pero controlada. Este controller no toma
+trades; solo lanza/detiene bats, cuenta procesos mt5_bot y muestra logs vivos
+por bot para detectar rápido CHECK failed, crashes, señales y ejecuciones.
 """
-import subprocess, threading, time, os, sys, tkinter as tk
-from pathlib import Path
+from __future__ import annotations
+
+import os
+import subprocess
+import threading
+import time
+import tkinter as tk
+from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 
-BOT_DIR  = Path(__file__).resolve().parent
+BOT_DIR = Path(__file__).resolve().parent
 BAT_FILE = BOT_DIR / "_run_all_pro_autorestart.bat"
-LOG_DIR  = BOT_DIR / "logs"
-BOT_TITLES = ["PRO EURUSD","PRO GBPUSD","PRO USDJPY","PRO GOLD","PRO AUDUSD"]
+LOG_DIR = BOT_DIR / "logs"
+FLAGS = 0x08000000  # CREATE_NO_WINDOW
 
-BG       = "#0f0f1a"
-CARD     = "#1a1a2e"
-GREEN    = "#00d2a0"
-GDIM     = "#005a44"
-RED      = "#ff4757"
-RDIM     = "#5a0000"
-YELLOW   = "#ffa502"
-WHITE    = "#e8e8f0"
-GRAY     = "#4a4a6a"
-GRLT     = "#7a7a9a"
-BORDER   = "#2a2a4a"
-FLAGS    = 0x08000000  # CREATE_NO_WINDOW
+BG = "#0f0f1a"
+CARD = "#1a1a2e"
+BORDER = "#2a2a4a"
+WHITE = "#e8e8f0"
+GRAY = "#6c7086"
+GREEN = "#69f0ae"
+GDIM = "#164b3a"
+RED = "#ff5252"
+RDIM = "#5a1a24"
+YELLOW = "#ffd166"
+BLUE = "#9fa8da"
 
-def _count_bots():
+
+@dataclass(frozen=True)
+class BotPanel:
+    key: str
+    title: str
+    window_title: str
+    log_file: str
+
+
+BOTS: list[BotPanel] = [
+    BotPanel("eurusd", "EURUSD", "PRO EURUSD", "bot_eurusd.log"),
+    BotPanel("gbpusd", "GBPUSD", "PRO GBPUSD", "bot_gbpusd.log"),
+    BotPanel("jpy", "USDJPY", "PRO USDJPY", "bot_jpy.log"),
+    BotPanel("gold", "XAUUSD", "PRO XAUUSD (Gold)", "bot_gold.log"),
+    BotPanel("aud", "AUDUSD", "PRO AUDUSD", "bot_aud.log"),
+    BotPanel("gold_m5", "GOLD M5", "PRO XAUUSD M5 (Gold 24h)", "bot_gold_m5.log"),
+    BotPanel("usdcad", "USDCAD", "PRO USDCAD", "bot_usdcad.log"),
+    BotPanel("nzdusd", "NZDUSD", "PRO NZDUSD", "bot_nzdusd.log"),
+    BotPanel("gbpjpy", "GBPJPY", "PRO GBPJPY", "bot_gbpjpy.log"),
+    BotPanel("silver", "XAGUSD", "PRO XAGUSD (Silver)", "bot_silver.log"),
+    BotPanel("jpy_asia", "JPY ASIA", "PRO USDJPY ASIA", "bot_jpy_asia.log"),
+    BotPanel("usdchf", "USDCHF", "PRO USDCHF", "bot_usdchf.log"),
+]
+BOT_TITLES = [b.window_title for b in BOTS]
+
+
+def count_bots() -> int:
+    """Count mt5_bot Python processes. Uses CIM because WMIC is absent on newer Windows."""
     try:
+        ps = (
+            "$p=Get-CimInstance Win32_Process | "
+            "Where-Object { $_.Name -match 'python' -and $_.CommandLine -match 'mt5_bot' }; "
+            "@($p).Count"
+        )
         r = subprocess.run(
-            ["wmic","process","where",
-             "name='python.exe' and commandline like '%mt5_bot%'",
-             "get","ProcessId","/format:list"],
-            capture_output=True, text=True, timeout=8, creationflags=FLAGS)
-        return sum(1 for l in r.stdout.splitlines() if l.strip().startswith("ProcessId="))
-    except:
+            ["powershell", "-NoProfile", "-Command", ps],
+            capture_output=True,
+            text=True,
+            timeout=8,
+            creationflags=FLAGS,
+        )
+        return int((r.stdout or "0").strip().splitlines()[-1])
+    except Exception:
         return 0
 
-def _kill_bots():
-    subprocess.run(
-        ["wmic","process","where",
-         "name='python.exe' and commandline like '%mt5_bot%'",
-         "call","terminate"],
-        capture_output=True, creationflags=FLAGS)
-    for t in BOT_TITLES:
-        subprocess.run(["taskkill","/F","/FI",f"WINDOWTITLE eq {t}"],
-                       capture_output=True, creationflags=FLAGS)
 
-def _log_tail(n=14):
-    today = datetime.now().strftime("%Y%m%d")
-    log = LOG_DIR / f"bot_{today}.log"
-    if not log.exists():
-        logs = sorted(LOG_DIR.glob("bot_*.log"),reverse=True) if LOG_DIR.exists() else []
-        if not logs: return "(sin log)"
-        log = logs[0]
+def kill_bots() -> None:
+    ps = (
+        "Get-CimInstance Win32_Process | "
+        "Where-Object { $_.Name -match 'python' -and $_.CommandLine -match 'mt5_bot' } | "
+        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+    )
+    subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, creationflags=FLAGS)
+    for title in BOT_TITLES:
+        subprocess.run(
+            ["taskkill", "/F", "/FI", f"WINDOWTITLE eq {title}"],
+            capture_output=True,
+            creationflags=FLAGS,
+        )
+
+
+def read_tail(path: Path, n: int = 8) -> list[str]:
+    if not path.exists():
+        return ["(sin log)"]
     try:
-        lines = log.read_text(encoding="utf-8",errors="replace").splitlines()
-        return "\n".join(lines[-n:]) if lines else "(vacio)"
-    except Exception as e:
-        return f"(error: {e})"
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        return lines[-n:] if lines else ["(log vacío)"]
+    except Exception as exc:
+        return [f"(error leyendo log: {exc})"]
 
-def _log_mtime():
-    today = datetime.now().strftime("%Y%m%d")
-    log = LOG_DIR / f"bot_{today}.log"
-    try: return log.stat().st_mtime
-    except: return 0.0
+
+def fmt_color(line: str) -> str:
+    raw = line.lower()
+    if "signal=buy" in raw:
+        return GREEN
+    if "signal=sell" in raw:
+        return RED
+    if "status=sent" in raw or "check ok" in raw:
+        return GREEN
+    if "check failed" in raw or "crasheo" in raw or "crash" in raw or "exception" in raw or "error" in raw:
+        return RED
+    if "spread filter" in raw or "session filter" in raw or "no_closed_bar" in raw or "retest_" in raw:
+        return YELLOW
+    if "=====" in raw:
+        return WHITE
+    return BLUE
+
 
 class App(tk.Tk):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.title("MT5 Bot Controller")
-        self.geometry("700x540")
-        self.minsize(600,460)
+        self.title("MT5 Bot Controller v3 — 12 bots")
+        self.geometry("1400x820")
+        self.minsize(1180, 720)
         self.configure(bg=BG)
         self._busy = False
-        self._mtime = 0.0
+        self.cards: dict[str, dict[str, object]] = {}
         self._build()
         self._loop()
 
-    def _build(self):
-        hdr = tk.Frame(self,bg=CARD,pady=14); hdr.pack(fill="x")
-        tk.Label(hdr,text="MT5 PRO BOT SUITE",font=("Segoe UI",18,"bold"),bg=CARD,fg=WHITE).pack()
-        tk.Label(hdr,text="EURUSD  |  GBPUSD  |  USDJPY  |  XAUUSD  |  AUDUSD",
-                 font=("Segoe UI",9),bg=CARD,fg=GRLT).pack(pady=(2,0))
-        tk.Frame(self,bg=BORDER,height=2).pack(fill="x")
+    def _build(self) -> None:
+        header = tk.Frame(self, bg=CARD, pady=12)
+        header.pack(fill="x")
+        tk.Label(header, text="MT5 PRO BOT SUITE v3", font=("Segoe UI", 20, "bold"), bg=CARD, fg=WHITE).pack()
+        tk.Label(
+            header,
+            text="12 bots · cobertura 24h · portfolio guard max 5 trades · ADX boost + compounding",
+            font=("Segoe UI", 10), bg=CARD, fg=GRAY,
+        ).pack(pady=(2, 0))
+        tk.Frame(self, bg=BORDER, height=2).pack(fill="x")
 
-        sf = tk.Frame(self,bg=BG,pady=12); sf.pack(fill="x",padx=20)
-        self.dot = tk.Label(sf,text="●",font=("Segoe UI",16),bg=BG,fg=GRAY); self.dot.pack(side="left")
-        self.slbl = tk.Label(sf,text="Verificando...",font=("Segoe UI",12,"bold"),bg=BG,fg=GRLT)
-        self.slbl.pack(side="left",padx=(8,0))
-        self.plbl = tk.Label(sf,text="",font=("Segoe UI",9),bg=BG,fg=GRAY)
-        self.plbl.pack(side="right")
+        status = tk.Frame(self, bg=BG, pady=10)
+        status.pack(fill="x", padx=18)
+        self.dot = tk.Label(status, text="●", font=("Segoe UI", 16), bg=BG, fg=GRAY)
+        self.dot.pack(side="left")
+        self.status_lbl = tk.Label(status, text="Verificando...", font=("Segoe UI", 12, "bold"), bg=BG, fg=GRAY)
+        self.status_lbl.pack(side="left", padx=(8, 0))
+        self.process_lbl = tk.Label(status, text="", font=("Segoe UI", 9), bg=BG, fg=GRAY)
+        self.process_lbl.pack(side="right")
 
-        bf = tk.Frame(self,bg=BG); bf.pack(fill="x",padx=20,pady=(0,14))
-        # BUG FIX: NEVER use state=disabled -- colors turn black on Windows
-        # Instead use _busy flag and change colors/cursor only
-        self.bstart = tk.Button(bf,text="\u25b6  INICIAR BOTS",font=("Segoe UI",14,"bold"),
-            bg=GREEN,fg="#000000",activebackground="#00b890",activeforeground="#000000",
-            relief="flat",bd=0,cursor="hand2",padx=20,pady=18,command=self._start)
-        self.bstart.pack(side="left",expand=True,fill="x",padx=(0,8))
-        self.bstop = tk.Button(bf,text="\u25a0  DETENER BOTS",font=("Segoe UI",14,"bold"),
-            bg=RED,fg="#ffffff",activebackground="#cc3344",activeforeground="#ffffff",
-            relief="flat",bd=0,cursor="hand2",padx=20,pady=18,command=self._stop)
-        self.bstop.pack(side="left",expand=True,fill="x",padx=(8,0))
+        buttons = tk.Frame(self, bg=BG)
+        buttons.pack(fill="x", padx=18, pady=(0, 10))
+        self.start_btn = tk.Button(
+            buttons, text="▶ INICIAR 12 BOTS", font=("Segoe UI", 13, "bold"), bg=GREEN, fg="#000",
+            activebackground="#00b890", activeforeground="#000", relief="flat", padx=16, pady=12,
+            command=self._start, cursor="hand2",
+        )
+        self.start_btn.pack(side="left", expand=True, fill="x", padx=(0, 8))
+        self.stop_btn = tk.Button(
+            buttons, text="■ DETENER BOTS", font=("Segoe UI", 13, "bold"), bg=RED, fg="#fff",
+            activebackground="#cc3344", activeforeground="#fff", relief="flat", padx=16, pady=12,
+            command=self._stop, cursor="hand2",
+        )
+        self.stop_btn.pack(side="left", expand=True, fill="x", padx=(8, 0))
 
-        lh = tk.Frame(self,bg=BG); lh.pack(fill="x",padx=20,pady=(6,4))
-        tk.Label(lh,text="LOG EN TIEMPO REAL",font=("Segoe UI",8,"bold"),bg=BG,fg=GRLT).pack(side="left")
-        self.ltlbl = tk.Label(lh,text="",font=("Segoe UI",8),bg=BG,fg=GRAY); self.ltlbl.pack(side="right")
+        grid = tk.Frame(self, bg=BG)
+        grid.pack(fill="both", expand=True, padx=14, pady=(0, 14))
+        for r in range(4):
+            grid.rowconfigure(r, weight=1)
+        for c in range(3):
+            grid.columnconfigure(c, weight=1)
 
-        lw = tk.Frame(self,bg=CARD,highlightbackground=BORDER,highlightthickness=1)
-        lw.pack(fill="both",expand=True,padx=20,pady=(0,14))
-        self.txt = tk.Text(lw,font=("Consolas",8),bg=CARD,fg="#a0c4a0",
-                           relief="flat",bd=8,state="disabled",wrap="none")
-        sb = tk.Scrollbar(lw,orient="vertical",command=self.txt.yview)
-        self.txt.configure(yscrollcommand=sb.set)
-        sb.pack(side="right",fill="y"); self.txt.pack(side="left",fill="both",expand=True)
+        for i, bot in enumerate(BOTS):
+            frame = tk.Frame(grid, bg=CARD, highlightbackground=BORDER, highlightthickness=1)
+            frame.grid(row=i // 3, column=i % 3, sticky="nsew", padx=5, pady=5)
+            top = tk.Frame(frame, bg=CARD)
+            top.pack(fill="x", padx=8, pady=(6, 2))
+            dot = tk.Label(top, text="●", font=("Segoe UI", 11), bg=CARD, fg=GRAY)
+            dot.pack(side="left")
+            tk.Label(top, text=bot.title, font=("Segoe UI", 10, "bold"), bg=CARD, fg=WHITE).pack(side="left", padx=(6, 0))
+            age = tk.Label(top, text="", font=("Segoe UI", 8), bg=CARD, fg=GRAY)
+            age.pack(side="right")
+            txt = tk.Text(frame, font=("Consolas", 7), bg="#111827", fg=BLUE, relief="flat", bd=5, wrap="word", height=7)
+            txt.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+            txt.configure(state="disabled")
+            self.cards[bot.key] = {"dot": dot, "age": age, "text": txt}
 
-        ftr = tk.Frame(self,bg=CARD,pady=6); ftr.pack(fill="x",side="bottom")
-        tk.Label(ftr,text="demo_only=true  |  trade_enabled via bat",
-                 font=("Segoe UI",8),bg=CARD,fg=GRAY).pack()
+        footer = tk.Frame(self, bg=CARD, pady=6)
+        footer.pack(fill="x", side="bottom")
+        tk.Label(footer, text="demo_only=true · trade_enabled vía .bat · no sube .env", font=("Segoe UI", 8), bg=CARD, fg=GRAY).pack()
 
-    def _start(self):
-        if self._busy: return
+    def _start(self) -> None:
+        if self._busy:
+            return
         self._busy = True
-        self._setstatus("Iniciando bots...",YELLOW)
-        threading.Thread(target=self._do_start,daemon=True).start()
+        self._set_status("Iniciando bots...", YELLOW)
+        threading.Thread(target=self._do_start, daemon=True).start()
 
-    def _do_start(self):
+    def _do_start(self) -> None:
         try:
-            subprocess.Popen(["cmd.exe","/c",str(BAT_FILE)],
-                             cwd=str(BOT_DIR),creationflags=subprocess.CREATE_NEW_CONSOLE)
+            subprocess.Popen(["cmd.exe", "/c", str(BAT_FILE)], cwd=str(BOT_DIR), creationflags=subprocess.CREATE_NEW_CONSOLE)
             time.sleep(3)
-        except Exception as e:
-            self.after(0,lambda:self._setstatus(f"Error: {e}",RED))
-        finally: self._busy = False
+        except Exception as exc:
+            self.after(0, lambda: self._set_status(f"Error: {exc}", RED))
+        finally:
+            self._busy = False
 
-    def _stop(self):
-        if self._busy: return
+    def _stop(self) -> None:
+        if self._busy:
+            return
         self._busy = True
-        self._setstatus("Deteniendo bots...",YELLOW)
-        threading.Thread(target=self._do_stop,daemon=True).start()
+        self._set_status("Deteniendo bots...", YELLOW)
+        threading.Thread(target=self._do_stop, daemon=True).start()
 
-    def _do_stop(self):
+    def _do_stop(self) -> None:
         try:
-            _kill_bots(); time.sleep(2)
-        except Exception as e:
-            self.after(0,lambda:self._setstatus(f"Error: {e}",RED))
-        finally: self._busy = False
+            kill_bots()
+            time.sleep(2)
+        except Exception as exc:
+            self.after(0, lambda: self._set_status(f"Error: {exc}", RED))
+        finally:
+            self._busy = False
 
-    def _setstatus(self,msg,color):
-        self.after(0,lambda:(self.slbl.configure(text=msg,fg=color),
-                             self.dot.configure(fg=color)))
+    def _set_status(self, msg: str, color: str) -> None:
+        self.status_lbl.configure(text=msg, fg=color)
+        self.dot.configure(fg=color)
 
-    def _loop(self):
-        self._refresh(); self.after(2000,self._loop)
+    def _loop(self) -> None:
+        self._refresh()
+        self.after(2000, self._loop)
 
-    def _refresh(self):
-        n = _count_bots(); running = n > 0
+    def _refresh(self) -> None:
+        n = count_bots()
+        running = n > 0
         if not self._busy:
-            if running:
-                self.dot.configure(fg=GREEN)
-                self.slbl.configure(text="BOTS ACTIVOS",fg=GREEN)
-                self.plbl.configure(text=f"{n} proceso(s) activos",fg=GRLT)
-                self.bstart.configure(bg=GDIM,fg=GRLT,cursor="arrow",
-                    activebackground=GDIM,activeforeground=GRLT)
-                self.bstop.configure(bg=RED,fg="#ffffff",cursor="hand2",
-                    activebackground="#cc3344",activeforeground="#ffffff")
+            self._set_status("BOTS ACTIVOS" if running else "BOTS DETENIDOS", GREEN if running else RED)
+            self.process_lbl.configure(text=f"{n} proceso(s) activos", fg=GREEN if running else GRAY)
+            self.start_btn.configure(bg=GDIM if running else GREEN, fg=GRAY if running else "#000", cursor="arrow" if running else "hand2")
+            self.stop_btn.configure(bg=RED if running else RDIM, fg="#fff" if running else GRAY, cursor="hand2" if running else "arrow")
+
+        now = time.time()
+        for bot in BOTS:
+            card = self.cards[bot.key]
+            log = LOG_DIR / bot.log_file
+            lines = read_tail(log)
+            fresh = log.exists() and now - log.stat().st_mtime < 90
+            dot = card["dot"]
+            age = card["age"]
+            txt = card["text"]
+            assert isinstance(dot, tk.Label) and isinstance(age, tk.Label) and isinstance(txt, tk.Text)
+            dot.configure(fg=GREEN if fresh else GRAY)
+            if log.exists():
+                delta = int(now - log.stat().st_mtime)
+                age.configure(text=f"{delta}s" if delta < 120 else f"{delta//60}m")
             else:
-                self.dot.configure(fg=RED)
-                self.slbl.configure(text="BOTS DETENIDOS",fg=RED)
-                self.plbl.configure(text="0 procesos",fg=GRAY)
-                self.bstart.configure(bg=GREEN,fg="#000000",cursor="hand2",
-                    activebackground="#00b890",activeforeground="#000000")
-                self.bstop.configure(bg=RDIM,fg=GRLT,cursor="arrow",
-                    activebackground=RDIM,activeforeground=GRLT)
-        mtime = _log_mtime()
-        if mtime != self._mtime:
-            self._mtime = mtime
-            tail = _log_tail()
-            self.txt.configure(state="normal")
-            self.txt.delete("1.0","end")
-            self.txt.insert("end",tail)
-            self.txt.see("end")
-            self.txt.configure(state="disabled")
-        if mtime > 0:
-            ago = int(time.time()-mtime)
-            s = f"{ago}s" if ago<120 else f"{ago//60}m"
-            self.ltlbl.configure(text=f"ultima: {datetime.fromtimestamp(mtime):%H:%M:%S} ({s} atras)")
-        else:
-            self.ltlbl.configure(text="sin log hoy")
+                age.configure(text="sin log")
+            txt.configure(state="normal")
+            txt.delete("1.0", "end")
+            for line in lines:
+                tag = fmt_color(line)
+                tag_name = f"c_{tag.replace('#', '')}"
+                txt.tag_config(tag_name, foreground=tag)
+                txt.insert("end", line + "\n", tag_name)
+            txt.configure(state="disabled")
+
 
 if __name__ == "__main__":
     os.chdir(BOT_DIR)

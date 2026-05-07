@@ -20,7 +20,14 @@ from mt5_bot.report_live import format_pnl_report, get_live_pnl
 from mt5_bot.risk import DailyRiskState, is_daily_loss_limit_hit, is_trade_count_limit_hit, spread_pips
 from mt5_bot.safety import equity_stop_decision
 from mt5_bot.storage import BotStorage
-from mt5_bot.strategy import Signal, SignalType, StrategyConfig, detect_signal, detect_signal_mtf
+from mt5_bot.strategy import (
+    Signal,
+    SignalType,
+    StrategyConfig,
+    candle_confirms_retest,
+    detect_signal,
+    detect_signal_mtf,
+)
 
 
 LOGGER = logging.getLogger("mt5_bot")
@@ -198,10 +205,11 @@ def run_trade(
             for f in StrategyConfig.__dataclass_fields__  # type: ignore[attr-defined]
         })
         use_retest = getattr(config.strategy, "use_retest_filter", False)
+        use_candle_confirm = getattr(config.strategy, "use_candle_confirm", False)
         LOGGER.info(
             "Starting PRO loop: symbol=%s tf=%s trend_tf=%s trade_enabled=%s "
             "trend_filter=%s adx_filter=%s rsi_momentum=%s partial_close=%s "
-            "trailing_stop=%s atr_sl_tp=%s news_filter=%s retest=%s equity_curve=%s",
+            "trailing_stop=%s atr_sl_tp=%s news_filter=%s retest=%s candle_confirm=%s equity_curve=%s",
             config.symbol, config.timeframe, config.trend_timeframe,
             config.execution.trade_enabled,
             strategy_config.use_trend_filter,
@@ -212,6 +220,7 @@ def run_trade(
             strategy_config.use_atr_sl_tp,
             config.use_news_filter,
             use_retest,
+            use_candle_confirm,
             config.use_equity_curve_filter,
         )
         notifier.bot_started(config.symbol, config.timeframe, config.execution.magic)
@@ -393,7 +402,14 @@ def run_trade(
             #   - On opposite crossover → invalidate pending retest
             entry_signal = signal
             if use_retest:
-                entry_signal = _apply_retest_filter(signal, pending_retest, tick, config.symbol)
+                entry_signal = _apply_retest_filter(
+                    signal,
+                    pending_retest,
+                    tick,
+                    config.symbol,
+                    signal_rates=signal_rates,
+                    use_candle_confirm=use_candle_confirm,
+                )
                 if signal.type is not SignalType.NONE:
                     # Fresh crossover — save as pending (wait for retest)
                     pending_retest = signal
@@ -405,7 +421,19 @@ def run_trade(
             # ── MEJORA 5: Equity curve management ────────────────────────────
             # After N consecutive losses, apply lot_reduction_factor to config
             from dataclasses import replace as dc_replace
-            base_risk_pct = config.risk.risk_pct * _corr_risk_factor
+            # Positive compounding: for each +5% equity growth over baseline,
+            # add +10% to risk, capped at 2.5x. This accelerates winners but
+            # keeps a hard ceiling before ADX boost.
+            baseline_equity = max(float(getattr(config, "baseline_equity", 102000.0)), 1.0)
+            equity_growth_pct = max(0.0, (float(account.equity) - baseline_equity) / baseline_equity * 100.0)
+            compound_factor = 1.0 + int(equity_growth_pct // 5.0) * 0.10
+            compound_factor = min(compound_factor, 2.5)
+            base_risk_pct = config.risk.risk_pct * compound_factor * _corr_risk_factor
+            if compound_factor > 1.0:
+                LOGGER.info(
+                    "Compounding boost: equity=%.2f baseline=%.2f growth=%.1f%% factor=%.2fx risk_pct=%.2f%%",
+                    account.equity, baseline_equity, equity_growth_pct, compound_factor, base_risk_pct,
+                )
 
             # Compute adaptive cooldown from consecutive losses
             _consec = storage.get_consecutive_losses(config.symbol, config.execution.magic) if config.use_equity_curve_filter else 0
@@ -417,11 +445,16 @@ def run_trade(
                 _adaptive_cooldown = 300.0
 
             # ── MEJORA 6: Dynamic ADX risk scaling ───────────────────────────
-            # ADX > 30 = strong trend → boost risk 25%
-            # ADX < adx_min_value = weak trend → reduce risk 25%
+            # Tiered risk: strongest trends get paid, weak trends shrink.
             if entry_signal.adx is not None:
                 adx_val = entry_signal.adx
-                if adx_val > 30:
+                if adx_val > 50:
+                    base_risk_pct = base_risk_pct * 2.0
+                    LOGGER.info("ADX extreme boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                elif adx_val > 40:
+                    base_risk_pct = base_risk_pct * 1.75
+                    LOGGER.info("ADX strong boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                elif adx_val > 30:
                     base_risk_pct = base_risk_pct * 1.25
                     LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val < strategy_config.adx_min_value:
@@ -483,10 +516,21 @@ def run_trade(
             # After a loss, increase wait time to avoid revenge trading
             # and let the market stabilize: 1 loss→90s, 2→180s, 3+→300s
             if _adaptive_cooldown > 0:
-                LOGGER.info("Adaptive cooldown: sleeping %.0fs after loss streak", _adaptive_cooldown)
-                time.sleep(_adaptive_cooldown)
+                if max_seconds > 0:
+                    remaining = max_seconds - (time.monotonic() - started_at)
+                    if remaining <= 0:
+                        LOGGER.info("Stopped after max_seconds=%s", max_seconds)
+                        return 0
+                    sleep_for = min(_adaptive_cooldown, remaining)
+                else:
+                    sleep_for = _adaptive_cooldown
+                LOGGER.info("Adaptive cooldown: sleeping %.0fs after loss streak", sleep_for)
+                time.sleep(sleep_for)
                 _adaptive_cooldown = 0.0
 
+            if max_seconds > 0 and time.monotonic() - started_at >= max_seconds:
+                LOGGER.info("Stopped after max_seconds=%s", max_seconds)
+                return 0
             time.sleep(config.poll_seconds)
 
     except KeyboardInterrupt:
@@ -586,6 +630,8 @@ def _apply_retest_filter(
     pending: Signal | None,
     tick,
     symbol: str,
+    signal_rates=None,
+    use_candle_confirm: bool = False,
 ) -> Signal:
     """Crossover + Retest filter state machine.
 
@@ -630,6 +676,13 @@ def _apply_retest_filter(
         retest_hit = current_price >= slow_ema - tolerance
 
     if retest_hit:
+        if use_candle_confirm:
+            if signal_rates is None:
+                return _none_signal("retest_candle_rates_missing")
+            ok, reason = candle_confirms_retest(signal_rates, pending.type, slow_ema)
+            if not ok:
+                return _none_signal(reason)
+            LOGGER.info("Retest candle confirmation: %s", reason)
         return pending
     return _none_signal("retest_pending")
 

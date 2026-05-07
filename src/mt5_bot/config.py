@@ -60,6 +60,8 @@ class StrategySettings:
     breakeven_atr_multiplier: float = 1.0
     trailing_atr_multiplier: float = 1.5
     use_retest_filter: bool = False
+    retest_timeout_bars: int = 4
+    use_candle_confirm: bool = False
 
 
 @dataclass(frozen=True)
@@ -83,6 +85,7 @@ class BotConfig:
     max_trades_per_day: int = 20
     cooldown_seconds: int = 60
     profit_target_usd: Optional[float] = None
+    baseline_equity: float = 102000.0
     database_path: Path = Path("data/trades.sqlite")
     use_partial_close: bool = False
     partial_close_ratio: float = 0.5
@@ -156,6 +159,7 @@ def load_config(path: str | Path) -> BotConfig:
         max_trades_per_day=int(raw.get("max_trades_per_day", 20)),
         cooldown_seconds=int(raw.get("cooldown_seconds", 60)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
+        baseline_equity=float(raw.get("baseline_equity", 102000.0)),
         database_path=Path(raw.get("database_path", "data/trades.sqlite")),
         use_partial_close=bool(raw.get("use_partial_close", False)),
         partial_close_ratio=float(raw.get("partial_close_ratio", 0.5)),

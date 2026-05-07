@@ -153,6 +153,10 @@ def _is_successful_check(check) -> bool:
     return getattr(check, "retcode", None) in {0, 10008, 10009}
 
 
+def _is_successful_send(result) -> bool:
+    return getattr(result, "retcode", None) in {0, 10008, 10009}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # TradeExecutor
 # ─────────────────────────────────────────────────────────────────────────────
@@ -390,17 +394,36 @@ class TradeExecutor:
                 )
 
                 if self.config.execution.trade_enabled:
+                    partial_req, partial_chk = self._first_valid_order_check(partial_req)
+                    if partial_req is None or partial_chk is None:
+                        results.append(ExecutionResult("rejected", "partial_close_invalid_fill", None, None))
+                        continue
+                    if not _is_successful_check(partial_chk):
+                        results.append(ExecutionResult(
+                            "rejected",
+                            f"partial_close_check_retcode_{getattr(partial_chk, 'retcode', '?')}",
+                            partial_req, partial_chk,
+                        ))
+                        continue
                     try:
                         send_result = self.gateway.order_send(partial_req)
                         self.storage.record_order_result(partial_req, send_result)
-                        self._partial_closed_tickets.add(ticket)
-                        results.append(ExecutionResult(
-                            "partial_close",
-                            f"retcode_{getattr(send_result, 'retcode', '?')}",
-                            partial_req, send_result,
-                        ))
+                        if _is_successful_send(send_result):
+                            self._partial_closed_tickets.add(ticket)
+                            results.append(ExecutionResult(
+                                "partial_close",
+                                f"retcode_{getattr(send_result, 'retcode', '?')}",
+                                partial_req, send_result,
+                            ))
+                        else:
+                            results.append(ExecutionResult(
+                                "rejected",
+                                f"partial_close_send_retcode_{getattr(send_result, 'retcode', '?')}",
+                                partial_req, send_result,
+                            ))
                     except Exception as exc:
                         _log.warning("Partial close failed: %s", exc)
+                        results.append(ExecutionResult("rejected", f"partial_close_exception_{exc}", partial_req, None))
                 else:
                     self._partial_closed_tickets.add(ticket)
                     results.append(ExecutionResult(
@@ -456,7 +479,13 @@ class TradeExecutor:
                 new_sl = current_sl
 
                 if profit_pips >= be_threshold:
-                    be_sl = round(entry_price + pip if is_buy else entry_price - pip, digits)
+                    spread_pips = max(0.0, (float(tick.ask) - float(tick.bid)) / pip)
+                    breakeven_buffer_pips = max(1.0, spread_pips + 1.0)
+                    be_sl = round(
+                        entry_price + breakeven_buffer_pips * pip
+                        if is_buy else entry_price - breakeven_buffer_pips * pip,
+                        digits,
+                    )
                     if is_buy and (current_sl == 0 or be_sl > current_sl):
                         new_sl = be_sl
                     elif not is_buy and (current_sl == 0 or be_sl < current_sl):

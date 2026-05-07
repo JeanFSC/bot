@@ -1,50 +1,18 @@
 @echo off
 cd /d "%~dp0"
-set PYTHONPATH=%~dp0src
-set PYTHONUNBUFFERED=1
-set BOTDIR=%~dp0
-
-echo.
-echo ================================================================
-echo   MT5 PRO SUITE -- 5 BOTS
-echo   EURUSD (magic 260433)  GBPUSD (magic 260434)
-echo   USDJPY (magic 260435)  XAUUSD Gold (magic 260436)
-echo   AUDUSD (magic 260437)
-echo   News filter: ON  Equity curve filter: ON
-echo   ADX dynamic risk: ON  Correlation guard: ON
-echo   Weekend gap protection: ON  Trailing stop: ON
-echo   Para detener un bot: cierra su ventana.
-echo ================================================================
-echo.
-
-echo [%TIME%] Lanzando PRO EURUSD...
-start "PRO EURUSD" "%BOTDIR%_restart_eurusd.bat"
-
-timeout /t 3 /nobreak >nul
-
-echo [%TIME%] Lanzando PRO GBPUSD...
-start "PRO GBPUSD" "%BOTDIR%_restart_gbpusd.bat"
-
-timeout /t 3 /nobreak >nul
-
-echo [%TIME%] Lanzando PRO USDJPY...
-start "PRO USDJPY" "%BOTDIR%_restart_jpy.bat"
-
-timeout /t 3 /nobreak >nul
-
-echo [%TIME%] Lanzando PRO XAUUSD (Gold)...
-start "PRO GOLD" "%BOTDIR%_restart_gold.bat"
-
-timeout /t 3 /nobreak >nul
-
-echo [%TIME%] Lanzando PRO AUDUSD...
-start "PRO AUDUSD" "%BOTDIR%_restart_aud.bat"
-
-echo.
-echo ================================================================
-echo   5 bots activos.
-echo   EURUSD / GBPUSD / USDJPY / XAUUSD / AUDUSD
-echo   Logs en: %BOTDIR%logs\
-echo ================================================================
-echo.
+if not exist logs mkdir logs
+echo [%TIME%] Lanzando MT5 PRO Bot Suite 12 bots...
+start "PRO EURUSD" cmd /k "_restart_eurusd.bat"
+start "PRO GBPUSD" cmd /k "_restart_gbpusd.bat"
+start "PRO USDJPY" cmd /k "_restart_jpy.bat"
+start "PRO XAUUSD (Gold)" cmd /k "_restart_gold.bat"
+start "PRO AUDUSD" cmd /k "_restart_aud.bat"
+start "PRO XAUUSD M5 (Gold 24h)" cmd /k "_restart_gold_m5.bat"
+start "PRO USDCAD" cmd /k "_restart_usdcad.bat"
+start "PRO NZDUSD" cmd /k "_restart_nzdusd.bat"
+start "PRO GBPJPY" cmd /k "_restart_gbpjpy.bat"
+start "PRO XAGUSD (Silver)" cmd /k "_restart_silver.bat"
+start "PRO USDJPY ASIA" cmd /k "_restart_jpy_asia.bat"
+start "PRO USDCHF" cmd /k "_restart_usdchf.bat"
+echo [%TIME%] Suite lanzada. Portfolio guard limita exposicion total.
 pause

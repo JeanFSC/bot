@@ -1,16 +1,16 @@
-# --- PRO AUDUSD - risk-on major ---------------------------------------------------------------
+# --- PRO USDCHF - diversificacion ---------------------------------------------------------------
 # Metodologia Claude: MTF EMA crossover + filtros de calidad + riesgo primero.
 # Signal layer: M15 EMA(9/21); Trend layer: H1 EMA(50).
 # Entry quality: RSI guard, ATR gate, ADX>= 22, optional retest + candle confirmation.
 # Risk: portfolio guard max 5 trades, daily loss 5.0%, ADX tiered boost, compounding baseline.
 
-symbol:           AUDUSD
+symbol:           USDCHF
 timeframe:        M15
 trend_timeframe:  H1
 poll_seconds:     15
 demo_only:        true
 
-max_spread_pips:      2.0
+max_spread_pips:      2.2
 max_open_positions:   1
 max_daily_loss_pct:   5.0
 max_trades_per_day:   30
@@ -32,11 +32,11 @@ use_partial_close:    true
 partial_close_ratio:  0.5
 profit_target_usd: null
 baseline_equity: 102000.0
-database_path: data/pro_aud.sqlite
+database_path: data/pro_usdchf.sqlite
 
 risk:
   mode:       percent_equity
-  risk_pct:   1.8
+  risk_pct:   1.2
   fixed_lot:  0.5
   sl_pips:    20
   tp_pips:    40
@@ -65,8 +65,8 @@ strategy:
   atr_tp_multiplier: 3.0
   use_atr_sl_tp: true
 
-  session_start_hour: 7
-  session_end_hour:   20
+  session_start_hour: 6
+  session_end_hour:   18
   use_session_filter: true
   session2_start_hour: 0
   session2_end_hour:   0
@@ -81,7 +81,7 @@ strategy:
   use_candle_confirm: true
 
 execution:
-  magic:        260437
+  magic:        260446
   deviation:    20
   filling_mode: AUTO
   trade_enabled: false

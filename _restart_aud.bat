@@ -3,22 +3,28 @@ cd /d "%~dp0"
 set PYTHONPATH=%~dp0src
 set PYTHONUNBUFFERED=1
 title PRO AUDUSD
+if not exist logs mkdir logs
 
 :loop
-echo.
-echo [%TIME%] ========== PRO AUDUSD — iniciando ==========
-python -m mt5_bot check --config config/pro_aud.yaml 2>> logs\check_errors_aud.log
+echo. >> logs\bot_aud.log
+echo [%TIME%] ========== PRO AUDUSD -- iniciando ========== >> logs\bot_aud.log
+echo [%TIME%] ========== PRO AUDUSD -- iniciando ==========
+python -m mt5_bot check --config config/pro_aud.yaml >> logs\bot_aud.log 2>> logs\check_errors_aud.log
 if errorlevel 1 (
-    echo [%TIME%] [AUDUSD] CHECK failed — reintentando en 30s...
+    echo [%TIME%] [AUDUSD] CHECK failed -- reintentando en 30s... >> logs\bot_aud.log
+    echo [%TIME%] [AUDUSD] CHECK failed -- reintentando en 30s...
     timeout /t 30 /nobreak >nul
     goto loop
 )
-echo [%TIME%] [AUDUSD] CHECK OK — arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_aud.yaml --db data/pro_aud.sqlite --trade-enabled 2>> logs\trade_errors_aud.log
+echo [%TIME%] [AUDUSD] CHECK OK -- arrancando TRADE loop... >> logs\bot_aud.log
+echo [%TIME%] [AUDUSD] CHECK OK -- arrancando TRADE loop...
+python -m mt5_bot trade --config config/pro_aud.yaml --db data/pro_aud.sqlite --trade-enabled >> logs\bot_aud.log 2>&1
 if errorlevel 1 (
-    echo [%TIME%] [AUDUSD] Bot crasheo — reiniciando en 10s...
+    echo [%TIME%] [AUDUSD] Bot crasheo -- reiniciando en 10s... >> logs\bot_aud.log
+    echo [%TIME%] [AUDUSD] Bot crasheo -- reiniciando en 10s...
     timeout /t 10 /nobreak >nul
     goto loop
 )
+echo [%TIME%] [AUDUSD] Bot detenido por el usuario. >> logs\bot_aud.log
 echo [%TIME%] [AUDUSD] Bot detenido por el usuario.
 pause
