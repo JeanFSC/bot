@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -209,6 +209,23 @@ class BotStorage:
             ),
         )
         self.connection.commit()
+
+    def get_pnl_last_hour(self, symbol: str, magic: int) -> float:
+        """Return realized PnL from closed deals for this symbol + magic in the last hour."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        cursor = self.connection.execute(
+            """
+            SELECT COALESCE(SUM(profit), 0.0)
+            FROM deals
+            WHERE symbol = ?
+              AND magic = ?
+              AND entry = 1
+              AND created_at >= ?
+            """,
+            (symbol, magic, cutoff),
+        )
+        value = cursor.fetchone()[0]
+        return float(value or 0.0)
 
     def get_consecutive_losses(self, symbol: str, magic: int) -> int:
         """Return the current streak of consecutive losing deals for this bot.

@@ -19,6 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
+reverse_cooldown_seconds: 600
+max_loss_per_symbol_per_hour_pct: 2.0
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -36,7 +38,7 @@ database_path: data/pro_jpy.sqlite
 
 risk:
   mode:       percent_equity
-  risk_pct:   1.8
+  risk_pct:   1.5
   fixed_lot:  0.5
   sl_pips:    20
   tp_pips:    40

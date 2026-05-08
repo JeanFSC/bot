@@ -84,6 +84,8 @@ class BotConfig:
     max_daily_loss_pct: float = 2.0
     max_trades_per_day: int = 20
     cooldown_seconds: int = 60
+    reverse_cooldown_seconds: int = 0
+    max_loss_per_symbol_per_hour_pct: float = 0.0
     profit_target_usd: Optional[float] = None
     baseline_equity: float = 102000.0
     database_path: Path = Path("data/trades.sqlite")
@@ -158,6 +160,8 @@ def load_config(path: str | Path) -> BotConfig:
         max_daily_loss_pct=float(raw.get("max_daily_loss_pct", 2.0)),
         max_trades_per_day=int(raw.get("max_trades_per_day", 20)),
         cooldown_seconds=int(raw.get("cooldown_seconds", 60)),
+        reverse_cooldown_seconds=int(raw.get("reverse_cooldown_seconds", 0)),
+        max_loss_per_symbol_per_hour_pct=float(raw.get("max_loss_per_symbol_per_hour_pct", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
         baseline_equity=float(raw.get("baseline_equity", 102000.0)),
         database_path=Path(raw.get("database_path", "data/trades.sqlite")),
@@ -215,5 +219,9 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("V1 supports exactly one open position")
     if config.poll_seconds < 1:
         raise ValueError("poll_seconds must be >= 1")
+    if config.reverse_cooldown_seconds < 0:
+        raise ValueError("reverse_cooldown_seconds must be >= 0")
+    if config.max_loss_per_symbol_per_hour_pct < 0:
+        raise ValueError("max_loss_per_symbol_per_hour_pct must be >= 0")
     if not (0.0 < config.partial_close_ratio < 1.0):
         raise ValueError("partial_close_ratio must be between 0 and 1 (exclusive)")
