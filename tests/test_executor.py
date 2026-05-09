@@ -85,6 +85,44 @@ def test_filling_retry_keeps_mt5_comment_short():
     assert len(patched["comment"]) <= 31
 
 
+def test_partial_close_retries_invalid_fill_before_send():
+    gateway = _GatewayForPartialClose()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        use_partial_close=True,
+        partial_close_ratio=0.5,
+        strategy=SimpleNamespace(breakeven_atr_multiplier=0.8, use_trailing_stop=True),
+        execution=ExecutionConfig(magic=260440, deviation=20, filling_mode="AUTO", trade_enabled=True),
+    )
+
+    result = TradeExecutor(gateway, storage, config).manage_partial_close(atr_pips=100)[0]
+
+    assert result.status == "partial_close"
+    assert [request["type_filling"] for request in gateway.checked_requests] == [2, 1]
+    assert gateway.sent_requests[0]["type_filling"] == 1
+
+
+def test_trailing_breakeven_uses_spread_buffer():
+    gateway = _GatewayForTrailingStop()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        strategy=SimpleNamespace(
+            use_trailing_stop=True,
+            breakeven_atr_multiplier=0.8,
+            trailing_atr_multiplier=99.0,
+        ),
+        execution=ExecutionConfig(magic=260440, deviation=20, filling_mode="AUTO", trade_enabled=True),
+    )
+
+    result = TradeExecutor(gateway, storage, config).manage_trailing_stops(atr_pips=100)[0]
+
+    assert result.status == "trailing_stop"
+    # Sell entry 4708.08, spread 0.17 = 17 pips, buffer = spread + 1 pip -> SL 4707.90.
+    assert gateway.modified[0][1] == 4707.9
+
+
 class _StorageSpy:
     def record_order_request(self, request, check):
         pass
@@ -124,3 +162,56 @@ class _GatewayWithInvalidFirstFill:
         self.checked_requests.append(request)
         retcode = 10030 if len(self.checked_requests) == 1 else 10009
         return SimpleNamespace(retcode=retcode, comment="Invalid fill" if retcode == 10030 else "Done")
+
+
+class _GatewayForPartialClose(_GatewayWithInvalidFirstFill):
+    def __init__(self):
+        super().__init__()
+        self.sent_requests = []
+
+    def positions_get(self, symbol):
+        return [SimpleNamespace(
+            ticket=8539285679,
+            magic=260440,
+            type=1,
+            price_open=4708.08,
+            volume=13.55,
+        )]
+
+    def symbol_info_tick(self, symbol):
+        return SimpleNamespace(bid=4700.86, ask=4701.03)
+
+    def symbol_info(self, symbol):
+        return SimpleNamespace(
+            digits=2,
+            point=0.01,
+            trade_tick_value=1.0,
+            trade_tick_size=0.01,
+            volume_min=0.01,
+            volume_max=100.0,
+            volume_step=0.01,
+        )
+
+    def order_send(self, request):
+        self.sent_requests.append(request)
+        return SimpleNamespace(retcode=10009, comment="Request executed")
+
+
+class _GatewayForTrailingStop(_GatewayForPartialClose):
+    def __init__(self):
+        super().__init__()
+        self.modified = []
+
+    def positions_get(self, symbol):
+        return [SimpleNamespace(
+            ticket=8539285679,
+            magic=260440,
+            type=1,
+            price_open=4708.08,
+            sl=4719.73,
+            tp=4685.01,
+        )]
+
+    def order_modify(self, ticket, sl, tp):
+        self.modified.append((ticket, sl, tp))
+        return SimpleNamespace(retcode=10009, comment="Request executed")

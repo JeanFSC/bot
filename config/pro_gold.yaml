@@ -33,6 +33,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     60      # Mas cooldown - Gold moves son mas lentos
+reverse_cooldown_seconds: 300
+max_loss_per_symbol_per_hour_pct: 2.5
 
 profit_target_usd: null
 baseline_equity: 102000.0

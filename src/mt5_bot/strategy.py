@@ -59,6 +59,10 @@ class StrategyConfig:
     session2_start_hour: int = 0
     session2_end_hour: int = 0      # 0 == disabled (start==end means disabled)
     use_session2: bool = False
+    # ── Retest + candle confirmation ─────────────────────────────────────────
+    use_retest_filter: bool = False
+    retest_timeout_bars: int = 4
+    use_candle_confirm: bool = False
     # ── Trailing stop ─────────────────────────────────────────────────────────
     use_trailing_stop: bool = False
     breakeven_atr_multiplier: float = 1.0
@@ -181,6 +185,60 @@ def _pip_size_for_symbol(symbol: str) -> float:
     if "JPY" in sym:
         return 0.01
     return 0.0001
+
+
+def candle_confirms_retest(
+    rates: pd.DataFrame,
+    signal_type: SignalType,
+    slow_ema: float,
+) -> tuple[bool, str]:
+    """Validate retest entries with a reversal/continuation candle.
+
+    Uses the last CLOSED candle ([-2]) and the previous closed candle ([-3]).
+    Confirmation is intentionally practical, not textbook-rigid:
+      - BUY: close above slow EMA, bullish engulfing-ish, or hammer rejection.
+      - SELL: close below slow EMA, bearish engulfing-ish, or shooting-star rejection.
+
+    This is the quality gate Claude planned after the retest filter: the price
+    must not merely touch the slow EMA; it must show rejection/continuation.
+    """
+    if len(rates) < 4 or signal_type is SignalType.NONE:
+        return False, "candle_not_enough_bars"
+
+    prev = rates.iloc[-3]
+    cur = rates.iloc[-2]
+
+    o1, c1 = float(prev["open"]), float(prev["close"])
+    o2, h2, l2, c2 = float(cur["open"]), float(cur["high"]), float(cur["low"]), float(cur["close"])
+
+    body_prev = max(abs(c1 - o1), 1e-12)
+    body_cur = max(abs(c2 - o2), 1e-12)
+    upper_wick = h2 - max(o2, c2)
+    lower_wick = min(o2, c2) - l2
+
+    bullish_bar = c2 > o2
+    bearish_bar = c2 < o2
+    bullish_engulfish = bullish_bar and c2 > c1 and body_cur >= body_prev * 0.80
+    bearish_engulfish = bearish_bar and c2 < c1 and body_cur >= body_prev * 0.80
+    hammer = bullish_bar and lower_wick >= body_cur * 1.5 and upper_wick <= body_cur * 1.2
+    shooting_star = bearish_bar and upper_wick >= body_cur * 1.5 and lower_wick <= body_cur * 1.2
+
+    if signal_type is SignalType.BUY:
+        if c2 > slow_ema:
+            return True, "candle_close_above_slow_ema"
+        if bullish_engulfish:
+            return True, "bullish_engulfing_confirm"
+        if hammer:
+            return True, "hammer_confirm"
+        return False, "candle_no_bullish_confirm"
+
+    if c2 < slow_ema:
+        return True, "candle_close_below_slow_ema"
+    if bearish_engulfish:
+        return True, "bearish_engulfing_confirm"
+    if shooting_star:
+        return True, "shooting_star_confirm"
+    return False, "candle_no_bearish_confirm"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

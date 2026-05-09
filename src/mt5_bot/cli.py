@@ -433,7 +433,18 @@ def run_trade(
             #   - On subsequent ticks → check if price touched slow EMA
             #   - On opposite crossover → invalidate pending retest
             entry_signal = signal
-            if use_retest:
+            own_positions_open = [
+                p for p in (gateway.positions_get(symbol=config.symbol) or [])
+                if int(p.magic) == config.execution.magic
+            ]
+            if use_retest and own_positions_open:
+                # Do not advance/reconfirm retest while this bot already owns a
+                # position. This prevents noisy same_direction_position loops,
+                # while still allowing executor.execute(signal) to close an
+                # opposite position if a true reversal signal appears.
+                pending_retest = None
+                _pending_retest_bars = 0
+            elif use_retest:
                 entry_signal = _apply_retest_filter(signal, pending_retest, tick, config.symbol)
                 if signal.type is not SignalType.NONE:
                     # Fresh crossover — save as pending (wait for retest)
@@ -500,6 +511,21 @@ def run_trade(
                     base_risk_pct = base_risk_pct * 0.75
                     LOGGER.info("ADX reduce: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
 
+            max_loss_hour_pct = getattr(config, "max_loss_per_symbol_per_hour_pct", 0.0)
+            if entry_signal.type is not SignalType.NONE and max_loss_hour_pct > 0:
+                pnl_last_hour = storage.get_pnl_last_hour(config.symbol, config.execution.magic)
+                max_loss_hour_usd = float(account.equity) * max_loss_hour_pct / 100.0
+                if pnl_last_hour <= -max_loss_hour_usd:
+                    LOGGER.warning(
+                        "Hourly symbol loss cap: blocking %s entry. pnl_last_hour=%.2f limit=-%.2f pct=%.2f%%",
+                        config.symbol, pnl_last_hour, max_loss_hour_usd, max_loss_hour_pct,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "max_loss_per_symbol_per_hour", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
+
             exec_config_override = None
             if config.use_equity_curve_filter:
                 consecutive_losses = storage.get_consecutive_losses(
@@ -514,19 +540,33 @@ def run_trade(
                     reduced_risk = dc_replace(config.risk, risk_pct=reduced_risk_pct)
                     exec_config_override = dc_replace(config, risk=reduced_risk)
                     executor_override = TradeExecutor(gateway, storage, exec_config_override)
+                    executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                    executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
                     result = executor_override.execute(entry_signal)
+                    executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                    executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                 else:
                     if base_risk_pct != config.risk.risk_pct:
                         adjusted_risk = dc_replace(config.risk, risk_pct=base_risk_pct)
                         adjusted_config = dc_replace(config, risk=adjusted_risk)
-                        result = TradeExecutor(gateway, storage, adjusted_config).execute(entry_signal)
+                        executor_override = TradeExecutor(gateway, storage, adjusted_config)
+                        executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                        executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
+                        result = executor_override.execute(entry_signal)
+                        executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                        executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                     else:
                         result = executor.execute(entry_signal)
             else:
                 if base_risk_pct != config.risk.risk_pct:
                     adjusted_risk = dc_replace(config.risk, risk_pct=base_risk_pct)
                     adjusted_config = dc_replace(config, risk=adjusted_risk)
-                    result = TradeExecutor(gateway, storage, adjusted_config).execute(entry_signal)
+                    executor_override = TradeExecutor(gateway, storage, adjusted_config)
+                    executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                    executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
+                    result = executor_override.execute(entry_signal)
+                    executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                    executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                 else:
                     result = executor.execute(entry_signal)
 
