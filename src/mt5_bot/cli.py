@@ -67,6 +67,18 @@ def main(argv: list[str] | None = None) -> int:
     pnl_parser.add_argument("--days", type=int, default=1)
     pnl_parser.add_argument("--magic", type=int, default=None)
 
+    bt_real_parser = subparsers.add_parser(
+        "backtest-real",
+        help="Backtest realista bar-by-bar con SL/TP, MTF y métricas de performance",
+    )
+    bt_real_parser.add_argument("--config", default="config/pro.yaml")
+    bt_real_parser.add_argument("--bars", required=True, help="CSV con barras M15 (signal timeframe)")
+    bt_real_parser.add_argument("--trend-bars", default=None, help="CSV con barras H1 (trend timeframe)")
+    bt_real_parser.add_argument("--slippage", type=float, default=0.3, help="Slippage en pips")
+    bt_real_parser.add_argument("--initial-equity", type=float, default=10_000.0)
+    bt_real_parser.add_argument("--lot", type=float, default=0.1)
+    bt_real_parser.add_argument("--json", action="store_true", help="Salida en JSON")
+
     args = parser.parse_args(argv)
     setup_logging(log_name=_log_name_for_args(args))
 
@@ -92,6 +104,16 @@ def main(argv: list[str] | None = None) -> int:
         return run_check(args.config)
     if args.command == "pnl":
         return run_pnl_report(args.config, days=args.days, magic_filter=args.magic)
+    if args.command == "backtest-real":
+        return run_backtest_real_command(
+            config_path=args.config,
+            bars_path=args.bars,
+            trend_bars_path=args.trend_bars,
+            slippage_pips=args.slippage,
+            initial_equity=args.initial_equity,
+            lot=args.lot,
+            as_json=args.json,
+        )
     return 2
 
 
@@ -683,6 +705,64 @@ def run_backtest_command(config_path: str, from_date: str, to_date: str) -> int:
         return 0
     finally:
         gateway.shutdown()
+
+
+def run_backtest_real_command(
+    config_path: str,
+    bars_path: str,
+    trend_bars_path: str | None = None,
+    slippage_pips: float = 0.3,
+    initial_equity: float = 10_000.0,
+    lot: float = 0.1,
+    as_json: bool = False,
+) -> int:
+    import json as _json
+    from mt5_bot.backtest_engine import run_realistic_backtest, BacktestParams
+    from mt5_bot.bars_loader import load_bars_from_csv
+    from mt5_bot.performance import compute_score, suggestions
+
+    config = load_config(config_path)
+    signal_bars = load_bars_from_csv(bars_path)
+    trend_bars = load_bars_from_csv(trend_bars_path) if trend_bars_path else None
+    params = BacktestParams(slippage_pips=slippage_pips, initial_equity=initial_equity, lot_size=lot)
+    metrics = run_realistic_backtest(signal_bars, config, trend_bars=trend_bars, params=params)
+    score = compute_score(metrics)
+    hints = suggestions(metrics)
+
+    if as_json:
+        out = {
+            "config": config_path,
+            "symbol": config.symbol,
+            "timeframe": config.timeframe,
+            "trades": metrics.trades,
+            "wins": metrics.wins,
+            "losses": metrics.losses,
+            "profit_factor": metrics.profit_factor,
+            "win_rate_pct": metrics.win_rate_pct,
+            "expectancy_pips": metrics.expectancy_pips,
+            "max_drawdown_pct": metrics.max_drawdown_pct,
+            "max_losing_streak": metrics.max_losing_streak,
+            "sharpe": metrics.sharpe,
+            "score": score,
+            "suggestions": hints,
+        }
+        print(_json.dumps(out, indent=2))
+    else:
+        print(f"Backtest: {config.symbol} {config.timeframe}")
+        print(f"  Trades:        {metrics.trades}")
+        print(f"  Wins/Losses:   {metrics.wins}/{metrics.losses}")
+        print(f"  Profit factor: {metrics.profit_factor}")
+        print(f"  Win rate:      {metrics.win_rate_pct}%")
+        print(f"  Expectancy:    {metrics.expectancy_pips} pips")
+        print(f"  Max drawdown:  {metrics.max_drawdown_pct}%")
+        print(f"  Max streak:    {metrics.max_losing_streak}")
+        print(f"  Sharpe:        {metrics.sharpe}")
+        print(f"  SCORE:         {score}/10")
+        if hints:
+            print("  Sugerencias:")
+            for h in hints:
+                print(f"    • {h}")
+    return 0
 
 
 def _connect_and_validate(gateway, config) -> None:

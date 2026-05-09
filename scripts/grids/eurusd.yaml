@@ -1,0 +1,9 @@
+# Grid search parameters for EURUSD bot (pro.yaml)
+
+fast_ema:       [9, 12]
+slow_ema:       [21, 26]
+adx_min_value:  [20, 25, 30]
+rsi_buy_max:    [65, 70]
+rsi_sell_min:   [30, 35]
+min_atr_pips:   [1.0, 1.5, 2.0]
+use_candle_confirm: [true, false]

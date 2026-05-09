@@ -76,6 +76,79 @@ def _max_drawdown(equity_values: list[float]) -> float:
     return max_drawdown
 
 
+def generate_report_per_magic(
+    db_path: str | Path,
+    magic: int,
+    days: int | None = None,
+) -> dict[str, float | int | None]:
+    """Like generate_report but scoped to a single magic number (one bot).
+
+    Optionally restricted to the last `days` days.
+    """
+    path = Path(db_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Database not found: {path}")
+
+    with sqlite3.connect(path) as connection:
+        connection.row_factory = sqlite3.Row
+
+        date_filter = ""
+        params_base: tuple = (magic,)
+        if days is not None:
+            from datetime import datetime, timezone, timedelta
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+            date_filter = " AND created_at >= ?"
+            params_base = (magic, cutoff)
+
+        deal_rows = connection.execute(
+            f"SELECT profit FROM deals WHERE magic = ? AND profit IS NOT NULL{date_filter}",
+            params_base,
+        ).fetchall()
+        send_rows = connection.execute(
+            "SELECT request_json, result_json FROM orders WHERE phase = 'send'",
+        ).fetchall()
+        equity_rows = connection.execute(
+            "SELECT equity FROM account_snapshots WHERE equity IS NOT NULL ORDER BY id"
+        ).fetchall()
+        latest_equity = connection.execute(
+            "SELECT equity FROM account_snapshots ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+
+    profits = [float(row["profit"]) for row in deal_rows if float(row["profit"]) != 0.0]
+    positive = sum(v for v in profits if v > 0)
+    negative = abs(sum(v for v in profits if v < 0))
+    trade_count = len(profits)
+    wins = sum(1 for v in profits if v > 0)
+    slippages = [_slippage_pips(row["request_json"], row["result_json"]) for row in send_rows]
+    slippages = [v for v in slippages if v is not None]
+
+    return {
+        "magic": magic,
+        "trade_count": trade_count,
+        "wins": wins,
+        "profit_factor": round(positive / negative, 2) if negative > 0 else None,
+        "win_rate_pct": round((wins / trade_count) * 100, 2) if trade_count else None,
+        "expectancy": round(sum(profits) / trade_count, 2) if trade_count else None,
+        "max_drawdown": round(_max_drawdown([float(row["equity"]) for row in equity_rows]), 2),
+        "latest_equity": latest_equity[0] if latest_equity else None,
+        "avg_slippage_pips": round(sum(slippages) / len(slippages), 2) if slippages else None,
+        "max_losing_streak": _losing_streak_from_profits(profits),
+    }
+
+
+def _losing_streak_from_profits(profits: list[float]) -> int:
+    """Return the maximum consecutive losing streak from a list of trade profits."""
+    max_streak = 0
+    current = 0
+    for p in profits:
+        if p <= 0:
+            current += 1
+            max_streak = max(max_streak, current)
+        else:
+            current = 0
+    return max_streak
+
+
 def _slippage_pips(request_json: str, result_json: str) -> float | None:
     request = json.loads(request_json)
     result = json.loads(result_json)
