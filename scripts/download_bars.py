@@ -33,7 +33,7 @@ def download_one(symbol: str, timeframe: str, years: int, out_dir: Path) -> Path
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"{symbol}_{timeframe}.csv"
     df.to_csv(path, index=False)
-    print(f"  Saved {len(df)} bars → {path}")
+    print(f"  Saved {len(df)} bars -> {path}")
     return path
 
 
@@ -67,7 +67,7 @@ def main() -> int:
     # Deduplicate
     pairs = list(dict.fromkeys(pairs))
 
-    print(f"Downloading {len(pairs)} bar series ({args.years}y) → {out_dir}")
+    print(f"Downloading {len(pairs)} bar series ({args.years}y) -> {out_dir}")
     for symbol, tf in pairs:
         print(f"  {symbol} {tf}...")
         try:
