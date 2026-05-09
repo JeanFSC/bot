@@ -499,8 +499,8 @@ def run_trade(
                     base_risk_pct = base_risk_pct * 0.5
                     LOGGER.info("ADX parabolic: adx=%.1f → halving risk, risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 50:
-                    base_risk_pct = base_risk_pct * 1.5
-                    LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    base_risk_pct = base_risk_pct * 2.0
+                    LOGGER.info("ADX extreme boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 40:
                     base_risk_pct = base_risk_pct * 1.75
                     LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
