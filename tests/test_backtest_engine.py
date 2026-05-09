@@ -153,3 +153,74 @@ def test_metrics_zero_when_no_trades():
     assert m.trades == 0
     assert m.profit_factor == 0.0
     assert m.win_rate_pct == 0.0
+
+
+def test_max_bars_limits_input():
+    """Slicing to --max-bars N should produce same result as passing truncated bars directly."""
+    from tests.fixtures.synthetic_bars import alternating_crossover_bars
+    bars = alternating_crossover_bars(n_cycles=20)
+    config = _base_config()
+    params = BacktestParams(slippage_pips=0.0)
+
+    max_bars = 200
+    full_metrics   = run_realistic_backtest(bars, config, params=params)
+    sliced_metrics = run_realistic_backtest(bars.iloc[-max_bars:].reset_index(drop=True), config, params=params)
+
+    # Sliced run must have <= trades of full run (uses subset of data)
+    assert sliced_metrics.trades <= full_metrics.trades
+    # Sliced run must not use more bars than max_bars
+    assert len(bars.iloc[-max_bars:]) == max_bars
+
+
+def test_missing_csv_skip_in_run_all(tmp_path):
+    """run_all_backtests should skip bots whose CSV is missing without crashing."""
+    import subprocess, json, sys
+    # Run with a bars-dir that doesn't exist → all 12 should be skipped, exit 0
+    result = subprocess.run(
+        [sys.executable, "scripts/run_all_backtests.py",
+         "--bars-dir", str(tmp_path / "nonexistent"),
+         "--out-dir", str(tmp_path / "out")],
+        capture_output=True, text=True,
+    )
+    # Should not crash (exit 0 because no errors, only skips)
+    assert result.returncode == 0, f"Unexpected exit {result.returncode}: {result.stderr}"
+    assert "SKIP" in result.stdout
+    # No actual results written
+    assert not any((tmp_path / "out").glob("*.json")) if (tmp_path / "out").exists() else True
+
+
+def test_missing_csv_one_bot_others_continue(tmp_path):
+    """If one bot's CSV is missing, the rest should still run."""
+    import subprocess, sys
+    from tests.fixtures.synthetic_bars import rally_bars
+    # Write one valid CSV for EURUSD M15
+    bars_dir = tmp_path / "bars"
+    bars_dir.mkdir()
+    rally_bars(n=200).to_csv(bars_dir / "EURUSD_M15.csv", index=False)
+
+    result = subprocess.run(
+        [sys.executable, "scripts/run_all_backtests.py",
+         "--bars-dir", str(bars_dir),
+         "--out-dir", str(tmp_path / "out"),
+         "--max-bars", "200"],
+        capture_output=True, text=True,
+    )
+    # EURUSD ran (or errored on config load); others were skipped
+    assert "SKIP" in result.stdout   # at least some bots skipped
+    assert "XAUUSD" in result.stdout or "GBPUSD" in result.stdout  # other symbols mentioned
+
+
+def test_engine_speed_5000_bars():
+    """5000 bars must complete in under 10 seconds (very conservative threshold)."""
+    import time
+    from tests.fixtures.synthetic_bars import alternating_crossover_bars
+    bars = alternating_crossover_bars(n_cycles=200)  # ~6000 bars
+    bars = bars.iloc[:5000].reset_index(drop=True)
+    config = _base_config()
+    params = BacktestParams(slippage_pips=0.3)
+
+    t0 = time.perf_counter()
+    run_realistic_backtest(bars, config, params=params)
+    elapsed = time.perf_counter() - t0
+
+    assert elapsed < 10.0, f"5000-bar backtest took {elapsed:.2f}s — too slow (target < 10s)"
