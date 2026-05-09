@@ -536,19 +536,19 @@ def run_trade(
             elif _consec >= 3:
                 _adaptive_cooldown = 300.0
 
-            # ── MEJORA 6: Dynamic ADX risk scaling (tiered) ──────────────────
-            # ADX > 70 = parabolic → halve risk; > 50 → 1.5x; > 40 → 1.75x
+            # ── MEJORA 6: Dynamic ADX risk scaling (tiered, monotone) ───────────
+            # >70 = parabolic reversal risk → halve; >50 → 2.0x; >40 → 1.75x; >30 → 1.25x
             if entry_signal.adx is not None:
                 adx_val = entry_signal.adx
                 if adx_val > 70:
                     base_risk_pct = base_risk_pct * 0.5
                     LOGGER.info("ADX parabolic: adx=%.1f → halving risk, risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 50:
-                    base_risk_pct = base_risk_pct * 1.5
-                    LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    base_risk_pct = base_risk_pct * 2.0
+                    LOGGER.info("ADX extreme: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 40:
                     base_risk_pct = base_risk_pct * 1.75
-                    LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX strong: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 30:
                     base_risk_pct = base_risk_pct * 1.25
                     LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
