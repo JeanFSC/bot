@@ -2,7 +2,6 @@
 # USDCHF se mueve inversamente al EURUSD (~-0.90 correlación).
 # Cubre sesión London-NY. Spread bajo. Activo en horas de menor cobertura.
 # Magic: 260446 | DB: data/pro_usdchf.sqlite
-# -----------------------------------------------------------------------------
 
 symbol:           USDCHF
 timeframe:        M15
@@ -19,13 +18,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
-
-use_partial_close:    true
-partial_close_ratio:  0.5
-profit_target_usd:    null
-baseline_equity:      102000.0
-
-database_path: data/pro_usdchf.sqlite
+reverse_cooldown_seconds: 300
+max_loss_per_symbol_per_hour_pct: 2.5
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -34,6 +28,12 @@ news_minutes_after:   15
 use_equity_curve_filter:  true
 max_consecutive_losses:   3
 lot_reduction_factor:     0.5
+
+use_partial_close:    true
+partial_close_ratio:  0.5
+profit_target_usd:    null
+baseline_equity:      102000.0
+database_path: data/pro_usdchf.sqlite
 
 risk:
   mode:       percent_equity
@@ -55,11 +55,11 @@ strategy:
   use_rsi_momentum: false
 
   atr_period:    14
-  min_atr_pips:  1.2
+  min_atr_pips:  1.5
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 20
+  adx_min_value: 22
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
@@ -69,6 +69,9 @@ strategy:
   session_start_hour: 6
   session_end_hour:   20
   use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour:   0
+  use_session2: false
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
@@ -76,6 +79,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_candle_confirm: true
   use_volatility_regime: true
 
 execution:

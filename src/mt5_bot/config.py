@@ -60,7 +60,7 @@ class StrategySettings:
     breakeven_atr_multiplier: float = 1.0
     trailing_atr_multiplier: float = 1.5
     use_retest_filter: bool = False
-    retest_timeout_bars: int = 0
+    retest_timeout_bars: int = 4
     use_candle_confirm: bool = False
     use_volatility_regime: bool = False
 
@@ -85,7 +85,10 @@ class BotConfig:
     max_daily_loss_pct: float = 2.0
     max_trades_per_day: int = 20
     cooldown_seconds: int = 60
+    reverse_cooldown_seconds: int = 0
+    max_loss_per_symbol_per_hour_pct: float = 0.0
     profit_target_usd: Optional[float] = None
+    baseline_equity: float = 102000.0
     database_path: Path = Path("data/trades.sqlite")
     use_partial_close: bool = False
     partial_close_ratio: float = 0.5
@@ -101,7 +104,6 @@ class BotConfig:
     max_total_margin_pct: float = 85.0
     max_portfolio_open_positions: int = 3
     max_same_currency_positions: int = 2
-    baseline_equity: float = 0.0
     account: Optional[AccountConfig] = None
     risk: RiskConfig = field(default_factory=RiskConfig)
     strategy: StrategySettings = field(default_factory=StrategySettings)
@@ -159,7 +161,10 @@ def load_config(path: str | Path) -> BotConfig:
         max_daily_loss_pct=float(raw.get("max_daily_loss_pct", 2.0)),
         max_trades_per_day=int(raw.get("max_trades_per_day", 20)),
         cooldown_seconds=int(raw.get("cooldown_seconds", 60)),
+        reverse_cooldown_seconds=int(raw.get("reverse_cooldown_seconds", 0)),
+        max_loss_per_symbol_per_hour_pct=float(raw.get("max_loss_per_symbol_per_hour_pct", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
+        baseline_equity=float(raw.get("baseline_equity", 102000.0)),
         database_path=Path(raw.get("database_path", "data/trades.sqlite")),
         use_partial_close=bool(raw.get("use_partial_close", False)),
         partial_close_ratio=float(raw.get("partial_close_ratio", 0.5)),
@@ -173,7 +178,6 @@ def load_config(path: str | Path) -> BotConfig:
         max_total_margin_pct=float(raw.get("max_total_margin_pct", 85.0)),
         max_portfolio_open_positions=int(raw.get("max_portfolio_open_positions", 3)),
         max_same_currency_positions=int(raw.get("max_same_currency_positions", 2)),
-        baseline_equity=float(raw.get("baseline_equity", 0.0)),
         account=account,
         risk=RiskConfig(**risk_raw),
         strategy=StrategySettings(**strategy_kwargs),
@@ -216,5 +220,9 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("V1 supports exactly one open position")
     if config.poll_seconds < 1:
         raise ValueError("poll_seconds must be >= 1")
+    if config.reverse_cooldown_seconds < 0:
+        raise ValueError("reverse_cooldown_seconds must be >= 0")
+    if config.max_loss_per_symbol_per_hour_pct < 0:
+        raise ValueError("max_loss_per_symbol_per_hour_pct must be >= 0")
     if not (0.0 < config.partial_close_ratio < 1.0):
         raise ValueError("partial_close_ratio must be between 0 and 1 (exclusive)")

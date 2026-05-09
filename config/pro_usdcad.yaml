@@ -1,8 +1,7 @@
 # --- PRO USDCAD - Sesión NY + correlación petróleo ----------------------------
 # USDCAD es activo en sesión NY y reacciona al precio del petróleo (WTI).
-# Tendencias limpias durante overlap London/NY (12-20 UTC).
+# Tendencias limpias durante overlap London/NY (08-20 UTC).
 # Magic: 260441 | DB: data/pro_usdcad.sqlite
-# -----------------------------------------------------------------------------
 
 symbol:           USDCAD
 timeframe:        M15
@@ -10,7 +9,7 @@ trend_timeframe:  H1
 poll_seconds:     15
 demo_only:        true
 
-max_spread_pips:      2.5
+max_spread_pips:      2.2
 max_open_positions:   1
 max_daily_loss_pct:   5.0
 max_trades_per_day:   30
@@ -19,13 +18,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
-
-use_partial_close:    true
-partial_close_ratio:  0.5
-profit_target_usd:    null
-baseline_equity:      102000.0
-
-database_path: data/pro_usdcad.sqlite
+reverse_cooldown_seconds: 300
+max_loss_per_symbol_per_hour_pct: 2.5
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -35,9 +29,15 @@ use_equity_curve_filter:  true
 max_consecutive_losses:   3
 lot_reduction_factor:     0.5
 
+use_partial_close:    true
+partial_close_ratio:  0.5
+profit_target_usd:    null
+baseline_equity:      102000.0
+database_path: data/pro_usdcad.sqlite
+
 risk:
   mode:       percent_equity
-  risk_pct:   1.8
+  risk_pct:   1.5
   fixed_lot:  0.5
   sl_pips:    20
   tp_pips:    40
@@ -59,7 +59,7 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 20
+  adx_min_value: 22
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
@@ -69,6 +69,9 @@ strategy:
   session_start_hour: 8
   session_end_hour:   20
   use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour:   0
+  use_session2: false
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
@@ -76,6 +79,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_candle_confirm: true
   use_volatility_regime: true
 
 execution:

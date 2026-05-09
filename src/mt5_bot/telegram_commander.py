@@ -15,7 +15,20 @@ BOT_DIR   = Path(__file__).resolve().parent.parent.parent
 BAT_START = BOT_DIR / "_run_all_pro_autorestart.bat"
 LOG_DIR   = BOT_DIR / "logs"
 ENV_FILE  = BOT_DIR / ".env"
-BOT_TITLES = ["PRO EURUSD","PRO GBPUSD","PRO USDJPY","PRO GOLD","PRO AUDUSD"]
+BOT_TITLES = [
+    "PRO EURUSD",
+    "PRO GBPUSD",
+    "PRO USDJPY",
+    "PRO XAUUSD (Gold)",
+    "PRO AUDUSD",
+    "PRO XAUUSD M5 (Gold 24h)",
+    "PRO USDCAD",
+    "PRO NZDUSD",
+    "PRO GBPJPY",
+    "PRO XAGUSD (Silver)",
+    "PRO USDJPY ASIA",
+    "PRO USDCHF",
+]
 FLAGS = 0x08000000  # CREATE_NO_WINDOW
 
 def _load_env():
@@ -71,12 +84,15 @@ class TelegramBot:
 
 def _count_bots():
     try:
+        ps = (
+            "$p=Get-CimInstance Win32_Process | "
+            "Where-Object { $_.Name -match 'python' -and $_.CommandLine -match 'mt5_bot' }; "
+            "@($p).Count"
+        )
         r = subprocess.run(
-            ["wmic","process","where",
-             "name=\'python.exe\' and commandline like \'%mt5_bot%\'",
-             "get","ProcessId","/format:list"],
+            ["powershell", "-NoProfile", "-Command", ps],
             capture_output=True, text=True, timeout=8, creationflags=FLAGS)
-        return sum(1 for l in r.stdout.splitlines() if l.strip().startswith("ProcessId="))
+        return int((r.stdout or "0").strip().splitlines()[-1])
     except:
         return -1
 
@@ -93,11 +109,13 @@ def _start_bots():
 
 def _stop_bots():
     try:
-        subprocess.run(
-            ["wmic","process","where",
-             "name=\'python.exe\' and commandline like \'%mt5_bot%\'",
-             "call","terminate"],
-            capture_output=True, creationflags=FLAGS)
+        ps = (
+            "Get-CimInstance Win32_Process | "
+            "Where-Object { $_.Name -match 'python' -and $_.CommandLine -match 'mt5_bot' } | "
+            "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+        )
+        subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                       capture_output=True, creationflags=FLAGS)
         for t in BOT_TITLES:
             subprocess.run(["taskkill","/F","/FI",f"WINDOWTITLE eq {t}"],
                            capture_output=True, creationflags=FLAGS)

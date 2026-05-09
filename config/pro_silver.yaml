@@ -1,10 +1,8 @@
 # --- PRO SILVER - XAGUSD 24h --------------------------------------------------
 # Silver es más volátil que Gold y opera casi 24h.
-# pip = 0.01 (igual que XAUUSD). ATR típico M15: 30-80 pips.
+# pip = 0.01 (igual que XAUUSD). ATR típico M15: 20-50 pips.
 # Baja correlación con Forex → diversificación real del portafolio.
 # Magic: 260444 | DB: data/pro_silver.sqlite
-# NOTA: Verificar que XAGUSD esté disponible en tu MT5.
-# -----------------------------------------------------------------------------
 
 symbol:           XAGUSD
 timeframe:        M15
@@ -21,13 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
-
-use_partial_close:    true
-partial_close_ratio:  0.5
-profit_target_usd:    null
-baseline_equity:      102000.0
-
-database_path: data/pro_silver.sqlite
+reverse_cooldown_seconds: 180
+max_loss_per_symbol_per_hour_pct: 2.5
 
 use_news_filter:      true
 news_minutes_before:  45
@@ -37,9 +30,15 @@ use_equity_curve_filter:  true
 max_consecutive_losses:   3
 lot_reduction_factor:     0.5
 
+use_partial_close:    true
+partial_close_ratio:  0.5
+profit_target_usd:    null
+baseline_equity:      102000.0
+database_path: data/pro_silver.sqlite
+
 risk:
   mode:       percent_equity
-  risk_pct:   1.5
+  risk_pct:   1.3
   fixed_lot:  0.1
   sl_pips:    100
   tp_pips:    250
@@ -71,6 +70,9 @@ strategy:
   session_start_hour: 0
   session_end_hour:   24
   use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour:   0
+  use_session2: false
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
@@ -78,6 +80,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_candle_confirm: true
   use_volatility_regime: true
 
 execution:

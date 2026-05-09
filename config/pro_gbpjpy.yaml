@@ -3,7 +3,6 @@
 # En tendencia fuerte puede mover 100-200 pips en M15. Solo sesión London
 # donde el volumen es suficiente para absorber los grandes spreads.
 # Magic: 260443 | DB: data/pro_gbpjpy.sqlite
-# -----------------------------------------------------------------------------
 
 symbol:           GBPJPY
 timeframe:        M15
@@ -20,13 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     45
-
-use_partial_close:    true
-partial_close_ratio:  0.5
-profit_target_usd:    null
-baseline_equity:      102000.0
-
-database_path: data/pro_gbpjpy.sqlite
+reverse_cooldown_seconds: 600
+max_loss_per_symbol_per_hour_pct: 2.0
 
 use_news_filter:      true
 news_minutes_before:  45
@@ -35,6 +29,12 @@ news_minutes_after:   20
 use_equity_curve_filter:  true
 max_consecutive_losses:   3
 lot_reduction_factor:     0.5
+
+use_partial_close:    true
+partial_close_ratio:  0.5
+profit_target_usd:    null
+baseline_equity:      102000.0
+database_path: data/pro_gbpjpy.sqlite
 
 risk:
   mode:       percent_equity
@@ -70,12 +70,16 @@ strategy:
   session_start_hour: 7
   session_end_hour:   20
   use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour:   0
+  use_session2: false
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
   trailing_atr_multiplier:    2.0
 
   use_retest_filter: false
+  retest_timeout_bars: 4
   use_candle_confirm: true
   use_volatility_regime: true
 
