@@ -66,7 +66,7 @@ strategy:
   atr_tp_multiplier: 3.0
   use_atr_sl_tp: true
 
-  session_start_hour: 11
+  session_start_hour: 8
   session_end_hour:   20
   use_session_filter: true
 
@@ -76,6 +76,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_volatility_regime: true
 
 execution:
   magic:        260441

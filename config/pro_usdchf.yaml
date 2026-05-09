@@ -76,6 +76,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_volatility_regime: true
 
 execution:
   magic:        260446

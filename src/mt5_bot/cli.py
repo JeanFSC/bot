@@ -277,6 +277,13 @@ def run_trade(
                 _sleep_and_manage_trailing(executor, config, current_spread)
                 continue
 
+            # Spread-spike filter: block when current spread is >1.8x the 1h average
+            _avg_spread_1h = storage.get_avg_spread_last_hour(config.symbol)
+            if _avg_spread_1h > 0 and current_spread > max(config.max_spread_pips, _avg_spread_1h * 1.8):
+                LOGGER.info("Spread spike: %.2f > 1.8x avg %.2f — blocking", current_spread, _avg_spread_1h)
+                _sleep_and_manage_trailing(executor, config, current_spread)
+                continue
+
             if config.use_global_risk_guard:
                 try:
                     guard = portfolio_guard_decision(config, account, gateway.positions_get())
@@ -365,12 +372,16 @@ def run_trade(
                 "AUDUSD": [("EURUSD", 260433), ("GBPUSD", 260434), ("NZDUSD", 260442)],
                 "NZDUSD": [("AUDUSD", 260437)],
                 "GBPJPY": [("GBPUSD", 260434)],
+                "USDJPY": [("USDCAD", 260441), ("USDCHF", 260446)],
+                "USDCAD": [("USDJPY", 260435), ("USDCHF", 260446)],
+                "USDCHF": [("USDJPY", 260435), ("USDCAD", 260441)],
             }
             # Inverse correlation: same USD directional exposure when signal directions differ
             # e.g. EURUSD BUY (short USD) + USDCHF SELL (short USD) = doubled USD short
             _inverse_pairs = {
-                "USDCHF": [("EURUSD", 260433)],
+                "USDCHF": [("EURUSD", 260433), ("GBPUSD", 260434)],
                 "USDCAD": [("EURUSD", 260433), ("GBPUSD", 260434)],
+                "USDJPY": [("EURUSD", 260433), ("GBPUSD", 260434)],
             }
             _corr_risk_factor = 1.0
             if signal.type is not SignalType.NONE:
@@ -473,8 +484,11 @@ def run_trade(
             # ADX > 50 = extremo → 2.0x | > 40 → 1.75x | > 30 → 1.25x | débil → 0.75x
             if entry_signal.adx is not None:
                 adx_val = entry_signal.adx
-                if adx_val > 50:
-                    base_risk_pct = base_risk_pct * 2.0
+                if adx_val > 70:
+                    base_risk_pct = base_risk_pct * 0.5
+                    LOGGER.info("ADX parabolic: adx=%.1f → halving risk, risk_pct=%.2f%%", adx_val, base_risk_pct)
+                elif adx_val > 50:
+                    base_risk_pct = base_risk_pct * 1.5
                     LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 40:
                     base_risk_pct = base_risk_pct * 1.75

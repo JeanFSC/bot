@@ -76,6 +76,8 @@ strategy:
   trailing_atr_multiplier:    2.0
 
   use_retest_filter: false
+  use_candle_confirm: true
+  use_volatility_regime: true
 
 execution:
   magic:        260443

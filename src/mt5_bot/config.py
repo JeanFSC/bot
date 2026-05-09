@@ -61,6 +61,8 @@ class StrategySettings:
     trailing_atr_multiplier: float = 1.5
     use_retest_filter: bool = False
     retest_timeout_bars: int = 0
+    use_candle_confirm: bool = False
+    use_volatility_regime: bool = False
 
 
 @dataclass(frozen=True)

@@ -37,7 +37,7 @@ lot_reduction_factor:     0.5
 
 risk:
   mode:       percent_equity
-  risk_pct:   1.8
+  risk_pct:   1.0
   fixed_lot:  0.01
   sl_pips:    150
   tp_pips:    400
@@ -76,6 +76,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 6
+  use_volatility_regime: true
 
 execution:
   magic:        260440

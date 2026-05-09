@@ -75,7 +75,7 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 20
+  adx_min_value: 24
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
@@ -96,6 +96,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_volatility_regime: true
 
 # -- Execution ----------------------------------------------------------------
 execution:

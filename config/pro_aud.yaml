@@ -86,6 +86,9 @@ strategy:
   session_start_hour: 7
   session_end_hour:   20
   use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour:   6
+  use_session2: true
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
@@ -93,6 +96,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_volatility_regime: true
 
 # -- Execution ----------------------------------------------------------------
 execution:

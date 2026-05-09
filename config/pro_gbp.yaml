@@ -64,8 +64,8 @@ strategy:
   use_trend_filter: true       # GBPUSD: mantener trend filter H1
 
   rsi_period:    14
-  rsi_buy_max:   65
-  rsi_sell_min:  35
+  rsi_buy_max:   70
+  rsi_sell_min:  30
   use_rsi_filter: true
   use_rsi_momentum: false
 
@@ -91,6 +91,7 @@ strategy:
 
   use_retest_filter: true
   retest_timeout_bars: 4
+  use_volatility_regime: true
 
 # -- Execution ----------------------------------------------------------------
 execution:
