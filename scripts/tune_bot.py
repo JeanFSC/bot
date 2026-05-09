@@ -73,7 +73,7 @@ def main() -> int:
 
     keys = list(param_grid.keys())
     combos = list(itertools.product(*[param_grid[k] for k in keys]))
-    print(f"Grid: {len(combos)} combinations × 2 windows")
+    print(f"Grid: {len(combos)} combinations x 2 windows")
 
     params = BacktestParams(slippage_pips=args.slippage, initial_equity=args.initial_equity, lot_size=args.lot)
     results = []
