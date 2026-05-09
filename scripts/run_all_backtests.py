@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 _CONFIGS = [
     ("config/pro.yaml",          "EURUSD", "M15", "H1"),
-    ("config/pro_gbpusd.yaml",   "GBPUSD", "M15", "H1"),
+    ("config/pro_gbp.yaml",      "GBPUSD", "M15", "H1"),
     ("config/pro_jpy.yaml",      "USDJPY", "M15", "H1"),
     ("config/pro_gbpjpy.yaml",   "GBPJPY", "M15", "H1"),
     ("config/pro_aud.yaml",      "AUDUSD", "M15", "H1"),
@@ -84,8 +84,8 @@ def main() -> int:
         trend_csv  = bars_dir / f"{symbol}_{trend_tf}.csv"
 
         if not signal_csv.exists():
-            msg = f"SKIP [{symbol} {signal_tf}]: {signal_csv} not found — run download_bars.py first"
-            print(f"⚠  {msg}")
+            msg = f"SKIP [{symbol} {signal_tf}]: {signal_csv} not found - run download_bars.py first"
+            print(f"WARN {msg}")
             skipped.append(f"{symbol} {signal_tf}")
             continue
 
@@ -149,7 +149,7 @@ def main() -> int:
     if args.as_json:
         print(json.dumps(results, indent=2))
 
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     if results:
         avg = round(sum(r["score"] for r in results) / len(results), 2)
         print(f"Portfolio average score: {avg}/10  ({len(results)} bots in {total_elapsed:.1f}s)")
@@ -158,7 +158,7 @@ def main() -> int:
     if errored:
         print(f"Errors  ({len(errored)}):")
         for e in errored:
-            print(f"  • {e}")
+            print(f"  - {e}")
     if not results and not skipped:
         print("No bars data found. Run: python scripts/download_bars.py --all --years 2 --include-trend")
 
