@@ -224,3 +224,41 @@ def test_engine_speed_5000_bars():
     elapsed = time.perf_counter() - t0
 
     assert elapsed < 10.0, f"5000-bar backtest took {elapsed:.2f}s — too slow (target < 10s)"
+
+
+def test_pip_value_consistency_with_broker_specs():
+    """Regression test: catch any pip_value table that drifts from broker math.
+
+    pip_value_per_lot = tick_value * (pip_size / tick_size)
+
+    For standard retail brokers (IC Markets / OANDA-class) with USD-quoted majors:
+      EURUSD/GBPUSD/AUDUSD/NZDUSD: 100k contract, tick=0.00001, $1/tick → $10/pip
+      USDJPY: 100k, tick=0.001, ~$0.91/tick → ~$9.1/pip
+      XAUUSD: 100 oz, tick=0.01, $1/tick → $1/pip   (NOT $10!)
+      XAGUSD: 5000 oz, tick=0.001, $5/tick → $50/pip
+    """
+    from mt5_bot.backtest_engine import _PIP_VALUE_PER_LOT
+
+    # Standard broker reference: pip_value per lot for a 1-pip move.
+    # Tolerance 5% — actual broker can vary slightly with profit currency.
+    expected = {
+        "EURUSD": (10.0, 0.5),
+        "GBPUSD": (10.0, 0.5),
+        "AUDUSD": (10.0, 0.5),
+        "NZDUSD": (10.0, 0.5),
+        "USDCAD": (7.6, 1.0),
+        "USDCHF": (11.0, 1.0),
+        "USDJPY": (9.1, 1.0),
+        "GBPJPY": (9.1, 1.0),
+        "XAUUSD": (1.0, 0.1),    # ← was 10.0 (10× bug)
+        "XAGUSD": (50.0, 5.0),
+    }
+
+    for symbol, (target, tol) in expected.items():
+        actual = _PIP_VALUE_PER_LOT.get(symbol)
+        assert actual is not None, f"{symbol} missing from _PIP_VALUE_PER_LOT"
+        assert abs(actual - target) <= tol, (
+            f"{symbol}: pip_value = {actual}, expected ≈ {target} (±{tol}). "
+            f"Broker math: tick_value × (pip_size / tick_size). "
+            f"Verify with scripts/diag_symbol_specs.py on Windows."
+        )

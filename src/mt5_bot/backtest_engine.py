@@ -44,7 +44,13 @@ from mt5_bot.strategy import (
 
 
 # ── Pip-value table (USD per lot per pip) ───────────────────────────────────
-# Approximate values; ±5% vs broker is expected.
+# Computed as: tick_value * (pip_size / tick_size).
+# For standard retail brokers (IC Markets / OANDA / Pepperstone class):
+#   FX major:   100,000 base × 0.0001 pip × $1/tick = $10/pip
+#   USDJPY:     100,000 × 0.01 / quote ≈ $9.1/pip (varies with USD/JPY rate)
+#   XAUUSD:     100 oz × $0.01/pip = $1/pip       ← was 10.0 (10× bug)
+#   XAGUSD:     5,000 oz × $0.01/pip = $50/pip
+# Verify per-broker with scripts/diag_symbol_specs.py — ±5% tolerance expected.
 _PIP_VALUE_PER_LOT: dict[str, float] = {
     "EURUSD": 10.0,
     "GBPUSD": 10.0,
@@ -57,9 +63,33 @@ _PIP_VALUE_PER_LOT: dict[str, float] = {
     "EURJPY": 9.1,
     "AUDJPY": 9.1,
     "NZDJPY": 9.1,
-    "XAUUSD": 10.0,
+    "XAUUSD": 1.0,
     "XAGUSD": 50.0,
 }
+
+
+# ── Per-symbol slippage defaults (pips) ──────────────────────────────────────
+# Used when BacktestParams.slippage_pips is None. Reflects typical retail
+# broker spreads applied to entry. Verify with scripts/diag_symbol_specs.py.
+_DEFAULT_SLIPPAGE_PIPS: dict[str, float] = {
+    "EURUSD": 1.0,
+    "GBPUSD": 1.2,
+    "AUDUSD": 1.0,
+    "NZDUSD": 1.5,
+    "USDCAD": 1.5,
+    "USDCHF": 1.8,
+    "USDJPY": 1.0,
+    "GBPJPY": 2.0,
+    "EURJPY": 1.5,
+    "XAUUSD": 30.0,
+    "XAGUSD": 5.0,
+}
+
+
+def _slippage_for_symbol(symbol: str, override: Optional[float]) -> float:
+    if override is not None:
+        return override
+    return _DEFAULT_SLIPPAGE_PIPS.get(symbol.upper(), 1.0)
 
 
 def _pip_value(symbol: str) -> float:
@@ -69,7 +99,7 @@ def _pip_value(symbol: str) -> float:
 
 @dataclass
 class BacktestParams:
-    slippage_pips: float = 0.3
+    slippage_pips: Optional[float] = None  # None → use _DEFAULT_SLIPPAGE_PIPS per symbol
     initial_equity: float = 10_000.0
     lot_size: float = 0.1
 
@@ -335,6 +365,7 @@ def run_realistic_backtest(
 
     pip     = _pip_size_for_symbol(config.symbol)
     pip_val = _pip_value(config.symbol)
+    slippage_pips = _slippage_for_symbol(config.symbol, params.slippage_pips)
     sl_pips_base = config.risk.sl_pips
     tp_pips_base = config.risk.tp_pips
     lot = params.lot_size
@@ -509,9 +540,9 @@ def run_realistic_backtest(
         # ── Entry price ───────────────────────────────────────────────────────
         entry_price = bar_close
         if signal_type is SignalType.BUY:
-            entry_price += params.slippage_pips * pip
+            entry_price += slippage_pips * pip
         else:
-            entry_price -= params.slippage_pips * pip
+            entry_price -= slippage_pips * pip
 
         # ── SL / TP ───────────────────────────────────────────────────────────
         if sc.use_atr_sl_tp and atr_val is not None:
