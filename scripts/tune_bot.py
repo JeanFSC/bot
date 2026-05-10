@@ -42,16 +42,30 @@ def main() -> int:
     parser.add_argument("--grid", required=True, help="YAML with parameter grid")
     parser.add_argument("--train", required=True, help="IS period: YYYY-MM-DD..YYYY-MM-DD")
     parser.add_argument("--test", required=True, help="OOS period: YYYY-MM-DD..YYYY-MM-DD")
-    parser.add_argument("--slippage", type=float, default=0.3)
+    parser.add_argument(
+        "--slippage", type=float, default=None,
+        help="Slippage in pips applied to all symbols. Omit to use broker profile "
+             "or hardcoded per-symbol defaults.",
+    )
+    parser.add_argument(
+        "--broker-profile", default=None,
+        help="Path to broker symbol_specs.json. Auto-detects data/diag/symbol_specs.json.",
+    )
     parser.add_argument("--initial-equity", type=float, default=10_000.0)
     parser.add_argument("--lot", type=float, default=0.1)
     parser.add_argument("--top", type=int, default=10, help="Show top N combinations")
     parser.add_argument("--max-delta", type=float, default=2.0, help="Max IS-OOS delta before flagging overfit")
+    parser.add_argument(
+        "--progress-every", type=int, default=10,
+        help="Print progress every N combos (default 10)",
+    )
     args = parser.parse_args()
 
+    import time
     import yaml
     from mt5_bot.backtest_engine import run_realistic_backtest, BacktestParams
     from mt5_bot.bars_loader import load_bars_from_csv
+    from mt5_bot.broker_profile import BrokerProfile
     from mt5_bot.config import load_config, StrategySettings
     from mt5_bot.performance import compute_score
 
@@ -73,34 +87,74 @@ def main() -> int:
 
     keys = list(param_grid.keys())
     combos = list(itertools.product(*[param_grid[k] for k in keys]))
-    print(f"Grid: {len(combos)} combinations x 2 windows")
+    n_combos = len(combos)
+    print(f"Grid: {n_combos} combinations x 2 windows", flush=True)
 
-    params = BacktestParams(slippage_pips=args.slippage, initial_equity=args.initial_equity, lot_size=args.lot)
+    # Broker profile resolution (same as run_all_backtests.py)
+    if args.broker_profile == "":
+        profile = BrokerProfile.empty()
+        print("[broker] Forced empty profile - using hardcoded fallbacks", flush=True)
+    elif args.broker_profile is not None:
+        profile = BrokerProfile.from_json(args.broker_profile)
+        print(f"[broker] Loaded {len(profile)} symbols from {profile.source}", flush=True)
+    else:
+        profile = BrokerProfile.auto_detect()
+        if len(profile) > 0:
+            print(f"[broker] Auto-detected {len(profile)} symbols from {profile.source}", flush=True)
+        else:
+            print("[broker] No symbol_specs.json - using hardcoded fallbacks", flush=True)
+
+    params = BacktestParams(
+        slippage_pips=args.slippage,
+        initial_equity=args.initial_equity,
+        lot_size=args.lot,
+        broker_profile=profile,
+    )
     results = []
+    started = time.perf_counter()
+    progress_every = max(1, args.progress_every)
 
-    for combo in combos:
+    for idx, combo in enumerate(combos, 1):
         overrides = dict(zip(keys, combo))
         new_strategy = replace(config.strategy, **overrides)
         cfg = replace(config, strategy=new_strategy)
 
-        m_is = run_realistic_backtest(train_bars, cfg, trend_bars=trend_train, params=params)
-        m_oos = run_realistic_backtest(test_bars, cfg, trend_bars=trend_test, params=params)
-        is_score = compute_score(m_is)
-        oos_score = compute_score(m_oos)
-        delta = round(is_score - oos_score, 2)
-        overfit = delta > args.max_delta
+        try:
+            m_is = run_realistic_backtest(train_bars, cfg, trend_bars=trend_train, params=params)
+            m_oos = run_realistic_backtest(test_bars, cfg, trend_bars=trend_test, params=params)
+            is_score = compute_score(m_is)
+            oos_score = compute_score(m_oos)
+            delta = round(is_score - oos_score, 2)
+            overfit = delta > args.max_delta
 
-        results.append({
-            "params": overrides,
-            "is_score": is_score,
-            "oos_score": oos_score,
-            "delta": delta,
-            "overfit": overfit,
-            "is_trades": m_is.trades,
-            "oos_trades": m_oos.trades,
-            "is_pf": m_is.profit_factor,
-            "oos_pf": m_oos.profit_factor,
-        })
+            results.append({
+                "params": overrides,
+                "is_score": is_score,
+                "oos_score": oos_score,
+                "delta": delta,
+                "overfit": overfit,
+                "is_trades": m_is.trades,
+                "oos_trades": m_oos.trades,
+                "is_pf": m_is.profit_factor,
+                "oos_pf": m_oos.profit_factor,
+            })
+        except Exception as exc:
+            print(f"  [{idx}/{n_combos}] ERROR with {overrides}: {exc}", flush=True)
+            continue
+
+        if idx % progress_every == 0 or idx == n_combos:
+            elapsed = time.perf_counter() - started
+            rate = idx / elapsed if elapsed > 0 else 0
+            eta = (n_combos - idx) / rate if rate > 0 else 0
+            print(
+                f"  [{idx}/{n_combos}] elapsed={elapsed:.0f}s rate={rate:.1f}/s "
+                f"eta={eta:.0f}s last_oos_score={oos_score:.2f}",
+                flush=True,
+            )
+
+    if not results:
+        print("\nNo successful runs - check grid YAML and config.")
+        return 1
 
     results.sort(key=lambda r: r["oos_score"], reverse=True)
 

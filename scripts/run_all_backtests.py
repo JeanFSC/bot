@@ -52,8 +52,18 @@ def main() -> int:
     parser.add_argument(
         "--slippage", type=float, default=None,
         help="Slippage in pips applied uniformly to all symbols. "
-             "Omit to use per-symbol defaults from backtest_engine "
-             "(forex 1.0, JPY pairs 1.0-2.0, XAUUSD 30, XAGUSD 5).",
+             "Omit to use broker profile or hardcoded per-symbol defaults.",
+    )
+    parser.add_argument(
+        "--broker-profile", default=None,
+        help="Path to broker symbol_specs.json. Auto-detects "
+             "data/diag/symbol_specs.json when omitted. Pass empty string to "
+             "disable and force hardcoded fallbacks.",
+    )
+    parser.add_argument(
+        "--invert-signals", action="store_true",
+        help="DIAGNOSTIC: flip BUY<->SELL. If PF jumps >2x, the strategy is "
+             "anti-edge (entries are systematically wrong direction).",
     )
     parser.add_argument("--initial-equity", type=float, default=10_000.0)
     parser.add_argument("--lot", type=float, default=0.1)
@@ -68,24 +78,48 @@ def main() -> int:
 
     from mt5_bot.backtest_engine import run_realistic_backtest, BacktestParams
     from mt5_bot.bars_loader import load_bars_from_csv
+    from mt5_bot.broker_profile import BrokerProfile
     from mt5_bot.config import load_config
     from mt5_bot.performance import compute_score, suggestions
 
     bars_dir = Path(args.bars_dir)
     out_dir  = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Broker profile: explicit path > auto-detect > empty (use hardcoded)
+    if args.broker_profile == "":
+        profile = BrokerProfile.empty()
+        print("[broker] Forced empty profile - using hardcoded fallbacks")
+    elif args.broker_profile is not None:
+        profile = BrokerProfile.from_json(args.broker_profile)
+        print(f"[broker] Loaded {len(profile)} symbols from {profile.source}")
+    else:
+        profile = BrokerProfile.auto_detect()
+        if len(profile) > 0:
+            print(f"[broker] Auto-detected {len(profile)} symbols from {profile.source}")
+        else:
+            print("[broker] No data/diag/symbol_specs.json - using hardcoded fallbacks")
+            print("         Run scripts/diag_symbol_specs.py on Windows for real broker numbers")
+
     params = BacktestParams(
         slippage_pips=args.slippage,
         initial_equity=args.initial_equity,
         lot_size=args.lot,
+        broker_profile=profile,
+        invert_signals=args.invert_signals,
     )
 
     if args.max_bars:
         print(f"[quick mode] Using last {args.max_bars:,} bars per bot")
     if args.slippage is None:
-        print("[slippage] Using per-symbol defaults (omit --slippage to keep this)")
+        if len(profile) > 0:
+            print("[slippage] Using broker profile spreads where available")
+        else:
+            print("[slippage] Using hardcoded per-symbol defaults")
     else:
         print(f"[slippage] Override: {args.slippage} pips applied to all symbols")
+    if args.invert_signals:
+        print("[DIAGNOSTIC] Signals INVERTED (BUY<->SELL)")
 
     results = []
     skipped = []

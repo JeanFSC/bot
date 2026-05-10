@@ -29,6 +29,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from mt5_bot.broker_profile import BrokerProfile
 from mt5_bot.config import BotConfig
 from mt5_bot.performance import PerformanceMetrics
 from mt5_bot.report import _max_drawdown
@@ -92,6 +93,28 @@ def _slippage_for_symbol(symbol: str, override: Optional[float]) -> float:
     return _DEFAULT_SLIPPAGE_PIPS.get(symbol.upper(), 1.0)
 
 
+def _resolve_pip_value(symbol: str, profile: Optional[BrokerProfile]) -> float:
+    """Broker profile wins; falls back to hardcoded _PIP_VALUE_PER_LOT."""
+    fallback = _pip_value(symbol)
+    if profile is not None:
+        return profile.pip_value(symbol, fallback)
+    return fallback
+
+
+def _resolve_slippage(
+    symbol: str,
+    override: Optional[float],
+    profile: Optional[BrokerProfile],
+) -> float:
+    """Override > broker profile > hardcoded per-symbol default."""
+    if override is not None:
+        return override
+    fallback = _DEFAULT_SLIPPAGE_PIPS.get(symbol.upper(), 1.0)
+    if profile is not None:
+        return profile.slippage(symbol, fallback)
+    return fallback
+
+
 def _pip_value(symbol: str) -> float:
     sym = symbol.upper().replace("/", "")
     return _PIP_VALUE_PER_LOT.get(sym, 10.0)
@@ -99,9 +122,11 @@ def _pip_value(symbol: str) -> float:
 
 @dataclass
 class BacktestParams:
-    slippage_pips: Optional[float] = None  # None → use _DEFAULT_SLIPPAGE_PIPS per symbol
+    slippage_pips: Optional[float] = None       # None -> per-symbol or broker profile
     initial_equity: float = 10_000.0
     lot_size: float = 0.1
+    broker_profile: Optional[BrokerProfile] = None
+    invert_signals: bool = False                # diagnostic: BUY <-> SELL
 
 
 @dataclass
@@ -364,8 +389,8 @@ def run_realistic_backtest(
     })
 
     pip     = _pip_size_for_symbol(config.symbol)
-    pip_val = _pip_value(config.symbol)
-    slippage_pips = _slippage_for_symbol(config.symbol, params.slippage_pips)
+    pip_val = _resolve_pip_value(config.symbol, params.broker_profile)
+    slippage_pips = _resolve_slippage(config.symbol, params.slippage_pips, params.broker_profile)
     sl_pips_base = config.risk.sl_pips
     tp_pips_base = config.risk.tp_pips
     lot = params.lot_size
@@ -536,6 +561,10 @@ def run_realistic_backtest(
 
         if signal_type is SignalType.NONE:
             continue
+
+        # Diagnostic: flip signal direction (used to test "anti-edge" hypothesis)
+        if params.invert_signals:
+            signal_type = SignalType.SELL if signal_type is SignalType.BUY else SignalType.BUY
 
         # ── Entry price ───────────────────────────────────────────────────────
         entry_price = bar_close

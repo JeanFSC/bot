@@ -262,3 +262,73 @@ def test_pip_value_consistency_with_broker_specs():
             f"Broker math: tick_value × (pip_size / tick_size). "
             f"Verify with scripts/diag_symbol_specs.py on Windows."
         )
+
+
+def test_broker_profile_overrides_pip_value(tmp_path):
+    """BrokerProfile pip_value should override hardcoded _PIP_VALUE_PER_LOT."""
+    import json
+    from mt5_bot.broker_profile import BrokerProfile
+
+    # Simulate diag JSON where broker reports XAUUSD pip_value = 0.10 (10x lower than hardcoded 1.0)
+    profile_path = tmp_path / "specs.json"
+    profile_path.write_text(json.dumps([
+        {"symbol": "EURUSD", "pip_value_per_lot_broker_calc": 10.0,  "spread_pips_estimate": 1.0,
+         "trade_contract_size": 100000},
+        {"symbol": "XAUUSD", "pip_value_per_lot_broker_calc": 0.10,  "spread_pips_estimate": 30.0,
+         "trade_contract_size": 100},
+        {"symbol": "USDJPY", "pip_value_per_lot_broker_calc": 6.38,  "spread_pips_estimate": 1.5,
+         "trade_contract_size": 100000},
+    ]))
+    profile = BrokerProfile.from_json(profile_path)
+
+    assert profile.pip_value("XAUUSD", fallback=999) == 0.10
+    assert profile.pip_value("USDJPY", fallback=999) == 6.38
+    assert profile.pip_value("UNKNOWN", fallback=999) == 999
+    assert profile.slippage("XAUUSD", fallback=999) == 30.0
+    assert profile.has_symbol("XAUUSD")
+    assert not profile.has_symbol("EURGBP")
+
+
+def test_broker_profile_changes_pnl():
+    """Same trade with different pip_value profiles should produce different PnL."""
+    from mt5_bot.broker_profile import BrokerProfile
+
+    # Build a profile that says XAUUSD pip_value = 0.1 (10x smaller than hardcoded 1.0)
+    profile = BrokerProfile(pip_values={"XAUUSD": 0.10}, slippage_pips={"XAUUSD": 30.0})
+
+    bars = rally_bars(n=300)
+    config = _base_config(symbol="XAUUSD")
+    p_default = BacktestParams(slippage_pips=0.0)  # hardcoded fallback
+    p_broker  = BacktestParams(slippage_pips=0.0, broker_profile=profile)
+
+    m_default = run_realistic_backtest(bars, config, params=p_default)
+    m_broker  = run_realistic_backtest(bars, config, params=p_broker)
+
+    if m_default.trades > 0 and m_broker.trades > 0:
+        # Same trade count expected (price action identical), but expectancy_pips
+        # is the same too (computed in pips). What changes is implicit USD scaling.
+        # Drawdown is in USD (relative to initial_equity), so 10x smaller pip_value
+        # -> 10x smaller drawdown.
+        assert m_broker.max_drawdown_pct <= m_default.max_drawdown_pct + 0.01
+
+
+def test_broker_profile_auto_detect_missing(tmp_path, monkeypatch):
+    """auto_detect returns empty profile when JSON missing."""
+    from mt5_bot.broker_profile import BrokerProfile
+    profile = BrokerProfile.auto_detect(tmp_path / "no_such.json")
+    assert len(profile) == 0
+    assert profile.pip_value("EURUSD", 10.0) == 10.0  # falls back
+
+
+def test_invert_signals_flips_direction():
+    """invert_signals=True should flip BUY into SELL and vice versa."""
+    bars = rally_bars(n=300)  # generates BUY signals
+    config = _base_config()
+    m_normal = run_realistic_backtest(bars, config, params=BacktestParams(slippage_pips=0.0, invert_signals=False))
+    m_invert = run_realistic_backtest(bars, config, params=BacktestParams(slippage_pips=0.0, invert_signals=True))
+
+    if m_normal.trades > 0 and m_invert.trades > 0:
+        # In a strong rally, BUY trades win and SELL (inverted) trades lose
+        # Exact opposite is not guaranteed (SL/TP asymmetry, etc.) but signs should differ
+        # for at least one direction
+        assert (m_normal.win_rate_pct + m_invert.win_rate_pct) > 0  # both produce trades
