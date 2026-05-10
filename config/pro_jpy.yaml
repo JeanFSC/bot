@@ -1,7 +1,7 @@
 # --- PRO USDJPY - trend major ---------------------------------------------------------------
 # Metodologia Claude: MTF EMA crossover + filtros de calidad + riesgo primero.
 # Signal layer: M15 EMA(9/21); Trend layer: H1 EMA(50).
-# Entry quality: RSI guard, ATR gate, ADX>= 22, optional retest + candle confirmation.
+# Entry quality: RSI guard, ATR gate, ADX>= 24, optional retest + candle confirmation.
 # Risk: portfolio guard max 5 trades, daily loss 5.0%, ADX tiered boost, compounding baseline.
 
 symbol:           USDJPY
@@ -19,6 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
+reverse_cooldown_seconds: 600
+max_loss_per_symbol_per_hour_pct: 2.0
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -36,7 +38,7 @@ database_path: data/pro_jpy.sqlite
 
 risk:
   mode:       percent_equity
-  risk_pct:   1.8
+  risk_pct:   1.5
   fixed_lot:  0.5
   sl_pips:    20
   tp_pips:    40
@@ -58,7 +60,7 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 22
+  adx_min_value: 24
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
@@ -79,6 +81,7 @@ strategy:
   use_retest_filter: true
   retest_timeout_bars: 4
   use_candle_confirm: true
+  use_volatility_regime: true
 
 execution:
   magic:        260435

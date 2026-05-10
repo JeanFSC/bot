@@ -67,6 +67,10 @@ class StrategyConfig:
     use_trailing_stop: bool = False
     breakeven_atr_multiplier: float = 1.0
     trailing_atr_multiplier: float = 1.5
+    # ── Retest filter timeout ─────────────────────────────────────────────────
+    retest_timeout_bars: int = 0   # 0 = no timeout; N = expire pending retest after N bars
+    # ── Volatility regime / blowoff filter ────────────────────────────────────
+    use_volatility_regime: bool = False
 
 
 @dataclass(frozen=True)
@@ -268,6 +272,8 @@ def detect_signal_mtf(
         needed.append(config.atr_period)
     if config.use_adx_filter:
         needed.append(config.adx_period * 2)
+    if config.use_volatility_regime:
+        needed.append(50 + config.atr_period)
     min_bars = max(needed)
     if len(signal_rates) < min_bars:
         return _none("not_enough_bars")
@@ -310,6 +316,15 @@ def detect_signal_mtf(
         last_close_trend = float(tc["close"].iloc[-2])
         trend_ema_val    = float(tc["trend_ema"].iloc[-2])
         trend_bias = "bullish" if last_close_trend > trend_ema_val else "bearish"
+
+    # ── Volatility regime / blowoff bar filter ────────────────────────────────
+    if config.use_volatility_regime and atr_curr is not None:
+        atr_series = candles["atr_val"].dropna().values
+        if len(atr_series) >= 50:
+            atr_avg_50 = float(atr_series[-50:].mean())
+            if atr_avg_50 > 0 and atr_curr > atr_avg_50 * 2.5:
+                return _none("blowoff_bar", fast_curr, slow_curr, rsi_curr,
+                             atr_curr, atr_pips_v, trend_bias, adx_curr)
 
     # ── EMA crossover (on last CLOSED bar) ────────────────────────────────────
     signal_type = SignalType.NONE

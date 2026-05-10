@@ -167,6 +167,7 @@ class TradeExecutor:
         self.storage = storage
         self.config  = config
         self.last_trade_monotonic = 0.0
+        self.last_reverse_close_monotonic = 0.0
         # Track which position tickets have already been partially closed
         self._partial_closed_tickets: set[int] = set()
 
@@ -217,8 +218,15 @@ class TradeExecutor:
         if elapsed < self.config.cooldown_seconds:
             return ExecutionResult("skipped", "cooldown")
 
+        reverse_elapsed = time.monotonic() - self.last_reverse_close_monotonic
+        reverse_cooldown = getattr(self.config, "reverse_cooldown_seconds", 0)
+        if reverse_cooldown > 0 and reverse_elapsed < reverse_cooldown:
+            remaining = max(0, int(reverse_cooldown - reverse_elapsed))
+            return ExecutionResult("skipped", f"reverse_cooldown_{remaining}s")
+
         # ── 4. Resolve existing positions ─────────────────────────────────────
         close_failed = False
+        closed_opposite = False
         for position in own_positions:
             if position_matches_signal(position, signal.type):
                 return ExecutionResult("skipped", "same_direction_position")
@@ -235,6 +243,10 @@ class TradeExecutor:
             if not _is_successful_check(close_chk):
                 return ExecutionResult("rejected", f"close_check_retcode_{getattr(close_chk, 'retcode', '?')}", close_req, close_chk)
             if self.config.execution.trade_enabled:
+                _log.info(
+                    "CLOSING opposite position: ticket=%s symbol=%s volume=%.2f profit=%.2f reason=signal_reverse",
+                    position.ticket, self.config.symbol, float(position.volume), float(getattr(position, "profit", 0.0)),
+                )
                 close_result = self.gateway.order_send(close_req)
                 self.storage.record_order_result(close_req, close_result)
                 # Fix #3: verify close succeeded before opening new position
@@ -246,6 +258,14 @@ class TradeExecutor:
                     )
                     close_failed = True
                 else:
+                    closed_opposite = True
+                    self.last_trade_monotonic = time.monotonic()
+                    self.last_reverse_close_monotonic = self.last_trade_monotonic
+                    _log.info(
+                        "CLOSED opposite position: ticket=%s symbol=%s volume=%.2f profit=%.2f retcode=%s",
+                        position.ticket, self.config.symbol, float(position.volume),
+                        float(getattr(position, "profit", 0.0)), close_retcode,
+                    )
                     # Fix #2: notify Telegram of the closed trade with P&L
                     try:
                         from mt5_bot import notifier
@@ -261,6 +281,9 @@ class TradeExecutor:
 
         if close_failed:
             return ExecutionResult("rejected", "close_failed_skipping_entry")
+
+        if closed_opposite:
+            return ExecutionResult("closed_only", "opposite_position_closed_reverse_cooldown", close_req, close_result)
 
         positions_after_close = [] if own_positions else own_positions
         if not should_open_new_position(
@@ -309,6 +332,11 @@ class TradeExecutor:
             )
             return ExecutionResult("dry_run", "trade_enabled_false", request, check)
 
+        _log.info(
+            "OPENING position: symbol=%s side=%s volume=%.2f price=%s sl=%s tp=%s magic=%s",
+            self.config.symbol, signal.type.value, float(request.get("volume", 0.0)),
+            request.get("price"), request.get("sl"), request.get("tp"), self.config.execution.magic,
+        )
         result = self.gateway.order_send(request)
         self.storage.record_order_result(request, result)
         self.last_trade_monotonic = time.monotonic()

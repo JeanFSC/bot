@@ -19,6 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
+reverse_cooldown_seconds: 300
+max_loss_per_symbol_per_hour_pct: 2.5
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -48,13 +50,13 @@ strategy:
   use_trend_filter: true
 
   rsi_period:    14
-  rsi_buy_max:   65
-  rsi_sell_min:  35
+  rsi_buy_max:   70
+  rsi_sell_min:  30
   use_rsi_filter: true
   use_rsi_momentum: false
 
   atr_period:    14
-  min_atr_pips:  1.5
+  min_atr_pips:  2.0
   use_atr_filter: true
 
   adx_period:    14
@@ -79,6 +81,7 @@ strategy:
   use_retest_filter: true
   retest_timeout_bars: 4
   use_candle_confirm: true
+  use_volatility_regime: true
 
 execution:
   magic:        260434

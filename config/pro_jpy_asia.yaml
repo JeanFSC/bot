@@ -1,8 +1,8 @@
-# --- PRO USDJPY ASIA - Tokyo/Sydney ---------------------------------------------------------------
-# Metodologia Claude: MTF EMA crossover + filtros de calidad + riesgo primero.
-# Signal layer: M15 EMA(9/21); Trend layer: M30 EMA(50).
-# Entry quality: RSI guard, ATR gate, ADX>= 22, optional retest + candle confirmation.
-# Risk: portfolio guard max 5 trades, daily loss 5.0%, ADX tiered boost, compounding baseline.
+# --- PRO USDJPY ASIA - Cubre gap nocturno 20:00-07:00 UTC ---------------------
+# Segundo bot USDJPY dedicado a sesión NY-cierre + Tokyo-apertura.
+# Cubre el gap que el bot principal (07:00-20:00) deja sin cubrir.
+# El par USDJPY es el más activo en horario asiático.
+# Magic: 260445 | DB: data/pro_jpy_asia.sqlite
 
 symbol:           USDJPY
 timeframe:        M15
@@ -10,7 +10,7 @@ trend_timeframe:  M30
 poll_seconds:     15
 demo_only:        true
 
-max_spread_pips:      1.8
+max_spread_pips:      1.5
 max_open_positions:   1
 max_daily_loss_pct:   5.0
 max_trades_per_day:   30
@@ -19,6 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
+reverse_cooldown_seconds: 600
+max_loss_per_symbol_per_hour_pct: 2.0
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -30,8 +32,8 @@ lot_reduction_factor:     0.5
 
 use_partial_close:    true
 partial_close_ratio:  0.5
-profit_target_usd: null
-baseline_equity: 102000.0
+profit_target_usd:    null
+baseline_equity:      102000.0
 database_path: data/pro_jpy_asia.sqlite
 
 risk:
@@ -58,7 +60,7 @@ strategy:
   use_atr_filter: true
 
   adx_period:    14
-  adx_min_value: 22
+  adx_min_value: 24
   use_adx_filter: true
 
   atr_sl_multiplier: 1.5
@@ -68,9 +70,9 @@ strategy:
   session_start_hour: 20
   session_end_hour:   24
   use_session_filter: true
-  session2_start_hour: 0
+  session2_start_hour: 4
   session2_end_hour:   7
-  use_session2: true
+  use_session2:        true
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
@@ -79,6 +81,7 @@ strategy:
   use_retest_filter: true
   retest_timeout_bars: 4
   use_candle_confirm: true
+  use_volatility_regime: true
 
 execution:
   magic:        260445

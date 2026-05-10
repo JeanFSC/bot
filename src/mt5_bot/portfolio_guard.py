@@ -33,6 +33,18 @@ def portfolio_guard_decision(config, account, positions) -> PortfolioGuardDecisi
     margin = float(getattr(account, "margin", 0) or 0)
     margin_pct = (margin / equity * 100.0) if equity > 0 else 0.0
 
+    # Same-symbol guard: only one bot may hold a position on a given symbol
+    own_symbol = str(getattr(config, "symbol", ""))
+    _execution = getattr(config, "execution", None)
+    own_magic = int(getattr(_execution, "magic", 0)) if _execution else 0
+    other_sym_pos = [
+        p for p in positions
+        if str(getattr(p, "symbol", "")) == own_symbol and int(getattr(p, "magic", 0)) != own_magic
+    ]
+    if other_sym_pos:
+        other_magic = int(getattr(other_sym_pos[0], "magic", 0))
+        return PortfolioGuardDecision(False, f"same_symbol_active_magic_{other_magic}", margin_pct, len(positions))
+
     max_margin = float(getattr(config, "max_total_margin_pct", 85.0))
     if margin_pct >= max_margin:
         return PortfolioGuardDecision(False, f"portfolio_margin_{margin_pct:.1f}_pct", margin_pct, len(positions))

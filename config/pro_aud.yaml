@@ -19,6 +19,8 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
+reverse_cooldown_seconds: 300
+max_loss_per_symbol_per_hour_pct: 2.5
 
 use_news_filter:      true
 news_minutes_before:  30
@@ -68,9 +70,9 @@ strategy:
   session_start_hour: 7
   session_end_hour:   20
   use_session_filter: true
-  session2_start_hour: 0
-  session2_end_hour:   0
-  use_session2: false
+  session2_start_hour: 21
+  session2_end_hour:   6
+  use_session2: true
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
@@ -79,6 +81,7 @@ strategy:
   use_retest_filter: true
   retest_timeout_bars: 4
   use_candle_confirm: true
+  use_volatility_regime: true
 
 execution:
   magic:        260437

@@ -67,8 +67,20 @@ def main(argv: list[str] | None = None) -> int:
     pnl_parser.add_argument("--days", type=int, default=1)
     pnl_parser.add_argument("--magic", type=int, default=None)
 
+    bt_real_parser = subparsers.add_parser(
+        "backtest-real",
+        help="Backtest realista bar-by-bar con SL/TP, MTF y métricas de performance",
+    )
+    bt_real_parser.add_argument("--config", default="config/pro.yaml")
+    bt_real_parser.add_argument("--bars", required=True, help="CSV con barras M15 (signal timeframe)")
+    bt_real_parser.add_argument("--trend-bars", default=None, help="CSV con barras H1 (trend timeframe)")
+    bt_real_parser.add_argument("--slippage", type=float, default=0.3, help="Slippage en pips")
+    bt_real_parser.add_argument("--initial-equity", type=float, default=10_000.0)
+    bt_real_parser.add_argument("--lot", type=float, default=0.1)
+    bt_real_parser.add_argument("--json", action="store_true", help="Salida en JSON")
+
     args = parser.parse_args(argv)
-    setup_logging()
+    setup_logging(log_name=_log_name_for_args(args))
 
     if args.command == "trade":
         return run_trade(
@@ -92,10 +104,36 @@ def main(argv: list[str] | None = None) -> int:
         return run_check(args.config)
     if args.command == "pnl":
         return run_pnl_report(args.config, days=args.days, magic_filter=args.magic)
+    if args.command == "backtest-real":
+        return run_backtest_real_command(
+            config_path=args.config,
+            bars_path=args.bars,
+            trend_bars_path=args.trend_bars,
+            slippage_pips=args.slippage,
+            initial_equity=args.initial_equity,
+            lot=args.lot,
+            as_json=args.json,
+        )
     return 2
 
 
-def setup_logging(log_dir: str | None = None) -> None:
+def _log_name_for_args(args: argparse.Namespace) -> str:
+    """Return a per-command/per-config log name.
+
+    The 12-bot suite runs many Python processes at the same time. A single
+    TimedRotatingFileHandler target (bot_YYYYMMDD.log) causes Windows file-lock
+    races at midnight / rollover and emits noisy ``PermissionError`` logging
+    errors. Each process already writes to its own redirected bot_<symbol>.log;
+    this extra file handler is only for diagnostics, so keep it unique.
+    """
+    config = getattr(args, "config", None)
+    if config:
+        stem = Path(str(config)).stem.replace(".", "_").replace(" ", "_")
+        return f"{args.command}_{stem}"
+    return str(args.command)
+
+
+def setup_logging(log_dir: str | None = None, log_name: str = "mt5_bot") -> None:
     """Console + rotating file logging (14 days retention)."""
     fmt = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s - %(message)s",
@@ -110,8 +148,9 @@ def setup_logging(log_dir: str | None = None) -> None:
     log_path = Path(log_dir or "logs")
     log_path.mkdir(parents=True, exist_ok=True)
     today = datetime.now().strftime("%Y%m%d")
+    safe_name = "".join(ch if ch.isalnum() or ch in "_-" else "_" for ch in log_name)
     fh = logging.handlers.TimedRotatingFileHandler(
-        filename=log_path / f"bot_{today}.log",
+        filename=log_path / f"{safe_name}_{today}.log",
         when="midnight", backupCount=14, encoding="utf-8", utc=True,
     )
     fh.setFormatter(fmt)
@@ -196,6 +235,7 @@ def run_trade(
     # pull back to the slow EMA before entering. pending_retest holds the
     # original crossover signal until the retest fires or is invalidated.
     pending_retest: Signal | None = None
+    _pending_retest_bars: int = 0
     _adaptive_cooldown: float = 0.0   # extra sleep after a loss
 
     try:
@@ -285,6 +325,13 @@ def run_trade(
                 _sleep_and_manage_trailing(executor, config, current_spread)
                 continue
 
+            # Spread-spike filter: block when current spread is >1.8x the 1h average
+            _avg_spread_1h = storage.get_avg_spread_last_hour(config.symbol)
+            if _avg_spread_1h > 0 and current_spread > max(config.max_spread_pips, _avg_spread_1h * 1.8):
+                LOGGER.info("Spread spike: %.2f > 1.8x avg %.2f — blocking", current_spread, _avg_spread_1h)
+                _sleep_and_manage_trailing(executor, config, current_spread)
+                continue
+
             if config.use_global_risk_guard:
                 try:
                     guard = portfolio_guard_decision(config, account, gateway.positions_get())
@@ -366,32 +413,65 @@ def run_trade(
             # EURUSD & GBPUSD ~85% correlated. If both signal same direction
             # simultaneously, effective risk doubles. Detect via open positions
             # on correlated magic numbers and halve size if conflict found.
+            # Direct correlation: same currency exposure in same direction
             _correlated_pairs = {
                 "EURUSD": [("GBPUSD", 260434), ("AUDUSD", 260437)],
-                "GBPUSD": [("EURUSD", 260433), ("AUDUSD", 260437)],
-                "AUDUSD": [("EURUSD", 260433), ("GBPUSD", 260434)],
+                "GBPUSD": [("EURUSD", 260433), ("AUDUSD", 260437), ("GBPJPY", 260443)],
+                "AUDUSD": [("EURUSD", 260433), ("GBPUSD", 260434), ("NZDUSD", 260442)],
+                "NZDUSD": [("AUDUSD", 260437)],
+                "GBPJPY": [("GBPUSD", 260434)],
+                "USDJPY": [("USDCAD", 260441), ("USDCHF", 260446)],
+                "USDCAD": [("USDJPY", 260435), ("USDCHF", 260446)],
+                "USDCHF": [("USDJPY", 260435), ("USDCAD", 260441)],
+            }
+            # Inverse correlation: same USD directional exposure when signal directions differ
+            # e.g. EURUSD BUY (short USD) + USDCHF SELL (short USD) = doubled USD short
+            _inverse_pairs = {
+                "USDCHF": [("EURUSD", 260433), ("GBPUSD", 260434)],
+                "USDCAD": [("EURUSD", 260433), ("GBPUSD", 260434)],
+                "USDJPY": [("EURUSD", 260433), ("GBPUSD", 260434)],
             }
             _corr_risk_factor = 1.0
-            if signal.type is not SignalType.NONE and config.symbol in _correlated_pairs:
+            if signal.type is not SignalType.NONE:
                 try:
                     all_positions = gateway.positions_get()
-                    for _corr_sym, _corr_magic in _correlated_pairs[config.symbol]:
-                        _corr_pos = [
-                            p for p in (all_positions or [])
-                            if p.symbol == _corr_sym and int(p.magic) == _corr_magic
-                        ]
-                        if _corr_pos:
-                            _corr_type = int(_corr_pos[0].type)  # 0=buy, 1=sell
-                            _same_dir = (
-                                (signal.type is SignalType.BUY  and _corr_type == 0) or
-                                (signal.type is SignalType.SELL and _corr_type == 1)
-                            )
-                            if _same_dir:
-                                _corr_risk_factor = 0.5
-                                LOGGER.info(
-                                    "Correlation guard: %s already %s → halving risk for %s",
-                                    _corr_sym, signal.type.value, config.symbol,
+                    if config.symbol in _correlated_pairs:
+                        for _corr_sym, _corr_magic in _correlated_pairs[config.symbol]:
+                            _corr_pos = [
+                                p for p in (all_positions or [])
+                                if p.symbol == _corr_sym and int(p.magic) == _corr_magic
+                            ]
+                            if _corr_pos:
+                                _corr_type = int(_corr_pos[0].type)  # 0=buy, 1=sell
+                                _same_dir = (
+                                    (signal.type is SignalType.BUY  and _corr_type == 0) or
+                                    (signal.type is SignalType.SELL and _corr_type == 1)
                                 )
+                                if _same_dir:
+                                    _corr_risk_factor = 0.5
+                                    LOGGER.info(
+                                        "Correlation guard: %s already %s → halving risk for %s",
+                                        _corr_sym, signal.type.value, config.symbol,
+                                    )
+                    if config.symbol in _inverse_pairs:
+                        for _corr_sym, _corr_magic in _inverse_pairs[config.symbol]:
+                            _corr_pos = [
+                                p for p in (all_positions or [])
+                                if p.symbol == _corr_sym and int(p.magic) == _corr_magic
+                            ]
+                            if _corr_pos:
+                                _corr_type = int(_corr_pos[0].type)  # 0=buy, 1=sell
+                                _same_exposure = (
+                                    (signal.type is SignalType.SELL and _corr_type == 0) or
+                                    (signal.type is SignalType.BUY  and _corr_type == 1)
+                                )
+                                if _same_exposure:
+                                    _corr_risk_factor = 0.5
+                                    LOGGER.info(
+                                        "Inverse correlation guard: %s %s + %s %s → same USD exposure → halving risk",
+                                        _corr_sym, "BUY" if _corr_type == 0 else "SELL",
+                                        config.symbol, signal.type.value,
+                                    )
                 except Exception:
                     pass  # non-blocking
 
@@ -401,7 +481,18 @@ def run_trade(
             #   - On subsequent ticks → check if price touched slow EMA
             #   - On opposite crossover → invalidate pending retest
             entry_signal = signal
-            if use_retest:
+            own_positions_open = [
+                p for p in (gateway.positions_get(symbol=config.symbol) or [])
+                if int(p.magic) == config.execution.magic
+            ]
+            if use_retest and own_positions_open:
+                # Do not keep advancing/reconfirming the retest state machine while
+                # this bot already owns a position. This prevents noisy repeated
+                # "retest confirmed" + "same_direction_position" cycles, while
+                # still allowing executor.execute(signal) to close an opposite
+                # position if a true reversal signal appears.
+                pending_retest = None
+            elif use_retest:
                 entry_signal = _apply_retest_filter(
                     signal,
                     pending_retest,
@@ -413,10 +504,22 @@ def run_trade(
                 if signal.type is not SignalType.NONE:
                     # Fresh crossover — save as pending (wait for retest)
                     pending_retest = signal
+                    _pending_retest_bars = 0
                     LOGGER.info("Retest filter: crossover detected, waiting for pullback to slow EMA")
+                elif pending_retest is not None:
+                    _pending_retest_bars += 1
+                    _retest_timeout = getattr(strategy_config, "retest_timeout_bars", 0)
+                    if _retest_timeout > 0 and _pending_retest_bars >= _retest_timeout:
+                        LOGGER.info(
+                            "Retest filter: timeout after %d bars — pending retest expired",
+                            _pending_retest_bars,
+                        )
+                        pending_retest = None
+                        _pending_retest_bars = 0
                 if entry_signal.type is not SignalType.NONE and entry_signal is not signal:
                     LOGGER.info("Retest filter: retest confirmed — entering trade")
-                    pending_retest = None  # consumed
+                    pending_retest = None
+                    _pending_retest_bars = 0
 
             # ── MEJORA 5: Equity curve management ────────────────────────────
             # After N consecutive losses, apply lot_reduction_factor to config
@@ -435,6 +538,17 @@ def run_trade(
                     account.equity, baseline_equity, equity_growth_pct, compound_factor, base_risk_pct,
                 )
 
+            # Compounding: +10% risk_pct por cada 5% de ganancia sobre baseline
+            _baseline = getattr(config, "baseline_equity", 0.0)
+            if _baseline > 0:
+                _growth_pct = max(0.0, (float(account.equity) - _baseline) / _baseline * 100.0)
+                _compound_factor = 1.0 + (_growth_pct // 5) * 0.10
+                _compound_factor = min(_compound_factor, 2.5)
+                if _compound_factor > 1.0:
+                    base_risk_pct = base_risk_pct * _compound_factor
+                    LOGGER.info("Compound boost: equity_growth=%.1f%% → factor=%.2fx risk_pct=%.2f%%",
+                                _growth_pct, _compound_factor, base_risk_pct)
+
             # Compute adaptive cooldown from consecutive losses
             _consec = storage.get_consecutive_losses(config.symbol, config.execution.magic) if config.use_equity_curve_filter else 0
             if _consec == 1:
@@ -444,22 +558,40 @@ def run_trade(
             elif _consec >= 3:
                 _adaptive_cooldown = 300.0
 
-            # ── MEJORA 6: Dynamic ADX risk scaling ───────────────────────────
-            # Tiered risk: strongest trends get paid, weak trends shrink.
+            # ── MEJORA 6: Dynamic ADX risk scaling (tiered, monotone) ───────────
+            # >70 = parabolic reversal risk → halve; >50 → 2.0x; >40 → 1.75x; >30 → 1.25x
             if entry_signal.adx is not None:
                 adx_val = entry_signal.adx
-                if adx_val > 50:
+                if adx_val > 70:
+                    base_risk_pct = base_risk_pct * 0.5
+                    LOGGER.info("ADX parabolic: adx=%.1f → halving risk, risk_pct=%.2f%%", adx_val, base_risk_pct)
+                elif adx_val > 50:
                     base_risk_pct = base_risk_pct * 2.0
-                    LOGGER.info("ADX extreme boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX extreme: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 40:
                     base_risk_pct = base_risk_pct * 1.75
-                    LOGGER.info("ADX strong boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX strong: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 30:
                     base_risk_pct = base_risk_pct * 1.25
                     LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val < strategy_config.adx_min_value:
                     base_risk_pct = base_risk_pct * 0.75
                     LOGGER.info("ADX reduce: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+
+            max_loss_hour_pct = getattr(config, "max_loss_per_symbol_per_hour_pct", 0.0)
+            if entry_signal.type is not SignalType.NONE and max_loss_hour_pct > 0:
+                pnl_last_hour = storage.get_pnl_last_hour(config.symbol, config.execution.magic)
+                max_loss_hour_usd = float(account.equity) * max_loss_hour_pct / 100.0
+                if pnl_last_hour <= -max_loss_hour_usd:
+                    LOGGER.warning(
+                        "Hourly symbol loss cap: blocking %s entry. pnl_last_hour=%.2f limit=-%.2f pct=%.2f%%",
+                        config.symbol, pnl_last_hour, max_loss_hour_usd, max_loss_hour_pct,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "max_loss_per_symbol_per_hour", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
 
             exec_config_override = None
             if config.use_equity_curve_filter:
@@ -475,19 +607,33 @@ def run_trade(
                     reduced_risk = dc_replace(config.risk, risk_pct=reduced_risk_pct)
                     exec_config_override = dc_replace(config, risk=reduced_risk)
                     executor_override = TradeExecutor(gateway, storage, exec_config_override)
+                    executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                    executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
                     result = executor_override.execute(entry_signal)
+                    executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                    executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                 else:
                     if base_risk_pct != config.risk.risk_pct:
                         adjusted_risk = dc_replace(config.risk, risk_pct=base_risk_pct)
                         adjusted_config = dc_replace(config, risk=adjusted_risk)
-                        result = TradeExecutor(gateway, storage, adjusted_config).execute(entry_signal)
+                        executor_override = TradeExecutor(gateway, storage, adjusted_config)
+                        executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                        executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
+                        result = executor_override.execute(entry_signal)
+                        executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                        executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                     else:
                         result = executor.execute(entry_signal)
             else:
                 if base_risk_pct != config.risk.risk_pct:
                     adjusted_risk = dc_replace(config.risk, risk_pct=base_risk_pct)
                     adjusted_config = dc_replace(config, risk=adjusted_risk)
-                    result = TradeExecutor(gateway, storage, adjusted_config).execute(entry_signal)
+                    executor_override = TradeExecutor(gateway, storage, adjusted_config)
+                    executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                    executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
+                    result = executor_override.execute(entry_signal)
+                    executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                    executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                 else:
                     result = executor.execute(entry_signal)
 
@@ -559,6 +705,64 @@ def run_backtest_command(config_path: str, from_date: str, to_date: str) -> int:
         return 0
     finally:
         gateway.shutdown()
+
+
+def run_backtest_real_command(
+    config_path: str,
+    bars_path: str,
+    trend_bars_path: str | None = None,
+    slippage_pips: float = 0.3,
+    initial_equity: float = 10_000.0,
+    lot: float = 0.1,
+    as_json: bool = False,
+) -> int:
+    import json as _json
+    from mt5_bot.backtest_engine import run_realistic_backtest, BacktestParams
+    from mt5_bot.bars_loader import load_bars_from_csv
+    from mt5_bot.performance import compute_score, suggestions
+
+    config = load_config(config_path)
+    signal_bars = load_bars_from_csv(bars_path)
+    trend_bars = load_bars_from_csv(trend_bars_path) if trend_bars_path else None
+    params = BacktestParams(slippage_pips=slippage_pips, initial_equity=initial_equity, lot_size=lot)
+    metrics = run_realistic_backtest(signal_bars, config, trend_bars=trend_bars, params=params)
+    score = compute_score(metrics)
+    hints = suggestions(metrics)
+
+    if as_json:
+        out = {
+            "config": config_path,
+            "symbol": config.symbol,
+            "timeframe": config.timeframe,
+            "trades": metrics.trades,
+            "wins": metrics.wins,
+            "losses": metrics.losses,
+            "profit_factor": metrics.profit_factor,
+            "win_rate_pct": metrics.win_rate_pct,
+            "expectancy_pips": metrics.expectancy_pips,
+            "max_drawdown_pct": metrics.max_drawdown_pct,
+            "max_losing_streak": metrics.max_losing_streak,
+            "sharpe": metrics.sharpe,
+            "score": score,
+            "suggestions": hints,
+        }
+        print(_json.dumps(out, indent=2))
+    else:
+        print(f"Backtest: {config.symbol} {config.timeframe}")
+        print(f"  Trades:        {metrics.trades}")
+        print(f"  Wins/Losses:   {metrics.wins}/{metrics.losses}")
+        print(f"  Profit factor: {metrics.profit_factor}")
+        print(f"  Win rate:      {metrics.win_rate_pct}%")
+        print(f"  Expectancy:    {metrics.expectancy_pips} pips")
+        print(f"  Max drawdown:  {metrics.max_drawdown_pct}%")
+        print(f"  Max streak:    {metrics.max_losing_streak}")
+        print(f"  Sharpe:        {metrics.sharpe}")
+        print(f"  SCORE:         {score}/10")
+        if hints:
+            print("  Sugerencias:")
+            for h in hints:
+                print(f"    • {h}")
+    return 0
 
 
 def _connect_and_validate(gateway, config) -> None:
@@ -703,13 +907,33 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
                 config.symbol, config.timeframe, 0, 50
             )
             from mt5_bot.strategy import detect_signal, StrategyConfig
+            from dataclasses import replace as _dc_replace
             sc = StrategyConfig(**{
                 f: getattr(config.strategy, f)
                 for f in StrategyConfig.__dataclass_fields__
             })
             sig = detect_signal(signal_rates, sc)
             if sig.atr_pips and sig.atr_pips > 0:
-                for tr in executor.manage_trailing_stops(sig.atr_pips):
+                # Adaptive trailing: tighten multiplier when ADX weakens below threshold
+                _trailing_config = config
+                if (
+                    sig.adx is not None
+                    and config.strategy.use_adx_filter
+                    and sig.adx < config.strategy.adx_min_value
+                    and config.strategy.trailing_atr_multiplier > 1.0
+                ):
+                    _tight_strategy = _dc_replace(
+                        config.strategy, trailing_atr_multiplier=1.0
+                    )
+                    _trailing_config = _dc_replace(config, strategy=_tight_strategy)
+                    LOGGER.info(
+                        "Adaptive trailing: ADX=%.1f < %.1f → tightening to 1.0x ATR",
+                        sig.adx, config.strategy.adx_min_value,
+                    )
+                _trail_executor = TradeExecutor(
+                    executor.gateway, executor.storage, _trailing_config
+                )
+                for tr in _trail_executor.manage_trailing_stops(sig.atr_pips):
                     LOGGER.info("TrailingStop (idle) status=%s reason=%s", tr.status, tr.reason)
                 if config.use_partial_close:
                     for pc in executor.manage_partial_close(sig.atr_pips):

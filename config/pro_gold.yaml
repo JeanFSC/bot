@@ -19,10 +19,12 @@ max_total_margin_pct: 85.0
 max_portfolio_open_positions: 5
 max_same_currency_positions: 2
 cooldown_seconds:     30
+reverse_cooldown_seconds: 300
+max_loss_per_symbol_per_hour_pct: 2.5
 
 use_news_filter:      true
-news_minutes_before:  30
-news_minutes_after:   15
+news_minutes_before:  45
+news_minutes_after:   20
 
 use_equity_curve_filter:  true
 max_consecutive_losses:   3
@@ -36,10 +38,10 @@ database_path: data/pro_gold.sqlite
 
 risk:
   mode:       percent_equity
-  risk_pct:   1.5
-  fixed_lot:  0.5
-  sl_pips:    20
-  tp_pips:    40
+  risk_pct:   1.8
+  fixed_lot:  0.01
+  sl_pips:    150
+  tp_pips:    400
 
 strategy:
   fast_ema: 9
@@ -68,17 +70,18 @@ strategy:
   session_start_hour: 7
   session_end_hour:   20
   use_session_filter: true
-  session2_start_hour: 0
-  session2_end_hour:   0
-  use_session2: false
+  session2_start_hour: 1
+  session2_end_hour:   7
+  use_session2: true
 
   use_trailing_stop:          true
   breakeven_atr_multiplier:   0.8
-  trailing_atr_multiplier:    1.5
+  trailing_atr_multiplier:    2.0
 
   use_retest_filter: true
   retest_timeout_bars: 4
   use_candle_confirm: true
+  use_volatility_regime: true
 
 execution:
   magic:        260436
