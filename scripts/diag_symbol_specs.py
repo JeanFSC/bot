@@ -26,7 +26,7 @@ SYMBOLS = ["EURUSD", "GBPUSD", "USDJPY", "GBPJPY", "AUDUSD", "NZDUSD",
 
 
 def _expected_pip_size(symbol: str) -> float:
-    """Mirror of strategy._pip_size_for_symbol — what the backtest assumes."""
+    """Mirror of strategy._pip_size_for_symbol - what the backtest assumes."""
     s = symbol.upper().replace("/", "")
     if s.startswith(("XAU", "XAG", "GOLD", "SILVER")):
         return 0.01
@@ -60,7 +60,7 @@ def main() -> int:
     for symbol in SYMBOLS:
         info = mt5.symbol_info(symbol)
         if info is None:
-            print(f"{symbol:<10} NOT AVAILABLE in this terminal — skipping")
+            print(f"{symbol:<10} NOT AVAILABLE in this terminal - skipping")
             continue
 
         # Try to enable in Market Watch if not already
@@ -99,7 +99,7 @@ def main() -> int:
 
         flag = ""
         if pip_v_broker > 0 and mismatch_pct > 5:
-            flag = " ⚠ BUG"
+            flag = " BUG"
 
         print(f"{symbol:<10} {digits:>6} {point:>10.5f} {tick_size:>10.5f} "
               f"{tick_value:>10.4f} {contract_size:>10.0f} {pip_size_assumed:>8.4f} "
@@ -133,11 +133,11 @@ def main() -> int:
 
     # Summary
     bugs = [r for r in rows if r.get("needs_fix")]
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     if bugs:
         print(f"FOUND {len(bugs)} pip_value mismatches > 5%:")
         for b in bugs:
-            print(f"  • {b['symbol']}: backtest={b['pip_value_per_lot_backtest_hardcoded']:.2f} "
+            print(f"  - {b['symbol']}: backtest={b['pip_value_per_lot_backtest_hardcoded']:.2f} "
                   f"vs broker={b['pip_value_per_lot_broker_calc']:.4f} "
                   f"({b['mismatch_pct']:.1f}% off)")
         print("\nNext: send symbol_specs.json so I can patch _PIP_VALUE_PER_LOT precisely.")
@@ -145,12 +145,12 @@ def main() -> int:
         print("All pip_values within 5% of broker. Slippage and parameters are next.")
 
     # Spread reality check
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     print("Real spreads observed (vs current backtest slippage 0.5 pips):")
     for r in rows:
         sp = r.get("spread_pips_estimate", 0)
-        flag = " ❌ TOO LOW" if sp > 1.0 else ""
-        print(f"  {r['symbol']:<8} spread ≈ {sp:>6.1f} pips{flag}")
+        flag = " TOO_LOW" if sp > 1.0 else ""
+        print(f"  {r['symbol']:<8} spread ~= {sp:>6.1f} pips{flag}")
 
     mt5.shutdown()
     return 0

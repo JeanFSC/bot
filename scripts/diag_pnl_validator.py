@@ -34,8 +34,8 @@ _TYPICAL_BROKER_SPECS = {
     "USDCHF": {"contract_size": 100_000, "tick_size": 0.00001, "tick_value": 1.10},
     "USDJPY": {"contract_size": 100_000, "tick_size": 0.001,   "tick_value": 0.91},
     "GBPJPY": {"contract_size": 100_000, "tick_size": 0.001,   "tick_value": 0.91},
-    "XAUUSD": {"contract_size": 100,     "tick_size": 0.01,    "tick_value": 1.0},   # 1 oz × $0.01 × 100 = $1
-    "XAGUSD": {"contract_size": 5_000,   "tick_size": 0.001,   "tick_value": 5.0},   # 5000 oz × $0.001 = $5
+    "XAUUSD": {"contract_size": 100,     "tick_size": 0.01,    "tick_value": 1.0},   # 1 oz x $0.01 x 100 = $1
+    "XAGUSD": {"contract_size": 5_000,   "tick_size": 0.001,   "tick_value": 5.0},   # 5000 oz x $0.001 = $5
 }
 
 
@@ -79,13 +79,13 @@ def main() -> int:
         source = "broker (MT5)"
     else:
         real_specs = _TYPICAL_BROKER_SPECS
-        print("No data/diag/symbol_specs.json found — using typical retail defaults")
+        print("No data/diag/symbol_specs.json found - using typical retail defaults")
         print("(Run scripts/diag_symbol_specs.py on Windows for real broker numbers)")
         source = "typical retail"
 
-    print(f"\nValidation: 1 lot × 100 pips move, using {source} specs vs backtest formula\n")
+    print(f"\nValidation: 1 lot x 100 pips move, using {source} specs vs backtest formula\n")
     print(f"{'Symbol':<10} {'pip_v_broker':>13} {'pip_v_bt':>10} {'PnL_broker':>12} "
-          f"{'PnL_bt':>10} {'Δ%':>8} {'verdict'}")
+          f"{'PnL_bt':>10} {'Delta%':>8} {'verdict'}")
     print("-" * 90)
 
     bugs: list[dict] = []
@@ -105,7 +105,7 @@ def main() -> int:
             delta_pct = 0.0
 
         if abs(delta_pct) > 5:
-            verdict = f"❌ {abs(delta_pct):.0f}% off"
+            verdict = f"FAIL {abs(delta_pct):.0f}% off"
             bugs.append({
                 "symbol": symbol,
                 "pip_v_broker": pip_v_broker,
@@ -114,17 +114,17 @@ def main() -> int:
                 "suggested_fix": round(pip_v_broker, 4),
             })
         else:
-            verdict = "✓"
+            verdict = "OK"
 
         print(f"{symbol:<10} {pip_v_broker:>13.4f} {pip_v_bt:>10.2f} "
               f"${pnl_broker:>10.2f} ${pnl_bt:>8.2f} {delta_pct:>+7.1f}% {verdict}")
 
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     if bugs:
         print(f"BUGS FOUND ({len(bugs)}):")
         for b in bugs:
             direction = "INFLATES" if b["delta_pct"] > 0 else "UNDERSTATES"
-            print(f"  • {b['symbol']}: hardcoded={b['pip_v_bt']:.2f} → "
+            print(f"  - {b['symbol']}: hardcoded={b['pip_v_bt']:.2f} -> "
                   f"should be {b['suggested_fix']:.4f}  ({direction} P&L by {abs(b['delta_pct']):.0f}%)")
         print("\nFix: update _PIP_VALUE_PER_LOT in src/mt5_bot/backtest_engine.py")
         return 1

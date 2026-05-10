@@ -105,11 +105,11 @@ def main() -> int:
     results.sort(key=lambda r: r["oos_score"], reverse=True)
 
     print(f"\nTop {args.top} combinations (ranked by OOS score):\n")
-    header = f"{'OOS':>6} {'IS':>6} {'Δ':>6} {'OVERFIT':>8}  params"
+    header = f"{'OOS':>6} {'IS':>6} {'Delta':>6} {'OVERFIT':>8}  params"
     print(header)
     print("-" * len(header))
     for r in results[: args.top]:
-        flag = "⚠️ " if r["overfit"] else "ok"
+        flag = "OVERFIT" if r["overfit"] else "ok"
         params_str = " ".join(f"{k}={v}" for k, v in r["params"].items())
         print(f"{r['oos_score']:>6.2f} {r['is_score']:>6.2f} {r['delta']:>6.2f} {flag:>8}  {params_str}")
 

@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """Run realistic backtests for all 12 bot configs and save results as JSON.
 
-Usage (after running download_bars.py):
+Usage (recommended - uses per-symbol slippage defaults from backtest_engine):
 
-    python scripts/run_all_backtests.py --slippage 0.3 --json
+    python scripts/run_all_backtests.py --json
 
 Quick validation with the most recent N bars:
 
-    python scripts/run_all_backtests.py --slippage 0.3 --max-bars 5000 --json
+    python scripts/run_all_backtests.py --max-bars 5000 --json
+
+Override slippage uniformly for all symbols (useful for sensitivity tests):
+
+    python scripts/run_all_backtests.py --slippage 0.5 --json
 
 Output: data/backtests/<SYMBOL>_<TIMEFRAME>.json
-Missing CSV files are skipped with a clear warning — the rest continue.
+Missing CSV files are skipped with a clear warning - the rest continue.
 """
 from __future__ import annotations
 
@@ -45,7 +49,12 @@ def main() -> int:
     )
     parser.add_argument("--bars-dir", default="data/bars")
     parser.add_argument("--out-dir", default="data/backtests")
-    parser.add_argument("--slippage", type=float, default=0.3)
+    parser.add_argument(
+        "--slippage", type=float, default=None,
+        help="Slippage in pips applied uniformly to all symbols. "
+             "Omit to use per-symbol defaults from backtest_engine "
+             "(forex 1.0, JPY pairs 1.0-2.0, XAUUSD 30, XAGUSD 5).",
+    )
     parser.add_argument("--initial-equity", type=float, default=10_000.0)
     parser.add_argument("--lot", type=float, default=0.1)
     parser.add_argument(
@@ -73,6 +82,10 @@ def main() -> int:
 
     if args.max_bars:
         print(f"[quick mode] Using last {args.max_bars:,} bars per bot")
+    if args.slippage is None:
+        print("[slippage] Using per-symbol defaults (omit --slippage to keep this)")
+    else:
+        print(f"[slippage] Override: {args.slippage} pips applied to all symbols")
 
     results = []
     skipped = []
