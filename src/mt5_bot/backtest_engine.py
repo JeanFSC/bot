@@ -130,7 +130,7 @@ class BacktestParams:
 
 
 @dataclass
-class _ClosedTrade:
+class ClosedTrade:
     entry_time: datetime
     exit_time: datetime
     direction: SignalType
@@ -140,6 +140,17 @@ class _ClosedTrade:
     profit_usd: float
     profit_pips: float
     exit_reason: str  # "tp" | "sl" | "trailing" | "partial_tp" | "end_of_data"
+    # Context captured at signal time (None if filter not enabled / not available)
+    signal_hour: int = -1
+    signal_adx: Optional[float] = None
+    signal_atr_pips: Optional[float] = None
+    signal_rsi: Optional[float] = None
+    signal_trend_bias: Optional[str] = None  # "bullish" | "bearish" | None
+    slippage_pips: float = 0.0
+
+
+# Backwards-compat alias for any existing imports
+_ClosedTrade = ClosedTrade
 
 
 @dataclass
@@ -156,6 +167,12 @@ class _OpenPosition:
     partial_closed: bool = False
     trailing_active: bool = False
     trailing_sl: Optional[float] = None
+    # Context captured at signal time, propagated to ClosedTrade on exit:
+    signal_hour: int = -1
+    signal_adx: Optional[float] = None
+    signal_atr_pips: Optional[float] = None
+    signal_rsi: Optional[float] = None
+    signal_trend_bias: Optional[str] = None
 
 
 # ── Pre-computation helpers ──────────────────────────────────────────────────
@@ -365,6 +382,29 @@ def _profit_usd(
     return round(pips * lot * pip_val, 2), round(pips, 2)
 
 
+def _close(
+    pos: _OpenPosition,
+    exit_time: datetime,
+    exit_price: float,
+    profit_usd: float,
+    profit_pips: float,
+    exit_reason: str,
+    slippage_pips: float,
+    lot_override: Optional[float] = None,
+) -> ClosedTrade:
+    """Build a ClosedTrade copying context from the open position."""
+    return ClosedTrade(
+        entry_time=pos.entry_time, exit_time=exit_time,
+        direction=pos.direction, entry_price=pos.entry_price,
+        exit_price=exit_price, lot=lot_override if lot_override is not None else pos.lot,
+        profit_usd=profit_usd, profit_pips=profit_pips, exit_reason=exit_reason,
+        signal_hour=pos.signal_hour, signal_adx=pos.signal_adx,
+        signal_atr_pips=pos.signal_atr_pips, signal_rsi=pos.signal_rsi,
+        signal_trend_bias=pos.signal_trend_bias,
+        slippage_pips=slippage_pips,
+    )
+
+
 # ── Main backtest function ────────────────────────────────────────────────────
 
 def run_realistic_backtest(
@@ -372,13 +412,19 @@ def run_realistic_backtest(
     config: BotConfig,
     trend_bars: Optional[pd.DataFrame] = None,
     params: Optional[BacktestParams] = None,
+    *,
+    out_trades: Optional[list] = None,
 ) -> PerformanceMetrics:
     """Run a bar-by-bar backtest and return PerformanceMetrics.
 
     signal_bars and trend_bars must have columns: time, open, high, low, close.
-    time must be UTC-aware datetime (or UTC naive — will be treated as UTC).
+    time must be UTC-aware datetime (or UTC naive - will be treated as UTC).
 
     All indicators are pre-computed once (O(n)), making the loop O(n log n).
+
+    If out_trades is provided (a list), each closed trade is appended with
+    full context (signal_hour, signal_adx, signal_atr_pips, signal_rsi,
+    signal_trend_bias, slippage_pips). Use this for trade_analysis.py.
     """
     if params is None:
         params = BacktestParams()
@@ -463,12 +509,7 @@ def run_realistic_backtest(
                 if config.use_partial_close and not open_pos.partial_closed:
                     partial_lot = max(round(open_pos.lot * config.partial_close_ratio, 2), 0.01)
                     p_usd, p_pips = _profit_usd(open_pos.direction, open_pos.entry_price, exit_px, partial_lot, pip, pip_val)
-                    closed_trades.append(_ClosedTrade(
-                        entry_time=open_pos.entry_time, exit_time=bar_time,
-                        direction=open_pos.direction, entry_price=open_pos.entry_price,
-                        exit_price=exit_px, lot=partial_lot,
-                        profit_usd=p_usd, profit_pips=p_pips, exit_reason="partial_tp",
-                    ))
+                    closed_trades.append(_close(open_pos, bar_time, exit_px, p_usd, p_pips, "partial_tp", slippage_pips, lot_override=partial_lot))
                     equity += p_usd
                     remaining_lot = max(round(open_pos.lot - partial_lot, 2), 0.01)
                     open_pos = _OpenPosition(
@@ -480,6 +521,9 @@ def run_realistic_backtest(
                         initial_tp=open_pos.initial_tp, atr_at_entry=open_pos.atr_at_entry,
                         partial_closed=True, trailing_active=open_pos.trailing_active,
                         trailing_sl=open_pos.trailing_sl,
+                        signal_hour=open_pos.signal_hour, signal_adx=open_pos.signal_adx,
+                        signal_atr_pips=open_pos.signal_atr_pips, signal_rsi=open_pos.signal_rsi,
+                        signal_trend_bias=open_pos.signal_trend_bias,
                     )
                     equity_curve.append(equity)
                     continue
@@ -506,12 +550,7 @@ def run_realistic_backtest(
                         hourly_loss_tracker.append((bar_time, p_usd))
                     else:
                         consecutive_losses = 0
-                    closed_trades.append(_ClosedTrade(
-                        entry_time=open_pos.entry_time, exit_time=bar_time,
-                        direction=open_pos.direction, entry_price=open_pos.entry_price,
-                        exit_price=exit_px, lot=open_pos.lot,
-                        profit_usd=p_usd, profit_pips=p_pips, exit_reason="trailing",
-                    ))
+                    closed_trades.append(_close(open_pos, bar_time, exit_px, p_usd, p_pips, "trailing", slippage_pips))
                     equity += p_usd
                     equity_curve.append(equity)
                     last_trade_time = bar_time
@@ -520,12 +559,7 @@ def run_realistic_backtest(
                     continue
 
             if exit_reason in ("tp", "sl"):
-                closed_trades.append(_ClosedTrade(
-                    entry_time=open_pos.entry_time, exit_time=bar_time,
-                    direction=open_pos.direction, entry_price=open_pos.entry_price,
-                    exit_price=exit_px, lot=open_pos.lot,
-                    profit_usd=p_usd, profit_pips=p_pips, exit_reason=exit_reason,
-                ))
+                closed_trades.append(_close(open_pos, bar_time, exit_px, p_usd, p_pips, exit_reason, slippage_pips))
                 equity += p_usd
                 equity_curve.append(equity)
                 last_trade_time = bar_time
@@ -566,6 +600,22 @@ def run_realistic_backtest(
         if params.invert_signals:
             signal_type = SignalType.SELL if signal_type is SignalType.BUY else SignalType.BUY
 
+        # ── Capture context at signal time (for trade_analysis.py buckets) ──
+        ctx_hour = bar_time.hour
+        adx_arr_val = ind["adx"][i - 1] if "adx" in ind else None
+        ctx_adx = None if adx_arr_val is None or pd.isna(adx_arr_val) else float(adx_arr_val)
+        rsi_val = ind["rsi"][i - 1]
+        ctx_rsi = None if pd.isna(rsi_val) else float(rsi_val)
+        atr_signal = ind["atr"][i - 1]
+        ctx_atr_pips = None if pd.isna(atr_signal) else round(float(atr_signal) / pip, 2)
+
+        ctx_trend_bias: Optional[str] = None
+        if trend_data is not None:
+            tt, tc, te = trend_data
+            j = int(np.searchsorted(tt, time_arr[i], side="right")) - 1
+            if 1 <= j < len(tc):
+                ctx_trend_bias = "bullish" if tc[j - 1] > te[j - 1] else "bearish"
+
         # ── Entry price ───────────────────────────────────────────────────────
         entry_price = bar_close
         if signal_type is SignalType.BUY:
@@ -598,6 +648,9 @@ def run_realistic_backtest(
             lot=effective_lot, sl=sl_price, tp=tp_price,
             entry_time=bar_time, initial_sl=sl_price, initial_tp=tp_price,
             atr_at_entry=atr_val,
+            signal_hour=ctx_hour, signal_adx=ctx_adx,
+            signal_atr_pips=ctx_atr_pips, signal_rsi=ctx_rsi,
+            signal_trend_bias=ctx_trend_bias,
         )
         daily_trades += 1
 
@@ -606,12 +659,10 @@ def run_realistic_backtest(
         last_time  = bar_datetimes[-1]
         exit_px    = close_arr[-1]
         p_usd, p_pips = _profit_usd(open_pos.direction, open_pos.entry_price, exit_px, open_pos.lot, pip, pip_val)
-        closed_trades.append(_ClosedTrade(
-            entry_time=open_pos.entry_time, exit_time=last_time,
-            direction=open_pos.direction, entry_price=open_pos.entry_price,
-            exit_price=exit_px, lot=open_pos.lot,
-            profit_usd=p_usd, profit_pips=p_pips, exit_reason="end_of_data",
-        ))
+        closed_trades.append(_close(open_pos, last_time, exit_px, p_usd, p_pips, "end_of_data", slippage_pips))
+
+    if out_trades is not None:
+        out_trades.extend(closed_trades)
 
     return _compute_metrics(closed_trades, equity_curve, sl_pips_base, params.initial_equity)
 

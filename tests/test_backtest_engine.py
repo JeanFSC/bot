@@ -332,3 +332,31 @@ def test_invert_signals_flips_direction():
         # Exact opposite is not guaranteed (SL/TP asymmetry, etc.) but signs should differ
         # for at least one direction
         assert (m_normal.win_rate_pct + m_invert.win_rate_pct) > 0  # both produce trades
+
+
+def test_out_trades_collects_context():
+    """When out_trades list is provided, it should be populated with trades carrying context."""
+    from mt5_bot.backtest_engine import ClosedTrade
+    bars = rally_bars(n=300)
+    config = _base_config()
+    trades = []
+    metrics = run_realistic_backtest(
+        bars, config, params=BacktestParams(slippage_pips=0.0), out_trades=trades,
+    )
+    assert metrics.trades == len(trades)
+    if trades:
+        t = trades[0]
+        assert isinstance(t, ClosedTrade)
+        assert 0 <= t.signal_hour <= 23
+        assert t.signal_atr_pips is None or t.signal_atr_pips > 0
+        # RSI computation needs warmup; on synthetic flat-then-rally bars it should be set
+        assert t.direction.value in ("BUY", "SELL")
+
+
+def test_out_trades_empty_when_no_signals():
+    """out_trades stays empty when no trades fire."""
+    bars = flat_bars(n=300)
+    config = _base_config()
+    trades = []
+    run_realistic_backtest(bars, config, params=BacktestParams(slippage_pips=0.0), out_trades=trades)
+    assert trades == []
