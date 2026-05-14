@@ -44,3 +44,11 @@
 
 ## Suite closed on request
 - Jean asked to close the suite for now. Stopped all mt5_bot trade python processes and _restart_ cmd windows. Verification: SUITE_CLOSED_OK and MT5 open_positions=0 on account 106490890, balance/equity 81347.31. No active cron review jobs remain.
+
+## Safe 24H local PC mode prepared
+- Created START_SAFE_24H.bat, STOP_SUITE.bat, STATUS_SUITE.bat, WATCHDOG_SAFE_24H.py, qa_safe_24h.py, and docs/SAFE_24H_CHECKLIST.md.
+- START_SAFE_24H.bat runs watchdog preflight before launching, then starts watchdog and the 12-bot launcher.
+- WATCHDOG_SAFE_24H.py checks safe configs, forbids --trade-enabled in launchers/processes, reads MT5 open positions, scans recent logs for critical errors, summarizes trade_journal rows, can stop the suite, and can run continuous watch mode.
+- STOP_SUITE.bat calls watchdog --stop. STATUS_SUITE.bat calls watchdog --status.
+- QA run: qa_safe_24h.py => QA_SAFE_24H_OK; qa_full_mt5.py => QA_STATIC_OK; qa_suite_smoke.py => SMOKE_OK all 12 configs passed MT5 check; pytest => 24 passed.
+- Suite was not left running after this prep; this was setup + QA only.
