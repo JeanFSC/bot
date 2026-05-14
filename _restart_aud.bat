@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [AUDUSD] CHECK OK -- arrancando TRADE loop... >> logs\bot_aud.log
 echo [%TIME%] [AUDUSD] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_aud.yaml --db data/pro_aud.sqlite --trade-enabled >> logs\bot_aud.log 2>&1
+python -m mt5_bot trade --config config/pro_aud.yaml --db data/pro_aud.sqlite >> logs\bot_aud.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [AUDUSD] Bot crasheo -- reiniciando en 10s... >> logs\bot_aud.log
     echo [%TIME%] [AUDUSD] Bot crasheo -- reiniciando en 10s...
@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [AUDUSD] Bot detenido por el usuario. >> logs\bot_aud.log
 echo [%TIME%] [AUDUSD] Bot detenido por el usuario.
 pause
+

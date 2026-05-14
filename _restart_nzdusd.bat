@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [NZDUSD] CHECK OK -- arrancando TRADE loop... >> logs\bot_nzdusd.log
 echo [%TIME%] [NZDUSD] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_nzdusd.yaml --db data/pro_nzdusd.sqlite --trade-enabled >> logs\bot_nzdusd.log 2>&1
+python -m mt5_bot trade --config config/pro_nzdusd.yaml --db data/pro_nzdusd.sqlite >> logs\bot_nzdusd.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [NZDUSD] Bot crasheo -- reiniciando en 10s... >> logs\bot_nzdusd.log
     echo [%TIME%] [NZDUSD] Bot crasheo -- reiniciando en 10s...
@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [NZDUSD] Bot detenido por el usuario. >> logs\bot_nzdusd.log
 echo [%TIME%] [NZDUSD] Bot detenido por el usuario.
 pause
+

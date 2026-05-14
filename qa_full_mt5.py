@@ -54,7 +54,7 @@ for rel in CORE_CONFIGS:
     stem = Path(rel).stem.replace("pro", "").strip("_") or "eurusd"
 for bat in sorted(ROOT.glob("_restart_*.bat")):
     s = bat.read_text(encoding="utf-8", errors="replace")
-    assert "--trade-enabled" in s, bat.name
+    assert "--trade-enabled" not in s, f"{bat.name} must respect config execution.trade_enabled=false by default"
     assert ">> logs\\bot_" in s, bat.name
     assert "python -m mt5_bot check" in s, bat.name
     assert "python -m mt5_bot trade" in s, bat.name
