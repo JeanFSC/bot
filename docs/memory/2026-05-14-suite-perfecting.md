@@ -21,3 +21,12 @@
 - Verification: qa_suite_smoke.py => SMOKE_OK all 12 configs passed MT5 check on MetaQuotes-Demo.
 - Verification: python -m pytest -q => 24 passed in 0.41s; pytest still emits Windows temp cleanup PermissionError after success, not a suite failure.
 - Safety: no live trading enabled; execution configs remain trade_enabled=false and checks used MT5 readiness only.
+
+## Safe paper run incident and fix
+- During initial paper-run launch, _restart_*.bat still passed --trade-enabled even though configs had execution.trade_enabled=false. I stopped all suite cmd/python processes immediately.
+- Safety check after stop: scratch/check_positions_before_suite_restart.py reported open_positions=0 on account 106490890, balance/equity 81347.31.
+- Fix: removed --trade-enabled from all 12 _restart_*.bat files so launchers respect config defaults. Updated qa_full_mt5.py to assert restart bats do NOT contain --trade-enabled.
+- Verification: qa_full_mt5.py => QA_STATIC_OK; pytest => 24 passed.
+- Commit: e8990ef Make MT5 suite launcher safe by default.
+- Follow-up fix: corrected missing _portfolio_overlap_risk_factor initialization in cli.py after crash observed in logs; verification qa_full_mt5.py + pytest passed; commit ea6fa47 Fix portfolio overlap risk initialization.
+- Relaunched safe suite at ~14:55. Verified 12 cmd restart windows and 12 python trade loops running with no --trade-enabled in command lines. Logs show trade_enabled=False.
