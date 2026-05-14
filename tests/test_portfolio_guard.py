@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from mt5_bot.portfolio_guard import portfolio_guard_decision, symbol_currencies
+from mt5_bot.portfolio_guard import portfolio_guard_decision, score_portfolio_overlap, symbol_currencies
 
 
 def test_symbol_currencies_for_fx_and_gold():
@@ -54,3 +54,26 @@ def test_portfolio_guard_blocks_same_currency_crowding():
 
     assert decision.allow_new_entry is False
     assert decision.reason == "same_currency_exposure_2"
+
+
+def test_overlap_blocks_exact_symbol_duplicate_between_bots():
+    config = SimpleNamespace(symbol="XAUUSD", max_same_currency_positions=3, max_exact_symbol_positions=1)
+    positions = [SimpleNamespace(symbol="XAUUSD", type=0, magic=260436)]
+
+    score = score_portfolio_overlap(config, positions, "BUY")
+
+    assert score.allow_new_entry is False
+    assert score.reason == "exact_symbol_overlap_1"
+    assert score.risk_multiplier == 0.0
+
+
+def test_overlap_descoring_reduces_same_direction_usd_theme():
+    config = SimpleNamespace(symbol="GBPUSD", max_same_currency_positions=3, max_exact_symbol_positions=1)
+    positions = [SimpleNamespace(symbol="EURUSD", type=0, magic=260433)]
+
+    score = score_portfolio_overlap(config, positions, "BUY")
+
+    assert score.allow_new_entry is True
+    assert score.reason == "soft_overlap_descore"
+    assert score.risk_multiplier == 0.5
+    assert score.same_direction_theme_positions == 1

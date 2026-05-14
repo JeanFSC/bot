@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import sqlite3
@@ -94,6 +94,23 @@ class BotStorage:
                 comment TEXT,
                 raw_json TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS trade_journal (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                symbol TEXT NOT NULL,
+                magic INTEGER,
+                signal_type TEXT NOT NULL,
+                signal_reason TEXT NOT NULL,
+                decision TEXT NOT NULL,
+                execution_status TEXT,
+                execution_reason TEXT,
+                risk_pct REAL,
+                risk_multiplier REAL,
+                portfolio_reason TEXT,
+                rr REAL,
+                context_json TEXT NOT NULL
+            );
             """
         )
         self.connection.commit()
@@ -144,6 +161,38 @@ class BotStorage:
 
     def record_order_result(self, request: dict[str, Any], send_result) -> None:
         self._record_order(request, send_result, "send")
+
+    def record_trade_journal(
+        self,
+        symbol: str,
+        magic: int,
+        signal: Signal,
+        decision: str,
+        execution_status: str | None = None,
+        execution_reason: str | None = None,
+        risk_pct: float | None = None,
+        risk_multiplier: float | None = None,
+        portfolio_reason: str | None = None,
+        rr: float | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        """Append an audit row for every actionable signal, block, or order."""
+        self.connection.execute(
+            """
+            INSERT INTO trade_journal (
+                created_at, symbol, magic, signal_type, signal_reason, decision,
+                execution_status, execution_reason, risk_pct, risk_multiplier,
+                portfolio_reason, rr, context_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                _now(), symbol, magic, signal.type.value, signal.reason, decision,
+                execution_status, execution_reason, risk_pct, risk_multiplier,
+                portfolio_reason, rr, json.dumps(context or {}, default=_json_default),
+            ),
+        )
+        self.connection.commit()
 
     def record_deals(self, deals) -> int:
         inserted = 0
@@ -271,3 +320,4 @@ def _time_from_epoch(value) -> str:
     if value is None:
         return _now()
     return datetime.fromtimestamp(int(value), tz=timezone.utc).isoformat()
+
