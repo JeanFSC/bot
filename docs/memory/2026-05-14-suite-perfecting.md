@@ -30,3 +30,17 @@
 - Commit: e8990ef Make MT5 suite launcher safe by default.
 - Follow-up fix: corrected missing _portfolio_overlap_risk_factor initialization in cli.py after crash observed in logs; verification qa_full_mt5.py + pytest passed; commit ea6fa47 Fix portfolio overlap risk initialization.
 - Relaunched safe suite at ~14:55. Verified 12 cmd restart windows and 12 python trade loops running with no --trade-enabled in command lines. Logs show trade_enabled=False.
+
+## Scheduled 1-hour safe paper/control review - 2026-05-14 15:55 America/Lima
+- Scope: read-only inspection of processes, logs, SQLite journals, MT5 account/positions. No launcher/config changes and no trading enabled.
+- Processes: MT5 terminal running plus 12 python trade loops alive: pro, pro_gbp, pro_gold, pro_jpy, pro_aud, pro_usdcad, pro_gold_m5, pro_nzdusd, pro_gbpjpy, pro_jpy_asia, pro_silver, pro_usdchf. Command lines did not include --trade-enabled.
+- Configs: all pro*.yaml checked showed trade_enabled: false.
+- Logs since 14:55: no ERROR, Traceback, Exception, or CRITICAL lines after the relaunch/fix. Earlier NameError _portfolio_overlap_risk_factor entries were pre-14:55 and not recurring.
+- Safety: MT5 account 106490890 MetaQuotes-Demo balance/equity 81347.31; positions_get returned 0 open positions; margin 0.0.
+- Journal/data: account_snapshots are updating across all 12 DBs. trade_journal is writing where the loop is actively evaluating signals; examples: gold_m5 latest 20:57 UTC, jpy_asia/nzdusd/silver latest 20:57 UTC. Several session-filtered bots had latest journal around 19:59 UTC or none (gbpjpy/usdchf), while snapshots still updated.
+- Execution behavior: current journal entries are blocked_or_no_signal / skipped / retest_waiting, risk_multiplier 1.0, portfolio_reason not_scored, overlap_reasons []. No current orders were sent in this safe run.
+- Overlap/de-scoring: not exercised by a real BUY/SELL candidate during this hour; evidence is journal portfolio_reason=not_scored with empty overlap_reasons because signals stayed NONE/retest_waiting/session-filtered.
+- Recommendation: keep running in safe control mode for a longer window until at least one real BUY/SELL candidate appears, then verify overlap/de-scoring blocks or risk-reduces it before considering any escalation.
+
+## Suite closed on request
+- Jean asked to close the suite for now. Stopped all mt5_bot trade python processes and _restart_ cmd windows. Verification: SUITE_CLOSED_OK and MT5 open_positions=0 on account 106490890, balance/equity 81347.31. No active cron review jobs remain.
