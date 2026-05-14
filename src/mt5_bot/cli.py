@@ -448,6 +448,32 @@ def run_trade(
 
             # â”€â”€ MEJORA 5: Equity curve management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # After N consecutive losses, apply lot_reduction_factor to config
+            overlap_score = None
+            _portfolio_overlap_risk_factor = 1.0
+            if entry_signal.type is not SignalType.NONE:
+                try:
+                    overlap_score = score_portfolio_overlap(config, gateway.positions_get(), entry_signal.type)
+                    _portfolio_overlap_risk_factor = overlap_score.risk_multiplier
+                    if not overlap_score.allow_new_entry:
+                        LOGGER.warning(
+                            "Portfolio overlap: blocking %s %s reason=%s details=%s",
+                            config.symbol, entry_signal.type.value, overlap_score.reason,
+                            ",".join(overlap_score.overlap_reasons) or "n/a",
+                        )
+                        entry_signal = Signal(
+                            SignalType.NONE, entry_signal.price, entry_signal.time,
+                            overlap_score.reason, entry_signal.fast_ema, entry_signal.slow_ema,
+                            entry_signal.rsi, entry_signal.atr, entry_signal.atr_pips,
+                            entry_signal.trend_bias, entry_signal.adx,
+                        )
+                    elif overlap_score.risk_multiplier < 1.0:
+                        LOGGER.info(
+                            "Portfolio overlap de-score: symbol=%s risk_multiplier=%.2f penalty=%.1f reason=%s details=%s",
+                            config.symbol, overlap_score.risk_multiplier, overlap_score.score_penalty,
+                            overlap_score.reason, ",".join(overlap_score.overlap_reasons) or "n/a",
+                        )
+                except Exception as exc:
+                    LOGGER.warning("Portfolio overlap scorer unavailable: %s", exc)
             from dataclasses import replace as dc_replace
             # Positive compounding: for each +5% equity growth over baseline,
             # add +10% to risk, capped at 2.5x. This accelerates winners but
@@ -802,4 +828,5 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
         except Exception as exc:
             LOGGER.debug("Trailing stop during idle: %s", exc)
     time.sleep(config.poll_seconds)
+
 
