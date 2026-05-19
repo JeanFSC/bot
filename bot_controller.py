@@ -17,9 +17,26 @@ from datetime import datetime
 from pathlib import Path
 
 BOT_DIR = Path(__file__).resolve().parent
-BAT_FILE = BOT_DIR / "_run_all_pro_autorestart.bat"
+BAT_FILE = BOT_DIR / "_run_all_pro_autorestart.bat"  # legacy launcher; controller now starts wrappers hidden
 LOG_DIR = BOT_DIR / "logs"
 FLAGS = 0x08000000  # CREATE_NO_WINDOW
+
+RESTART_BATS = [
+    "_restart_eurusd.bat",
+    "_restart_gbpusd.bat",
+    "_restart_jpy.bat",
+    "_restart_gold.bat",
+    "_restart_aud.bat",
+    "_restart_gold_m5.bat",
+    "_restart_usdcad.bat",
+    "_restart_nzdusd.bat",
+    "_restart_gbpjpy.bat",
+    "_restart_silver.bat",
+    "_restart_jpy_asia.bat",
+    "_restart_usdchf.bat",
+]
+WATCHDOG_CMD = ["python", "WATCHDOG_SAFE_24H.py", "--mode", "live-demo", "--watch", "--interval", "300"]
+
 
 BG = "#0f0f1a"
 CARD = "#1a1a2e"
@@ -59,6 +76,98 @@ BOTS: list[BotPanel] = [
 BOT_TITLES = [b.window_title for b in BOTS]
 
 
+def controller_log(message: str) -> None:
+    try:
+        LOG_DIR.mkdir(exist_ok=True)
+        stamp = datetime.now().isoformat(timespec="seconds")
+        with (LOG_DIR / "controller.log").open("a", encoding="utf-8") as fh:
+            fh.write(f"{stamp} {message}\n")
+    except Exception:
+        pass
+
+
+def _run_ps(script: str, timeout: int = 8) -> str:
+    r = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", script],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        creationflags=FLAGS,
+    )
+    return r.stdout or ""
+
+
+def count_restarts() -> int:
+    try:
+        ps = (
+            "$p=Get-CimInstance Win32_Process | "
+            "Where-Object { $_.Name -eq 'cmd.exe' -and $_.CommandLine -match '_restart_' }; "
+            "@($p).Count"
+        )
+        out = _run_ps(ps)
+        return int((out or "0").strip().splitlines()[-1])
+    except Exception:
+        return 0
+
+
+def count_watchdogs() -> int:
+    try:
+        ps = (
+            "$p=Get-CimInstance Win32_Process | "
+            "Where-Object { $_.Name -match 'python|cmd' -and $_.CommandLine -match 'WATCHDOG_SAFE_24H.py --mode live-demo --watch' }; "
+            "@($p).Count"
+        )
+        out = _run_ps(ps)
+        return int((out or "0").strip().splitlines()[-1])
+    except Exception:
+        return 0
+
+
+def start_watchdog_hidden() -> None:
+    if count_watchdogs() > 0:
+        controller_log("live-demo watchdog already running")
+        return
+    subprocess.Popen(WATCHDOG_CMD, cwd=str(BOT_DIR), creationflags=FLAGS)
+    controller_log("started live-demo watchdog hidden")
+
+
+def start_suite_hidden() -> None:
+    """Start all restart wrappers hidden, without the 12 visible cmd windows."""
+    if count_bots() > 0 or count_restarts() > 0:
+        controller_log("start skipped: suite processes already running")
+        return
+    LOG_DIR.mkdir(exist_ok=True)
+    start_watchdog_hidden()
+    for bat in RESTART_BATS:
+        path = BOT_DIR / bat
+        subprocess.Popen(
+            ["cmd.exe", "/c", str(path)],
+            cwd=str(BOT_DIR),
+            creationflags=FLAGS | subprocess.CREATE_NEW_PROCESS_GROUP,
+        )
+        controller_log(f"started hidden wrapper {bat}")
+        time.sleep(0.15)
+
+
+def stop_suite_processes() -> None:
+    """Stop suite through watchdog stop, then kill residual wrappers/trade loops."""
+    subprocess.run(
+        ["python", "WATCHDOG_SAFE_24H.py", "--stop"],
+        cwd=str(BOT_DIR),
+        capture_output=True,
+        text=True,
+        timeout=30,
+        creationflags=FLAGS,
+    )
+    ps = (
+        "Get-CimInstance Win32_Process | "
+        "Where-Object { ($_.Name -match 'python|cmd') -and $_.CommandLine -match 'mt5_bot trade|_restart_|_run_all_pro_autorestart' } | "
+        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+    )
+    subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, creationflags=FLAGS)
+    controller_log("stop requested for suite processes")
+
+
 def count_bots() -> int:
     """Count mt5_bot Python processes. Uses CIM because WMIC is absent on newer Windows."""
     try:
@@ -80,12 +189,7 @@ def count_bots() -> int:
 
 
 def kill_bots() -> None:
-    ps = (
-        "Get-CimInstance Win32_Process | "
-        "Where-Object { $_.Name -match 'python' -and $_.CommandLine -match 'mt5_bot' } | "
-        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
-    )
-    subprocess.run(["powershell", "-NoProfile", "-Command", ps], capture_output=True, creationflags=FLAGS)
+    stop_suite_processes()
     for title in BOT_TITLES:
         subprocess.run(
             ["taskkill", "/F", "/FI", f"WINDOWTITLE eq {title}"],
@@ -203,7 +307,7 @@ class App(tk.Tk):
 
     def _do_start(self) -> None:
         try:
-            subprocess.Popen(["cmd.exe", "/c", str(BAT_FILE)], cwd=str(BOT_DIR), creationflags=subprocess.CREATE_NEW_CONSOLE)
+            start_suite_hidden()
             time.sleep(3)
         except Exception as exc:
             self.after(0, lambda: self._set_status(f"Error: {exc}", RED))
@@ -236,10 +340,12 @@ class App(tk.Tk):
 
     def _refresh(self) -> None:
         n = count_bots()
-        running = n > 0
+        r = count_restarts()
+        w = count_watchdogs()
+        running = n > 0 or r > 0
         if not self._busy:
             self._set_status("BOTS ACTIVOS" if running else "BOTS DETENIDOS", GREEN if running else RED)
-            self.process_lbl.configure(text=f"{n} proceso(s) activos", fg=GREEN if running else GRAY)
+            self.process_lbl.configure(text=f"{n} trade loop(s) ? {r} wrapper(s) ? {w} watchdog(s)", fg=GREEN if running else GRAY)
             self.start_btn.configure(bg=GDIM if running else GREEN, fg=GRAY if running else "#000", cursor="arrow" if running else "hand2")
             self.stop_btn.configure(bg=RED if running else RDIM, fg="#fff" if running else GRAY, cursor="hand2" if running else "arrow")
 

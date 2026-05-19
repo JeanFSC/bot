@@ -12,7 +12,7 @@ from mt5_bot.config import load_config
 EXPECTED = [
  ('EURUSD M15','config/pro.yaml',8.3, dict(symbol='EURUSD', timeframe='M15', trend_timeframe='H1', risk=2.0, adx=22, tp=3.0, retest=True, candle=True, rsi=(65,35), session=(7,20), session2=None)),
  ('GBPUSD M15','config/pro_gbp.yaml',8.3, dict(symbol='GBPUSD', timeframe='M15', trend_timeframe='H1', risk=1.8, adx=22, tp=3.0, retest=True, candle=True, rsi=(65,35), session=(7,20), session2=None)),
- ('USDJPY M15','config/pro_jpy.yaml',8.7, dict(symbol='USDJPY', timeframe='M15', trend_timeframe='H1', risk=1.8, adx=22, tp=3.0, retest=True, candle=True, rsi=(70,30), session=(7,20), session2=None)),
+ ('USDJPY M15','config/pro_jpy.yaml',8.7, dict(symbol='USDJPY', timeframe='M15', trend_timeframe='H1', risk=1.5, adx=22, tp=3.0, retest=True, candle=True, rsi=(70,30), session=(7,20), session2=None)),
  ('XAUUSD M15','config/pro_gold.yaml',8.7, dict(symbol='XAUUSD', timeframe='M15', trend_timeframe='H1', risk=1.5, adx=22, tp=3.0, retest=True, candle=True, session=(7,20), session2=None)),
  ('AUDUSD M15','config/pro_aud.yaml',8.5, dict(symbol='AUDUSD', timeframe='M15', trend_timeframe='H1', risk=1.8, adx=22, tp=3.0, retest=True, candle=True, rsi=(65,35), session=(7,20), session2=None)),
  ('XAUUSD M5','config/pro_gold_m5.yaml',8.5, dict(symbol='XAUUSD', timeframe='M5', trend_timeframe='M15', risk=1.5, adx=18, tp=3.0, retest=True, candle=True, session=(0,24), session2=None)),

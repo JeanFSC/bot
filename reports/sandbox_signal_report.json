@@ -1,0 +1,44 @@
+{
+  "generated_at": "2026-05-19T20:33:08.112548+00:00",
+  "name": "USDJPY London V2",
+  "database": "C:\\Users\\jean_\\Desktop\\mt5_trading_bot\\data\\research_usdjpy_london_v2.sqlite",
+  "log": "C:\\Users\\jean_\\Desktop\\mt5_trading_bot\\logs\\sandbox_usdjpy_london_v2.log",
+  "counts": {
+    "signals": 0,
+    "trade_journal": 0,
+    "orders": 0
+  },
+  "latest": {
+    "signals": null,
+    "trade_journal": null
+  },
+  "signals": [],
+  "trade_journal": [],
+  "log_tail": [
+    "2026-05-19 15:29:55 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:30:10 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=1.00 pips",
+    "2026-05-19 15:30:10 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:30:25 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.90 pips",
+    "2026-05-19 15:30:25 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:30:40 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.90 pips",
+    "2026-05-19 15:30:40 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:30:55 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.90 pips",
+    "2026-05-19 15:30:55 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:31:10 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=1.00 pips",
+    "2026-05-19 15:31:10 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:31:25 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=1.00 pips",
+    "2026-05-19 15:31:25 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:31:40 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=1.00 pips",
+    "2026-05-19 15:31:40 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:31:55 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.90 pips",
+    "2026-05-19 15:31:55 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:32:10 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=1.00 pips",
+    "2026-05-19 15:32:10 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:32:25 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.90 pips",
+    "2026-05-19 15:32:25 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:32:40 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.80 pips",
+    "2026-05-19 15:32:40 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)",
+    "2026-05-19 15:32:55 INFO mt5_bot - Balance=89621.06 Equity=89621.06 Spread=0.90 pips",
+    "2026-05-19 15:32:55 INFO mt5_bot - Session filter: UTC hour=20 outside [7,12) and [0,0)"
+  ]
+}

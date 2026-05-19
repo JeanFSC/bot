@@ -1,7 +1,9 @@
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 from mt5_bot.config import ExecutionConfig, RiskConfig
 from mt5_bot.executor import TradeExecutor, build_market_order_request, should_open_new_position, with_filling_mode
+from mt5_bot.risk import calculate_volume
 from mt5_bot.strategy import Signal, SignalType
 
 
@@ -58,6 +60,68 @@ def test_build_buy_market_order_request_contains_mt5_fields():
     assert request["type_filling"] == 2
 
 
+def test_metal_position_size_uses_contract_value_floor_when_tick_value_is_underreported():
+    symbol_info = SimpleNamespace(
+        digits=2,
+        point=0.01,
+        trade_tick_value=0.1,   # MetaQuotes demo reports XAUUSD this way.
+        trade_tick_size=0.01,
+        trade_contract_size=100.0,
+        volume_min=0.01,
+        volume_max=100.0,
+        volume_step=0.01,
+    )
+    risk = RiskConfig(mode="percent_equity", fixed_lot=0.1, risk_pct=0.75, sl_pips=750, tp_pips=1500)
+
+    volume = calculate_volume(risk, equity=80_000, symbol_info=symbol_info)
+
+    assert volume == 0.8
+
+
+def test_risk_firewall_reduces_oversized_volume_using_broker_loss():
+    signal = Signal(type=SignalType.SELL, price=4555.90, time=None, reason="ema_cross_below", fast_ema=4555, slow_ema=4556, rsi=50, atr=5.0)
+    gateway = _GatewayWithInvalidFirstFill()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        cooldown_seconds=0,
+        reverse_cooldown_seconds=0,
+        max_open_positions=1,
+        max_order_volume=0.0,
+        risk_firewall_enabled=True,
+        risk_firewall_tolerance=1.0,
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=7.9, risk_pct=0.75, sl_pips=772, tp_pips=1544),
+        execution=ExecutionConfig(magic=260436, deviation=20, filling_mode="AUTO", trade_enabled=False),
+    )
+
+    result = TradeExecutor(gateway, storage, config).execute(signal)
+
+    assert result.status == "dry_run"
+    assert result.request["volume"] == 0.09
+
+
+def test_risk_firewall_applies_hard_volume_cap_before_check():
+    signal = Signal(type=SignalType.SELL, price=4555.90, time=None, reason="ema_cross_below", fast_ema=4555, slow_ema=4556, rsi=50, atr=5.0)
+    gateway = _GatewayWithInvalidFirstFill()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        cooldown_seconds=0,
+        reverse_cooldown_seconds=0,
+        max_open_positions=1,
+        max_order_volume=1.0,
+        risk_firewall_enabled=True,
+        risk_firewall_tolerance=20.0,
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=7.9, risk_pct=0.75, sl_pips=772, tp_pips=1544),
+        execution=ExecutionConfig(magic=260436, deviation=20, filling_mode="AUTO", trade_enabled=False),
+    )
+
+    result = TradeExecutor(gateway, storage, config).execute(signal)
+
+    assert result.status == "dry_run"
+    assert result.request["volume"] == 1.0
+
+
 def test_executor_auto_filling_retries_after_invalid_fill():
     signal = Signal(type=SignalType.SELL, price=1.1000, time=None, reason="ema_cross_below", fast_ema=1.099, slow_ema=1.1, rsi=45, atr=0.0005)
     gateway = _GatewayWithInvalidFirstFill()
@@ -74,6 +138,26 @@ def test_executor_auto_filling_retries_after_invalid_fill():
 
     assert result.status == "dry_run"
     assert [request["type_filling"] for request in gateway.checked_requests] == [2, 1]
+
+
+def test_loss_reentry_cooldown_blocks_fresh_entry_after_losing_exit():
+    signal = Signal(type=SignalType.SELL, price=1.1000, time=None, reason="ema_cross_below", fast_ema=1.099, slow_ema=1.1, rsi=45, atr=0.0005)
+    gateway = _GatewayWithInvalidFirstFill()
+    storage = _StorageSpy(latest_losing_exit=(datetime.now(timezone.utc).isoformat(), -690.44, 1, 156.64, 8157374286))
+    config = SimpleNamespace(
+        symbol="EURUSD",
+        cooldown_seconds=0,
+        reverse_cooldown_seconds=600,
+        max_open_positions=1,
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.25, sl_pips=20, tp_pips=40),
+        execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=False),
+    )
+
+    result = TradeExecutor(gateway, storage, config).execute(signal)
+
+    assert result.status == "skipped"
+    assert result.reason.startswith("loss_reentry_cooldown_")
+    assert gateway.checked_requests == []
 
 
 def test_filling_retry_keeps_mt5_comment_short():
@@ -124,11 +208,22 @@ def test_trailing_breakeven_uses_spread_buffer():
 
 
 class _StorageSpy:
+    def __init__(self, latest_losing_exit=None):
+        self.latest_losing_exit = latest_losing_exit
+        self.pruned = []
+
     def record_order_request(self, request, check):
         pass
 
     def record_order_result(self, request, result):
         pass
+
+    def get_latest_losing_exit(self, symbol, magic):
+        return self.latest_losing_exit
+
+    def prune_position_metrics(self, symbol, magic, open_tickets):
+        self.pruned.append((symbol, magic, open_tickets))
+        return 0
 
 
 class _GatewayWithInvalidFirstFill:
@@ -139,13 +234,32 @@ class _GatewayWithInvalidFirstFill:
         return []
 
     def symbol_info_tick(self, symbol):
+        if symbol == "XAUUSD":
+            return SimpleNamespace(bid=4555.90, ask=4556.07)
         return SimpleNamespace(bid=1.0999, ask=1.1000)
 
     def symbol_info(self, symbol):
+        if symbol == "XAUUSD":
+            return SimpleNamespace(
+                digits=2,
+                point=0.01,
+                trade_tick_value=0.1,
+                trade_tick_size=0.01,
+                trade_contract_size=100.0,
+                volume_min=0.01,
+                volume_max=100.0,
+                volume_step=0.01,
+            )
         return _symbol_info()
 
     def account_info(self):
         return SimpleNamespace(equity=10_000)
+
+    def order_calc_profit(self, order_type, symbol, volume, price_open, price_close):
+        if symbol == "XAUUSD":
+            return -abs(price_close - price_open) * 100.0 * float(volume)
+        pip = 0.0001
+        return -abs(price_close - price_open) / pip * 10.0 * float(volume)
 
     def constants(self):
         return {
