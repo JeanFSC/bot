@@ -1,15 +1,15 @@
 # MT5 Suite Status Report
 
-Generated: 2026-05-19T20:33:07.724337+00:00
+Generated: 2026-05-19T20:34:43.216494+00:00
 Since: 2026-05-15T00:00:00+00:00
 Status: OK
-Reasons: live_trade_loops=3 dry_run_loops=8
+Reasons: live_trade_loops=0 dry_run_loops=0
 
 ## Processes
-- Total suite-related processes: 24
-- Trade loops: 11
-- Live trade loops: 3
-- Dry-run trade loops: 8
+- Total suite-related processes: 2
+- Trade loops: 0
+- Live trade loops: 0
+- Dry-run trade loops: 0
 
 ## MT5
 - Connected: True

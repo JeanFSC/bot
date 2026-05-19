@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-19T20:33:07.724337+00:00",
+  "generated_at": "2026-05-19T20:34:43.216494+00:00",
   "since": "2026-05-15T00:00:00+00:00",
   "status": "OK",
   "reasons": [
-    "live_trade_loops=3 dry_run_loops=8"
+    "live_trade_loops=0 dry_run_loops=0"
   ],
   "processes": [
     {
@@ -15,116 +15,6 @@
       "ProcessId": 2608,
       "Name": "cmd.exe",
       "CommandLine": "\"C:\\WINDOWS\\system32\\cmd.exe\" /c START_REDUCED_FORWARD_TEST.bat "
-    },
-    {
-      "ProcessId": 13976,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /k \"_restart_usdchf.bat\""
-    },
-    {
-      "ProcessId": 1896,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/pro_usdchf.yaml --db data/pro_usdchf.sqlite --trade-enabled "
-    },
-    {
-      "ProcessId": 23168,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /k \"_restart_gold.bat\""
-    },
-    {
-      "ProcessId": 9704,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/pro_gold.yaml --db data/pro_gold.sqlite --trade-enabled "
-    },
-    {
-      "ProcessId": 6484,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /k \"_restart_gbpjpy.bat\""
-    },
-    {
-      "ProcessId": 2836,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/pro_gbpjpy.yaml --db data/pro_gbpjpy.sqlite --trade-enabled "
-    },
-    {
-      "ProcessId": 24024,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_usdjpy_london_v2.yaml && python -m mt5_bot trade --config config/research_usdjpy_london_v2.yaml --db data/research_usdjpy_london_v2.sqlite >> logs/sandbox_usdjpy_london_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 24360,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_usdjpy_london_v2.yaml --db data/research_usdjpy_london_v2.sqlite "
-    },
-    {
-      "ProcessId": 24868,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_eurusd_london_v2.yaml && python -m mt5_bot trade --config config/research_eurusd_london_v2.yaml --db data/research_eurusd_london_v2.sqlite >> logs/sandbox_eurusd_london_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 9600,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_eurusd_london_v2.yaml --db data/research_eurusd_london_v2.sqlite "
-    },
-    {
-      "ProcessId": 12928,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_gbpusd_london_v2.yaml && python -m mt5_bot trade --config config/research_gbpusd_london_v2.yaml --db data/research_gbpusd_london_v2.sqlite >> logs/sandbox_gbpusd_london_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 9776,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_gbpusd_london_v2.yaml --db data/research_gbpusd_london_v2.sqlite "
-    },
-    {
-      "ProcessId": 21052,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_nzdusd_london_v2.yaml && python -m mt5_bot trade --config config/research_nzdusd_london_v2.yaml --db data/research_nzdusd_london_v2.sqlite >> logs/sandbox_nzdusd_london_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 13596,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_nzdusd_london_v2.yaml --db data/research_nzdusd_london_v2.sqlite "
-    },
-    {
-      "ProcessId": 25144,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_usdcad_ny_v2.yaml && python -m mt5_bot trade --config config/research_usdcad_ny_v2.yaml --db data/research_usdcad_ny_v2.sqlite >> logs/sandbox_usdcad_ny_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 25148,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_usdcad_ny_v2.yaml --db data/research_usdcad_ny_v2.sqlite "
-    },
-    {
-      "ProcessId": 18080,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_audusd_asia_london_v2.yaml && python -m mt5_bot trade --config config/research_audusd_asia_london_v2.yaml --db data/research_audusd_asia_london_v2.sqlite >> logs/sandbox_audusd_asia_london_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 15992,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_audusd_asia_london_v2.yaml --db data/research_audusd_asia_london_v2.sqlite "
-    },
-    {
-      "ProcessId": 2584,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_xauusd_m5_v2.yaml && python -m mt5_bot trade --config config/research_xauusd_m5_v2.yaml --db data/research_xauusd_m5_v2.sqlite >> logs/sandbox_xauusd_m5_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 24936,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_xauusd_m5_v2.yaml --db data/research_xauusd_m5_v2.sqlite "
-    },
-    {
-      "ProcessId": 8808,
-      "Name": "cmd.exe",
-      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_xagusd_v2.yaml && python -m mt5_bot trade --config config/research_xagusd_v2.yaml --db data/research_xagusd_v2.sqlite >> logs/sandbox_xagusd_v2.log 2>&1\""
-    },
-    {
-      "ProcessId": 26156,
-      "Name": "python3.13.exe",
-      "CommandLine": "python  -m mt5_bot trade --config config/research_xagusd_v2.yaml --db data/research_xagusd_v2.sqlite "
     }
   ],
   "mt5": {
@@ -333,16 +223,16 @@
     {
       "db": "pro_gbpjpy.sqlite",
       "size": 19468288,
-      "mtime": "2026-05-19T15:32:04.895769",
-      "trade_journal_rows": 10175,
-      "latest_journal": "2026-05-19T20:32:04.895050+00:00"
+      "mtime": "2026-05-19T15:33:49.917057",
+      "trade_journal_rows": 10176,
+      "latest_journal": "2026-05-19T20:33:49.916155+00:00"
     },
     {
       "db": "pro_gold.sqlite",
-      "size": 22564864,
-      "mtime": "2026-05-19T15:33:03.581161",
-      "trade_journal_rows": 9018,
-      "latest_journal": "2026-05-19T20:33:03.579859+00:00"
+      "size": 22573056,
+      "mtime": "2026-05-19T15:34:03.652725",
+      "trade_journal_rows": 9022,
+      "latest_journal": "2026-05-19T20:34:03.651945+00:00"
     },
     {
       "db": "pro_gold_m5.sqlite",
@@ -389,9 +279,9 @@
     {
       "db": "pro_usdchf.sqlite",
       "size": 18276352,
-      "mtime": "2026-05-19T15:31:58.722523",
-      "trade_journal_rows": 9892,
-      "latest_journal": "2026-05-19T20:31:58.721540+00:00"
+      "mtime": "2026-05-19T15:33:43.743213",
+      "trade_journal_rows": 9893,
+      "latest_journal": "2026-05-19T20:33:43.742115+00:00"
     }
   ]
 }
