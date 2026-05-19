@@ -12,24 +12,17 @@ from datetime import datetime
 from pathlib import Path
 
 BOT_DIR   = Path(__file__).resolve().parent.parent.parent
-BAT_START = BOT_DIR / "_run_all_pro_autorestart.bat"
+BAT_START_LIVE = BOT_DIR / "START_REDUCED_FORWARD_TEST.bat"
+BAT_START_SANDBOX = BOT_DIR / "START_RESEARCH_SANDBOX_ALL.bat"
 LOG_DIR   = BOT_DIR / "logs"
 ENV_FILE  = BOT_DIR / ".env"
 BOT_TITLES = [
-    "PRO EURUSD",
-    "PRO GBPUSD",
-    "PRO USDJPY",
-    "PRO XAUUSD (Gold)",
-    "PRO AUDUSD",
-    "PRO XAUUSD M5 (Gold 24h)",
-    "PRO USDCAD",
-    "PRO NZDUSD",
-    "PRO GBPJPY",
-    "PRO XAGUSD (Silver)",
-    "PRO USDJPY ASIA",
     "PRO USDCHF",
+    "PRO GOLD",
+    "PRO GBPJPY",
 ]
 FLAGS = 0x08000000  # CREATE_NO_WINDOW
+STATUS_SCRIPT = BOT_DIR / "scripts" / "suite_status_report.py"
 
 def _load_env():
     env = {}
@@ -96,14 +89,35 @@ def _count_bots():
     except:
         return -1
 
+def _suite_report_json():
+    try:
+        cmd = (
+            f"$env:PYTHONPATH='{BOT_DIR / 'src'}'; "
+            f"python '{STATUS_SCRIPT}' --since 2026-05-15 --write | Out-Null; "
+            f"Get-Content -Raw '{BOT_DIR / 'reports' / 'suite_status_report.json'}'"
+        )
+        r = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", cmd],
+            capture_output=True, text=True, timeout=45, creationflags=FLAGS,
+        )
+        if r.returncode != 0 or not (r.stdout or "").strip():
+            return None
+        return json.loads(r.stdout)
+    except Exception:
+        return None
+
 def _start_bots():
     try:
-        subprocess.Popen(["cmd.exe","/c",str(BAT_START)],
+        subprocess.Popen(["cmd.exe","/c",str(BAT_START_LIVE)],
                          cwd=str(BOT_DIR),
                          creationflags=subprocess.CREATE_NEW_CONSOLE)
-        time.sleep(3)
+        time.sleep(2)
+        subprocess.Popen(["cmd.exe","/c",str(BAT_START_SANDBOX)],
+                         cwd=str(BOT_DIR),
+                         creationflags=subprocess.CREATE_NEW_CONSOLE)
+        time.sleep(5)
         n = _count_bots()
-        return f"Bots iniciados. Procesos activos: {n}"
+        return f"Live + sandbox iniciados. Procesos activos: {n}"
     except Exception as e:
         return f"Error al iniciar: {e}"
 
@@ -125,61 +139,75 @@ def _stop_bots():
         return f"Error al detener: {e}"
 
 def _get_status():
+    report = _suite_report_json()
+    if report:
+        mt5 = report.get("mt5") or {}
+        account = mt5.get("account") or {}
+        terminal = mt5.get("terminal") or {}
+        positions = mt5.get("positions") or []
+        live_loops = sum(
+            1 for p in report.get("processes", [])
+            if "mt5_bot trade" in str(p.get("CommandLine", ""))
+            and "python" in str(p.get("Name", "")).lower()
+            and "--trade-enabled" in str(p.get("CommandLine", ""))
+        )
+        dry_loops = sum(
+            1 for p in report.get("processes", [])
+            if "mt5_bot trade" in str(p.get("CommandLine", ""))
+            and "python" in str(p.get("Name", "")).lower()
+            and "--trade-enabled" not in str(p.get("CommandLine", ""))
+        )
+        return (
+            f"*Estado suite: {report.get('status', 'UNKNOWN')}*\n"
+            f"MT5 connected: {terminal.get('connected', 'n/a')}\n"
+            f"Live loops: {live_loops}\n"
+            f"Dry-run loops: {dry_loops}\n"
+            f"Balance: {account.get('balance', 'n/a')}\n"
+            f"Equity: {account.get('equity', 'n/a')}\n"
+            f"Open positions: {len(positions)}"
+        )
     n = _count_bots()
     if n < 0:
         return "No se pudo verificar el estado."
-    today = datetime.now().strftime("%Y%m%d")
-    log = LOG_DIR / f"bot_{today}.log"
-    if not log.exists():
-        logs = sorted(LOG_DIR.glob("bot_*.log"),reverse=True) if LOG_DIR.exists() else []
-        log = logs[0] if logs else None
-    last_line = ""
-    if log:
-        try:
-            lines = log.read_text(encoding="utf-8",errors="replace").splitlines()
-            last_line = lines[-1].strip() if lines else ""
-        except:
-            pass
     status = "ACTIVOS" if n > 0 else "DETENIDOS"
     return (
         f"*Estado: {status}*\n"
         f"Procesos: {n}\n"
-        f"UTC: {datetime.utcnow().strftime(chr(37)+'H:%M:%S')}\n"
-        f"Ultimo log: `{last_line[:120]}`"
+        f"UTC: {datetime.utcnow().strftime(chr(37)+'H:%M:%S')}"
     )
 
 def _get_log():
-    today = datetime.now().strftime("%Y%m%d")
-    log = LOG_DIR / f"bot_{today}.log"
-    if not log.exists():
-        logs = sorted(LOG_DIR.glob("bot_*.log"),reverse=True) if LOG_DIR.exists() else []
-        if not logs: return "Sin datos."
-        log = logs[0]
+    logs = sorted(LOG_DIR.glob("trade_*.log"), reverse=True) if LOG_DIR.exists() else []
+    if not logs:
+        logs = sorted(LOG_DIR.glob("check_*.log"), reverse=True) if LOG_DIR.exists() else []
+    if not logs:
+        return "Sin datos."
+    log = logs[0]
     try:
         lines = log.read_text(encoding="utf-8",errors="replace").splitlines()
         last = "\n".join(lines[-20:])
-        return f"*Log (ultimas 20 lineas):*\n`{last[:3500]}`"
+        return f"*Log `{log.name}` (ultimas 20 lineas):*\n`{last[:3500]}`"
     except Exception as e:
         return f"Error: {e}"
 
 def _get_balance():
-    today = datetime.now().strftime("%Y%m%d")
-    log = LOG_DIR / f"bot_{today}.log"
-    if not log.exists():
-        logs = sorted(LOG_DIR.glob("bot_*.log"), reverse=True) if LOG_DIR.exists() else []
-        if not logs: return "Sin datos."
-        log = logs[0]
-    try:
-        lines = log.read_text(encoding="utf-8", errors="replace").splitlines()
-        bal = [l for l in lines if "Balance=" in l and "Equity=" in l]
-        return f"*Ultimo balance:*\n`{bal[-1].strip()}`" if bal else "Sin datos de balance."
-    except Exception as e:
-        return f"Error: {e}"
+    report = _suite_report_json()
+    if not report:
+        return "Sin datos de balance."
+    mt5 = report.get("mt5") or {}
+    account = mt5.get("account") or {}
+    positions = mt5.get("positions") or []
+    return (
+        "*Balance actual:*\n"
+        f"`Balance={account.get('balance', 'n/a')} "
+        f"Equity={account.get('equity', 'n/a')} "
+        f"OpenPositions={len(positions)}`"
+    )
 
 HELP_TEXT = (
-    "*MT5 Bot Commander*\n\n"
-    "/start\\_bots  - Iniciar los bots\n"
-    "/stop\\_bots   - Detener todos los bots\n"
+    "*MT5 Reduced Suite Commander*\n\n"
+    "/start\\_bots  - Iniciar live + sandbox\n"
+    "/stop\\_bots   - Detener live + sandbox\n"
     "/status      - Estado actual\n"
     "/log         - Ultimas 20 lineas del log\n"
     "/balance     - Ultimo balance/equity registrado\n"
@@ -236,7 +264,7 @@ def main():
     log.info("Enviando mensaje de inicio a chat_id=%s ...", allowed_chat_id)
     result = bot._call("sendMessage", {
         "chat_id": allowed_chat_id,
-        "text": f"*MT5 Commander conectado*\nUTC: {datetime.utcnow().strftime(chr(37)+'Y-%m-%d %H:%M:%S')}\nUsa /help para ver comandos.",
+        "text": f"*MT5 Commander conectado*\nModo: suite reducida\nUTC: {datetime.utcnow().strftime(chr(37)+'Y-%m-%d %H:%M:%S')}\nUsa /help para ver comandos.",
         "parse_mode": "Markdown",
     })
     if result.get("ok"):

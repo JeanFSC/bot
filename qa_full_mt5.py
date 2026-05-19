@@ -40,7 +40,7 @@ for rel in CORE_CONFIGS:
     assert c.execution.trade_enabled is False, rel
     assert c.execution.magic not in magics, f"duplicate magic {c.execution.magic}"
     magics.add(c.execution.magic)
-    assert c.max_portfolio_open_positions == 5, rel
+    assert 0 < c.max_portfolio_open_positions <= 3, rel
     assert c.use_global_risk_guard is True, rel
     assert c.max_daily_loss_pct <= 5.0, rel
     assert c.risk.risk_pct > 0, rel

@@ -119,7 +119,25 @@ $items | ConvertTo-Json -Compress
 
 
 def suite_trade_processes(procs: list[dict]) -> list[dict]:
-    return [p for p in procs if "mt5_bot trade" in str(p.get("CommandLine", ""))]
+    return [
+        p for p in procs
+        if "mt5_bot trade" in str(p.get("CommandLine", ""))
+        and "python" in str(p.get("Name", "")).lower()
+    ]
+
+
+def live_trade_processes(procs: list[dict]) -> list[dict]:
+    return [
+        p for p in suite_trade_processes(procs)
+        if "--trade-enabled" in str(p.get("CommandLine", ""))
+    ]
+
+
+def dry_run_trade_processes(procs: list[dict]) -> list[dict]:
+    return [
+        p for p in suite_trade_processes(procs)
+        if "--trade-enabled" not in str(p.get("CommandLine", ""))
+    ]
 
 
 def restart_cmd_processes(procs: list[dict]) -> list[dict]:
@@ -252,10 +270,17 @@ def status(expect_running: bool = False, fail_on_error: bool = False, mode: str 
     rc = 0
     procs = processes()
     trades = suite_trade_processes(procs)
+    live_trades = live_trade_processes(procs)
+    dry_trades = dry_run_trade_processes(procs)
     restarts = restart_cmd_processes(procs)
     bad_pids = check_no_trade_enabled_in_processes(procs)
     pos_count, pos_msg = open_positions()
-    log(f"STATUS mode={mode} processes trade_loops={len(trades)} restart_windows={len(restarts)} watchdogs={len(watchdog_processes(procs))}")
+    log(
+        "STATUS mode="
+        f"{mode} processes trade_loops={len(trades)} "
+        f"live_loops={len(live_trades)} dry_run_loops={len(dry_trades)} "
+        f"restart_windows={len(restarts)} watchdogs={len(watchdog_processes(procs))}"
+    )
     log("STATUS " + pos_msg)
     if bad_pids:
         if mode == "safe":
@@ -280,9 +305,19 @@ def status(expect_running: bool = False, fail_on_error: bool = False, mode: str 
         log("STATUS recent_log_errors=0")
     for row in journal_summary()[:12]:
         log("JOURNAL " + row)
-    if expect_running and len(trades) != 12:
-        log(f"WARN expected 12 trade loops, got {len(trades)}")
-        rc = max(rc, 5)
+    if expect_running:
+        if mode == "safe":
+            expected = 12
+            actual = len(dry_trades)
+            if actual != expected:
+                log(f"WARN expected {expected} dry-run loops in safe mode, got {actual}")
+                rc = max(rc, 5)
+        else:
+            allowed = {3, 12}
+            actual = len(live_trades)
+            if actual not in allowed:
+                log(f"WARN expected live trade loops in {sorted(allowed)} for live-demo mode, got {actual}")
+                rc = max(rc, 5)
     return rc
 
 

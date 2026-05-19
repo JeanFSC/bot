@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [JPY ASIA] CHECK OK -- arrancando TRADE loop... >> logs\bot_jpy_asia.log
 echo [%TIME%] [JPY ASIA] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_jpy_asia.yaml --db data/pro_jpy_asia.sqlite --trade-enabled >> logs\bot_jpy_asia.log 2>&1
+python -m mt5_bot trade --config config/pro_jpy_asia.yaml --db data/pro_jpy_asia.sqlite %* >> logs\bot_jpy_asia.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [JPY ASIA] Bot crasheo -- reiniciando en 10s... >> logs\bot_jpy_asia.log
     echo [%TIME%] [JPY ASIA] Bot crasheo -- reiniciando en 10s...

@@ -9,7 +9,7 @@ echo ============================================================
 echo.
 echo This launcher starts only the reduced candidate set selected
 echo from the 2026-05-15+ audit. It is still live-demo trading:
-echo each restart script uses --trade-enabled.
+echo this launcher passes --trade-enabled explicitly.
 echo.
 echo Use STOP_SUITE.bat to stop.
 echo.
@@ -23,11 +23,11 @@ if errorlevel 1 (
 )
 
 echo Starting reduced candidates...
-start "PRO USDCHF" cmd /k "_restart_usdchf.bat"
+start "PRO USDCHF" cmd /k "_restart_usdchf.bat --trade-enabled"
 timeout /t 3 /nobreak >nul
-start "PRO GOLD" cmd /k "_restart_gold.bat"
+start "PRO GOLD" cmd /k "_restart_gold.bat --trade-enabled"
 timeout /t 3 /nobreak >nul
-start "PRO GBPJPY" cmd /k "_restart_gbpjpy.bat"
+start "PRO GBPJPY" cmd /k "_restart_gbpjpy.bat --trade-enabled"
 
 echo.
 echo Reduced forward-test launch requested.

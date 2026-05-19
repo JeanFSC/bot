@@ -52,7 +52,10 @@ def main() -> int:
     print("OK STOP_SUITE.bat calls watchdog stop")
 
     status_text = assert_file(ROOT / "STATUS_SUITE.bat")
-    assert "WATCHDOG_SAFE_24H.py --status" in status_text
+    assert "WATCHDOG_SAFE_24H.py" in status_text
+    assert "--mode live-demo" in status_text
+    assert "--status" in status_text
+    assert "--expect-running" in status_text
     print("OK STATUS_SUITE.bat calls status")
 
     print("\n== RESTART BAT SAFETY QA ==")
@@ -68,7 +71,7 @@ def main() -> int:
     run([sys.executable, "WATCHDOG_SAFE_24H.py", "--preflight"])
 
     print("\n== WATCHDOG STATUS QA ==")
-    run([sys.executable, "WATCHDOG_SAFE_24H.py", "--status"])
+    run([sys.executable, "WATCHDOG_SAFE_24H.py", "--mode", "live-demo", "--status", "--expect-running"])
 
     print("\nQA_SAFE_24H_OK")
     return 0
