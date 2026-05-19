@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [EURUSD] CHECK OK -- arrancando TRADE loop... >> logs\bot_eurusd.log
 echo [%TIME%] [EURUSD] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro.yaml --db data/pro.sqlite >> logs\bot_eurusd.log 2>&1
+python -m mt5_bot trade --config config/pro.yaml --db data/pro.sqlite --trade-enabled >> logs\bot_eurusd.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [EURUSD] Bot crasheo -- reiniciando en 10s... >> logs\bot_eurusd.log
     echo [%TIME%] [EURUSD] Bot crasheo -- reiniciando en 10s...

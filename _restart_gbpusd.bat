@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [GBPUSD] CHECK OK -- arrancando TRADE loop... >> logs\bot_gbpusd.log
 echo [%TIME%] [GBPUSD] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_gbp.yaml --db data/pro_gbp.sqlite >> logs\bot_gbpusd.log 2>&1
+python -m mt5_bot trade --config config/pro_gbp.yaml --db data/pro_gbp.sqlite --trade-enabled >> logs\bot_gbpusd.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [GBPUSD] Bot crasheo -- reiniciando en 10s... >> logs\bot_gbpusd.log
     echo [%TIME%] [GBPUSD] Bot crasheo -- reiniciando en 10s...

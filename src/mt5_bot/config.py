@@ -81,11 +81,22 @@ class BotConfig:
     tick_window_seconds: int = 30
     max_spread_pips: float = 2.0
     max_open_positions: int = 1
+    max_order_volume: float = 0.0
+    risk_firewall_enabled: bool = True
+    risk_firewall_tolerance: float = 1.15
     max_daily_loss_pct: float = 2.0
     max_trades_per_day: int = 20
+    max_trades_per_symbol_per_hour: int = 0
     cooldown_seconds: int = 60
     reverse_cooldown_seconds: int = 0
     max_loss_per_symbol_per_hour_pct: float = 0.0
+    max_symbol_daily_loss_pct: float = 1.0
+    max_symbol_weekly_loss_pct: float = 2.0
+    max_effective_risk_pct: float = 1.0
+    max_spread_to_sl_ratio: float = 0.25
+    min_sl_atr_ratio: float = 0.50
+    max_position_minutes: int = 0
+    time_stop_min_profit_pips: float = 0.0
     profit_target_usd: Optional[float] = None
     baseline_equity: float = 102000.0
     database_path: Path = Path("data/trades.sqlite")
@@ -96,6 +107,7 @@ class BotConfig:
     news_minutes_after: int = 15
     use_equity_curve_filter: bool = False
     max_consecutive_losses: int = 3
+    max_symbol_consecutive_losses: int = 1
     lot_reduction_factor: float = 0.5
     # Portfolio-level guardrails. These do NOT cap winning trades; they only
     # block new entries when the whole account is already too exposed.
@@ -103,6 +115,7 @@ class BotConfig:
     max_total_margin_pct: float = 85.0
     max_portfolio_open_positions: int = 3
     max_same_currency_positions: int = 2
+    max_same_direction_theme_positions: int = 1
     account: Optional[AccountConfig] = None
     risk: RiskConfig = field(default_factory=RiskConfig)
     strategy: StrategySettings = field(default_factory=StrategySettings)
@@ -157,11 +170,22 @@ def load_config(path: str | Path) -> BotConfig:
         tick_window_seconds=int(raw.get("tick_window_seconds", 30)),
         max_spread_pips=float(raw.get("max_spread_pips", 2.0)),
         max_open_positions=int(raw.get("max_open_positions", 1)),
+        max_order_volume=float(raw.get("max_order_volume", 0.0)),
+        risk_firewall_enabled=bool(raw.get("risk_firewall_enabled", True)),
+        risk_firewall_tolerance=float(raw.get("risk_firewall_tolerance", 1.15)),
         max_daily_loss_pct=float(raw.get("max_daily_loss_pct", 2.0)),
         max_trades_per_day=int(raw.get("max_trades_per_day", 20)),
+        max_trades_per_symbol_per_hour=int(raw.get("max_trades_per_symbol_per_hour", 0)),
         cooldown_seconds=int(raw.get("cooldown_seconds", 60)),
         reverse_cooldown_seconds=int(raw.get("reverse_cooldown_seconds", 0)),
         max_loss_per_symbol_per_hour_pct=float(raw.get("max_loss_per_symbol_per_hour_pct", 0.0)),
+        max_symbol_daily_loss_pct=float(raw.get("max_symbol_daily_loss_pct", 1.0)),
+        max_symbol_weekly_loss_pct=float(raw.get("max_symbol_weekly_loss_pct", 2.0)),
+        max_effective_risk_pct=float(raw.get("max_effective_risk_pct", 1.0)),
+        max_spread_to_sl_ratio=float(raw.get("max_spread_to_sl_ratio", 0.25)),
+        min_sl_atr_ratio=float(raw.get("min_sl_atr_ratio", 0.50)),
+        max_position_minutes=int(raw.get("max_position_minutes", 0)),
+        time_stop_min_profit_pips=float(raw.get("time_stop_min_profit_pips", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
         baseline_equity=float(raw.get("baseline_equity", 102000.0)),
         database_path=Path(raw.get("database_path", "data/trades.sqlite")),
@@ -172,11 +196,13 @@ def load_config(path: str | Path) -> BotConfig:
         news_minutes_after=int(raw.get("news_minutes_after", 15)),
         use_equity_curve_filter=bool(raw.get("use_equity_curve_filter", False)),
         max_consecutive_losses=int(raw.get("max_consecutive_losses", 3)),
+        max_symbol_consecutive_losses=int(raw.get("max_symbol_consecutive_losses", 1)),
         lot_reduction_factor=float(raw.get("lot_reduction_factor", 0.5)),
         use_global_risk_guard=bool(raw.get("use_global_risk_guard", True)),
         max_total_margin_pct=float(raw.get("max_total_margin_pct", 85.0)),
         max_portfolio_open_positions=int(raw.get("max_portfolio_open_positions", 3)),
         max_same_currency_positions=int(raw.get("max_same_currency_positions", 2)),
+        max_same_direction_theme_positions=int(raw.get("max_same_direction_theme_positions", 1)),
         account=account,
         risk=RiskConfig(**risk_raw),
         strategy=StrategySettings(**strategy_kwargs),
@@ -211,6 +237,10 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError(f"Unsupported timeframe '{config.timeframe}'. Choose from: {', '.join(sorted(supported_timeframes))}")
     if config.trend_timeframe not in supported_timeframes:
         raise ValueError(f"Unsupported trend_timeframe '{config.trend_timeframe}'.")
+    if config.max_order_volume < 0:
+        raise ValueError("max_order_volume must be >= 0")
+    if config.risk_firewall_tolerance < 1.0:
+        raise ValueError("risk_firewall_tolerance must be >= 1.0")
     if config.risk.mode not in {"fixed_lot", "percent_equity"}:
         raise ValueError("risk.mode must be fixed_lot or percent_equity")
     if config.risk.sl_pips <= 0 or config.risk.tp_pips <= 0:
@@ -223,5 +253,19 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("reverse_cooldown_seconds must be >= 0")
     if config.max_loss_per_symbol_per_hour_pct < 0:
         raise ValueError("max_loss_per_symbol_per_hour_pct must be >= 0")
+    if config.max_symbol_daily_loss_pct < 0:
+        raise ValueError("max_symbol_daily_loss_pct must be >= 0")
+    if config.max_symbol_weekly_loss_pct < 0:
+        raise ValueError("max_symbol_weekly_loss_pct must be >= 0")
+    if config.max_symbol_consecutive_losses < 0:
+        raise ValueError("max_symbol_consecutive_losses must be >= 0")
+    if config.max_effective_risk_pct <= 0:
+        raise ValueError("max_effective_risk_pct must be > 0")
+    if config.max_spread_to_sl_ratio < 0:
+        raise ValueError("max_spread_to_sl_ratio must be >= 0")
+    if config.min_sl_atr_ratio < 0:
+        raise ValueError("min_sl_atr_ratio must be >= 0")
+    if config.max_same_direction_theme_positions < 0:
+        raise ValueError("max_same_direction_theme_positions must be >= 0")
     if not (0.0 < config.partial_close_ratio < 1.0):
         raise ValueError("partial_close_ratio must be between 0 and 1 (exclusive)")

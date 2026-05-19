@@ -20,11 +20,18 @@ from typing import Any
 # ── Mapa magic → etiqueta legible ────────────────────────────────────────────
 MAGIC_LABELS: dict[int, str] = {
     260432: "SCALPER   EURUSD M1",
-    260433: "PRO EUR   EURUSD M15/H1",
-    260434: "PRO GBP   GBPUSD M15/H1",
-    260435: "PRO JPY   USDJPY M15/H1",
-    260436: "PRO GOLD  XAUUSD M15/H1",
-    260437: "PRO AUD   AUDUSD M15/H1",
+    260433: "PRO EUR   EURUSD M5/H1",
+    260434: "PRO GBP   GBPUSD M5/H1",
+    260435: "PRO JPY   USDJPY M5/H1",
+    260436: "PRO GOLD  XAUUSD M5/M15",
+    260437: "PRO AUD   AUDUSD M5/H1",
+    260440: "PRO GOLD5 XAUUSD M5",
+    260441: "PRO CAD   USDCAD M5/H1",
+    260442: "PRO NZD   NZDUSD M5/H1",
+    260443: "PRO GJ    GBPJPY M5/H1",
+    260444: "PRO SILV  XAGUSD M5/M15",
+    260445: "PRO JPY-A USDJPY ASIA M5/H1",
+    260446: "PRO CHF   USDCHF M5/H1",
 }
 
 # Constantes de MT5 (entry direction)

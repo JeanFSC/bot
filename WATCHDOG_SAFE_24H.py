@@ -74,6 +74,20 @@ def log(line: str) -> None:
         fh.write(payload + "\n")
 
 
+def _line_timestamp(line: str) -> float | None:
+    """Return a best-effort timestamp for supported bot/watchdog log formats."""
+    for fmt, size in (("%Y-%m-%dT%H:%M:%S", 19), ("%Y-%m-%d %H:%M:%S", 19)):
+        try:
+            raw = line[:size]
+            parsed = datetime.strptime(raw, fmt)
+            # Bot logs are written in local wall-clock time, so keep the
+            # timestamp naive and let Python interpret it in local time.
+            return parsed.timestamp()
+        except ValueError:
+            continue
+    return None
+
+
 def run_ps(script: str) -> str:
     proc = subprocess.run(
         ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
@@ -113,7 +127,11 @@ def restart_cmd_processes(procs: list[dict]) -> list[dict]:
 
 
 def watchdog_processes(procs: list[dict]) -> list[dict]:
-    return [p for p in procs if "WATCHDOG_SAFE_24H" in str(p.get("CommandLine", ""))]
+    return [
+        p for p in procs
+        if "WATCHDOG_SAFE_24H" in str(p.get("CommandLine", ""))
+        and "--status" not in str(p.get("CommandLine", ""))
+    ]
 
 
 def check_no_trade_enabled_in_files() -> list[str]:
@@ -175,6 +193,8 @@ def recent_log_errors(since_minutes: int = 90) -> list[str]:
     cutoff = time.time() - since_minutes * 60
     findings: list[str] = []
     for path in LOG_DIR.glob("*.log"):
+        if path.resolve() == WATCHDOG_LOG.resolve():
+            continue
         try:
             if path.stat().st_mtime < cutoff:
                 continue
@@ -182,6 +202,9 @@ def recent_log_errors(since_minutes: int = 90) -> list[str]:
         except Exception:
             continue
         for line in lines:
+            line_ts = _line_timestamp(line)
+            if line_ts is not None and line_ts < cutoff:
+                continue
             if any(pat in line for pat in BAD_LOG_PATTERNS):
                 findings.append(f"{path.name}: {line[:220]}")
                 break
@@ -204,10 +227,10 @@ def journal_summary() -> list[str]:
     return out
 
 
-def preflight() -> int:
+def preflight(mode: str = "safe") -> int:
     failures: list[str] = []
     file_offenders = check_no_trade_enabled_in_files()
-    if file_offenders:
+    if mode == "safe" and file_offenders:
         failures.append("--trade-enabled found in files: " + ", ".join(file_offenders))
     failures.extend(check_configs_safe())
     launcher = ROOT / "_run_all_pro_autorestart.bat"
@@ -221,31 +244,37 @@ def preflight() -> int:
         for item in failures:
             log("PREFLIGHT_FAIL " + item)
         return 1
-    log("PREFLIGHT_OK safe configs, safe launchers, 12-bot launcher present")
+    log(f"PREFLIGHT_OK mode={mode} safe configs, 12-bot launcher present")
     return 0
 
 
-def status(expect_running: bool = False, fail_on_error: bool = False) -> int:
+def status(expect_running: bool = False, fail_on_error: bool = False, mode: str = "safe") -> int:
     rc = 0
     procs = processes()
     trades = suite_trade_processes(procs)
     restarts = restart_cmd_processes(procs)
     bad_pids = check_no_trade_enabled_in_processes(procs)
     pos_count, pos_msg = open_positions()
-    log(f"STATUS processes trade_loops={len(trades)} restart_windows={len(restarts)} watchdogs={len(watchdog_processes(procs))}")
+    log(f"STATUS mode={mode} processes trade_loops={len(trades)} restart_windows={len(restarts)} watchdogs={len(watchdog_processes(procs))}")
     log("STATUS " + pos_msg)
     if bad_pids:
-        log("DANGER --trade-enabled active in process ids: " + ",".join(map(str, bad_pids)))
-        rc = 2
+        if mode == "safe":
+            log("DANGER --trade-enabled active in process ids: " + ",".join(map(str, bad_pids)))
+            rc = 2
+        else:
+            log("STATUS --trade-enabled active as expected in live-demo process ids: " + ",".join(map(str, bad_pids)))
     if pos_count and pos_count > 0:
-        log("DANGER unexpected open positions in safe 24h mode")
-        rc = 3
+        if mode == "safe":
+            log("DANGER unexpected open positions in safe 24h mode")
+            rc = 3
+        else:
+            log("STATUS open positions present as allowed in live-demo mode")
     errors = recent_log_errors()
     if errors:
         log(f"STATUS recent_log_errors={len(errors)}")
         for item in errors[:12]:
             log("LOG_ERROR " + item)
-        if fail_on_error:
+        if fail_on_error and mode == "safe":
             rc = 4
     else:
         log("STATUS recent_log_errors=0")
@@ -276,15 +305,17 @@ def stop_suite() -> int:
     return 0
 
 
-def watch(interval: int, max_minutes: int) -> int:
-    log(f"WATCH_START interval={interval}s max_minutes={max_minutes or 'infinite'}")
+def watch(interval: int, max_minutes: int, mode: str = "safe") -> int:
+    log(f"WATCH_START mode={mode} interval={interval}s max_minutes={max_minutes or 'infinite'}")
     end_at = time.time() + max_minutes * 60 if max_minutes > 0 else None
     while True:
-        rc = status(expect_running=True, fail_on_error=True)
-        if rc in {2, 3, 4}:
+        rc = status(expect_running=True, fail_on_error=True, mode=mode)
+        if mode == "safe" and rc in {2, 3, 4}:
             log(f"WATCH_DANGER rc={rc}; stopping suite for safety")
             stop_suite()
             return rc
+        if mode != "safe" and rc != 0:
+            log(f"WATCH_WARN mode={mode} rc={rc}; suite left running")
         if end_at and time.time() >= end_at:
             log("WATCH_DONE max_minutes reached")
             return 0
@@ -292,7 +323,8 @@ def watch(interval: int, max_minutes: int) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Safe 24h watchdog/status/stop for MT5 suite")
+    parser = argparse.ArgumentParser(description="Safe/live-demo watchdog/status/stop for MT5 suite")
+    parser.add_argument("--mode", choices=("safe", "live-demo"), default=os.environ.get("WATCHDOG_MODE", "safe"))
     parser.add_argument("--preflight", action="store_true")
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--stop", action="store_true")
@@ -303,12 +335,12 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.preflight:
-        return preflight()
+        return preflight(args.mode)
     if args.stop:
         return stop_suite()
     if args.watch:
-        return watch(max(args.interval, 30), args.max_minutes)
-    return status(expect_running=args.expect_running)
+        return watch(max(args.interval, 30), args.max_minutes, args.mode)
+    return status(expect_running=args.expect_running, mode=args.mode)
 
 
 if __name__ == "__main__":

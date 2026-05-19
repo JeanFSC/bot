@@ -68,7 +68,12 @@ def test_overlap_blocks_exact_symbol_duplicate_between_bots():
 
 
 def test_overlap_descoring_reduces_same_direction_usd_theme():
-    config = SimpleNamespace(symbol="GBPUSD", max_same_currency_positions=3, max_exact_symbol_positions=1)
+    config = SimpleNamespace(
+        symbol="GBPUSD",
+        max_same_currency_positions=3,
+        max_exact_symbol_positions=1,
+        max_same_direction_theme_positions=2,
+    )
     positions = [SimpleNamespace(symbol="EURUSD", type=0, magic=260433)]
 
     score = score_portfolio_overlap(config, positions, "BUY")
@@ -77,3 +82,18 @@ def test_overlap_descoring_reduces_same_direction_usd_theme():
     assert score.reason == "soft_overlap_descore"
     assert score.risk_multiplier == 0.5
     assert score.same_direction_theme_positions == 1
+
+
+def test_overlap_blocks_same_direction_usd_theme_when_cap_is_one():
+    config = SimpleNamespace(
+        symbol="GBPUSD",
+        max_same_currency_positions=3,
+        max_exact_symbol_positions=1,
+        max_same_direction_theme_positions=1,
+    )
+    positions = [SimpleNamespace(symbol="EURUSD", type=0, magic=260433)]
+
+    score = score_portfolio_overlap(config, positions, "BUY")
+
+    assert score.allow_new_entry is False
+    assert score.reason == "same_direction_theme_overlap_1"

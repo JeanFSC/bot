@@ -1,103 +1,78 @@
-# AGGRESSIVE M5 TEMPLATE - not auto-started. Use only after backtest/check.
-# Goal: more entries without profit cap; winners still run via trailing/ATR TP.
-
-symbol:           USDJPY
-timeframe:        M5          # Entry signal timeframe
-trend_timeframe:  H1           # Macro trend filter timeframe
-poll_seconds:     10
-demo_only:        true
-
-# Risk limits
-max_spread_pips:      1.5     # USDJPY spread Ã¢â‚¬â€ ligeramente mayor que EURUSD
-max_open_positions:   1
-max_daily_loss_pct:   5.0
-max_trades_per_day:   60
-use_global_risk_guard:  true     # No cap a ganancias; solo bloquea nuevas entradas si la cuenta ya estÃ¡ muy cargada
-max_total_margin_pct: 85.0     # Permite agresividad, evita stacking hasta margin call
+﻿symbol: USDJPY
+timeframe: M5
+trend_timeframe: H1
+poll_seconds: 10
+demo_only: true
+max_spread_pips: 1.5
+max_open_positions: 1
+max_daily_loss_pct: 1.5
+max_trades_per_day: 30
+use_global_risk_guard: true
+max_total_margin_pct: 85.0
 max_portfolio_open_positions: 3
-max_same_currency_positions: 2
-cooldown_seconds:     15
-
-# Ã¢â€â‚¬Ã¢â€â‚¬ Partial close at TP1 Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-use_partial_close:    true
-partial_close_ratio:  0.5
-
+max_same_currency_positions: 2
+max_same_direction_theme_positions: 1
+cooldown_seconds: 15
+use_partial_close: true
+partial_close_ratio: 0.35
 profit_target_usd: null
-
 database_path: data/pro_jpy_m5.sqlite
-
-# Ã¢â€â‚¬Ã¢â€â‚¬ Risk sizing Ã¢â‚¬â€ percent equity Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 risk:
-  mode:       percent_equity
-  risk_pct:   1.2              # 1.2% del equity por trade (+50% growth rate)
-  fixed_lot:  0.5              # Fallback
-  sl_pips:    25               # Pips para cÃƒÂ¡lculo de volumen (ATR override activo)
-  tp_pips:    50               # Fallback
-
-# Ã¢â€â‚¬Ã¢â€â‚¬ News filter Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-use_news_filter:      true     # Bloquear entradas near high-impact news
-news_minutes_before:  30       # Bloquear 30min antes del evento
-news_minutes_after:   15       # Bloquear 15min despuÃƒÂ©s del evento
-
-# Ã¢â€â‚¬Ã¢â€â‚¬ Equity curve management Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-use_equity_curve_filter:  true
-max_consecutive_losses:   3    # Tras 3 pÃƒÂ©rdidas seguidas Ã¢â€ â€™ reducir lot
-lot_reduction_factor:     0.5  # Reducir lot al 50% durante racha perdedora
-
-# Ã¢â€â‚¬Ã¢â€â‚¬ PRO strategy settings Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  mode: percent_equity
+  risk_pct: 1.2
+  fixed_lot: 0.5
+  sl_pips: 25
+  tp_pips: 50
+use_news_filter: true
+news_minutes_before: 30
+news_minutes_after: 15
+use_equity_curve_filter: true
+max_consecutive_losses: 1
+max_symbol_consecutive_losses: 1
+lot_reduction_factor: 0.5
 strategy:
-  # Entry EMAs (M15)
   fast_ema: 5
   slow_ema: 13
-
-  # Trend filter H1
-  trend_ema:        50
+  trend_ema: 50
   use_trend_filter: true
-
-  # RSI confirmation
-  rsi_period:    14
-  rsi_buy_max:   72
-  rsi_sell_min:  28
+  rsi_period: 14
+  rsi_buy_max: 72
+  rsi_sell_min: 28
   use_rsi_filter: true
   use_rsi_momentum: false
-
-  # ATR gate Ã¢â‚¬â€ USDJPY ATR tÃƒÂ­pico 8Ã¢â‚¬â€œ20 pips nominales, umbral 3.0 pips
-  atr_period:    14
-  min_atr_pips:  3.0           # Mayor umbral para JPY (pip = 0.01)
+  atr_period: 14
+  min_atr_pips: 3.0
   use_atr_filter: true
-
-  # ADX trend-strength Ã¢â‚¬â€ umbral 20 (JPY puede tener tendencias rÃƒÂ¡pidas)
-  adx_period:    14
+  adx_period: 14
   adx_min_value: 18
   use_adx_filter: true
-
-  # Dynamic SL/TP
   atr_sl_multiplier: 1.5
-  atr_tp_multiplier: 4.0       # 1:2.7 R:R Ã¢â‚¬â€ trailing stop protege igualmente
+  atr_tp_multiplier: 4.0
   use_atr_sl_tp: true
-
-  # Session Ã¢â‚¬â€ Londres + NY (7-20 UTC) + Tokyo activo (0-4 UTC)
   session_start_hour: 7
-  session_end_hour:   20
+  session_end_hour: 20
   use_session_filter: true
-  # Segunda ventana: Tokyo (USDJPY mÃƒÂ¡s activo 0-4 UTC antes de apertura London)
   session2_start_hour: 0
-  session2_end_hour:   4
-  use_session2:        true
-
-  # Trailing stop
-  use_trailing_stop:          true
-  breakeven_atr_multiplier:   0.7
-  trailing_atr_multiplier:    1.2
-
-  # Retest filter (disabled for now Ã¢â‚¬â€ enable when backtest confirms improvement)
+  session2_end_hour: 4
+  use_session2: true
+  use_trailing_stop: true
+  breakeven_atr_multiplier: 0.7
+  trailing_atr_multiplier: 1.2
   use_retest_filter: false
-
-# Ã¢â€â‚¬Ã¢â€â‚¬ Execution Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 execution:
-  magic:        260535         # USDJPY pro bot Ã¢â‚¬â€ ÃƒÂºnico magic number
-  deviation:    20
+  magic: 260535
+  deviation: 20
   filling_mode: AUTO
-  trade_enabled: false         # Activado por --trade-enabled en bat file
-
-
+  trade_enabled: false
+max_trades_per_symbol_per_hour: 3
+max_position_minutes: 45
+time_stop_min_profit_pips: 0.0
+max_loss_per_symbol_per_hour_pct: 0.8
+risk_firewall_enabled: true
+risk_firewall_tolerance: 1.15
+max_order_volume: 0.0
+max_symbol_daily_loss_pct: 0.8
+max_symbol_weekly_loss_pct: 1.6
+max_effective_risk_pct: 0.75
+max_spread_to_sl_ratio: 0.2
+min_sl_atr_ratio: 0.6

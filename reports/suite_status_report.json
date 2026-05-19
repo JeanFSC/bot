@@ -1,0 +1,397 @@
+{
+  "generated_at": "2026-05-19T20:33:07.724337+00:00",
+  "since": "2026-05-15T00:00:00+00:00",
+  "status": "OK",
+  "reasons": [
+    "live_trade_loops=3 dry_run_loops=8"
+  ],
+  "processes": [
+    {
+      "ProcessId": 4948,
+      "Name": "cmd.exe",
+      "CommandLine": "\"C:\\WINDOWS\\system32\\cmd.exe\" /c START_REDUCED_FORWARD_TEST.bat "
+    },
+    {
+      "ProcessId": 2608,
+      "Name": "cmd.exe",
+      "CommandLine": "\"C:\\WINDOWS\\system32\\cmd.exe\" /c START_REDUCED_FORWARD_TEST.bat "
+    },
+    {
+      "ProcessId": 13976,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /k \"_restart_usdchf.bat\""
+    },
+    {
+      "ProcessId": 1896,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/pro_usdchf.yaml --db data/pro_usdchf.sqlite --trade-enabled "
+    },
+    {
+      "ProcessId": 23168,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /k \"_restart_gold.bat\""
+    },
+    {
+      "ProcessId": 9704,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/pro_gold.yaml --db data/pro_gold.sqlite --trade-enabled "
+    },
+    {
+      "ProcessId": 6484,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /k \"_restart_gbpjpy.bat\""
+    },
+    {
+      "ProcessId": 2836,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/pro_gbpjpy.yaml --db data/pro_gbpjpy.sqlite --trade-enabled "
+    },
+    {
+      "ProcessId": 24024,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_usdjpy_london_v2.yaml && python -m mt5_bot trade --config config/research_usdjpy_london_v2.yaml --db data/research_usdjpy_london_v2.sqlite >> logs/sandbox_usdjpy_london_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 24360,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_usdjpy_london_v2.yaml --db data/research_usdjpy_london_v2.sqlite "
+    },
+    {
+      "ProcessId": 24868,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_eurusd_london_v2.yaml && python -m mt5_bot trade --config config/research_eurusd_london_v2.yaml --db data/research_eurusd_london_v2.sqlite >> logs/sandbox_eurusd_london_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 9600,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_eurusd_london_v2.yaml --db data/research_eurusd_london_v2.sqlite "
+    },
+    {
+      "ProcessId": 12928,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_gbpusd_london_v2.yaml && python -m mt5_bot trade --config config/research_gbpusd_london_v2.yaml --db data/research_gbpusd_london_v2.sqlite >> logs/sandbox_gbpusd_london_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 9776,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_gbpusd_london_v2.yaml --db data/research_gbpusd_london_v2.sqlite "
+    },
+    {
+      "ProcessId": 21052,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_nzdusd_london_v2.yaml && python -m mt5_bot trade --config config/research_nzdusd_london_v2.yaml --db data/research_nzdusd_london_v2.sqlite >> logs/sandbox_nzdusd_london_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 13596,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_nzdusd_london_v2.yaml --db data/research_nzdusd_london_v2.sqlite "
+    },
+    {
+      "ProcessId": 25144,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_usdcad_ny_v2.yaml && python -m mt5_bot trade --config config/research_usdcad_ny_v2.yaml --db data/research_usdcad_ny_v2.sqlite >> logs/sandbox_usdcad_ny_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 25148,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_usdcad_ny_v2.yaml --db data/research_usdcad_ny_v2.sqlite "
+    },
+    {
+      "ProcessId": 18080,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_audusd_asia_london_v2.yaml && python -m mt5_bot trade --config config/research_audusd_asia_london_v2.yaml --db data/research_audusd_asia_london_v2.sqlite >> logs/sandbox_audusd_asia_london_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 15992,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_audusd_asia_london_v2.yaml --db data/research_audusd_asia_london_v2.sqlite "
+    },
+    {
+      "ProcessId": 2584,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_xauusd_m5_v2.yaml && python -m mt5_bot trade --config config/research_xauusd_m5_v2.yaml --db data/research_xauusd_m5_v2.sqlite >> logs/sandbox_xauusd_m5_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 24936,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_xauusd_m5_v2.yaml --db data/research_xauusd_m5_v2.sqlite "
+    },
+    {
+      "ProcessId": 8808,
+      "Name": "cmd.exe",
+      "CommandLine": "cmd  /c \"python -m mt5_bot check --config config/research_xagusd_v2.yaml && python -m mt5_bot trade --config config/research_xagusd_v2.yaml --db data/research_xagusd_v2.sqlite >> logs/sandbox_xagusd_v2.log 2>&1\""
+    },
+    {
+      "ProcessId": 26156,
+      "Name": "python3.13.exe",
+      "CommandLine": "python  -m mt5_bot trade --config config/research_xagusd_v2.yaml --db data/research_xagusd_v2.sqlite "
+    }
+  ],
+  "mt5": {
+    "available": true,
+    "account": {
+      "login": 106490890,
+      "trade_mode": 0,
+      "leverage": 100,
+      "limit_orders": 200,
+      "margin_so_mode": 0,
+      "trade_allowed": true,
+      "trade_expert": true,
+      "margin_mode": 2,
+      "currency_digits": 2,
+      "fifo_close": false,
+      "balance": 89621.06,
+      "credit": 0.0,
+      "profit": 0.0,
+      "equity": 89621.06,
+      "margin": 0.0,
+      "margin_free": 89621.06,
+      "margin_level": 0.0,
+      "margin_so_call": 50.0,
+      "margin_so_so": 30.0,
+      "margin_initial": 0.0,
+      "margin_maintenance": 0.0,
+      "assets": 0.0,
+      "liabilities": 0.0,
+      "commission_blocked": 0.0,
+      "name": "Jean Seminario",
+      "server": "MetaQuotes-Demo",
+      "currency": "USD",
+      "company": "MetaQuotes Ltd."
+    },
+    "terminal": {
+      "community_account": false,
+      "community_connection": false,
+      "connected": true,
+      "dlls_allowed": true,
+      "trade_allowed": true,
+      "tradeapi_disabled": false,
+      "email_enabled": false,
+      "ftp_enabled": false,
+      "notifications_enabled": false,
+      "mqid": true,
+      "build": 5836,
+      "maxbars": 100000,
+      "codepage": 1252,
+      "ping_last": 183980,
+      "community_balance": 0.0,
+      "retransmission": 0.6138180433955082,
+      "company": "MetaQuotes Ltd.",
+      "name": "MetaTrader 5",
+      "language": "Spanish",
+      "path": "C:\\Program Files\\MetaTrader 5",
+      "data_path": "C:\\Users\\jean_\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075",
+      "commondata_path": "C:\\Users\\jean_\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common"
+    },
+    "positions": [],
+    "by_magic": {
+      "260436": {
+        "label": "XAUUSD",
+        "closed": 2,
+        "wins": 2,
+        "losses": 0,
+        "pnl": 10582.050000000001,
+        "gross_win": 10582.050000000001,
+        "gross_loss": 0.0,
+        "avg_win": 5291.025000000001,
+        "avg_loss": 0.0,
+        "expectancy": 5291.025000000001
+      },
+      "260433": {
+        "label": "EURUSD",
+        "closed": 3,
+        "wins": 0,
+        "losses": 3,
+        "pnl": -1936.6299999999999,
+        "gross_win": 0.0,
+        "gross_loss": -1936.6299999999999,
+        "avg_win": 0.0,
+        "avg_loss": -645.5433333333333,
+        "expectancy": -645.5433333333333
+      },
+      "260443": {
+        "label": "GBPJPY",
+        "closed": 9,
+        "wins": 7,
+        "losses": 2,
+        "pnl": 5.640000000000001,
+        "gross_win": 8.1,
+        "gross_loss": -2.46,
+        "avg_win": 1.157142857142857,
+        "avg_loss": -1.23,
+        "expectancy": 0.6266666666666667
+      },
+      "260446": {
+        "label": "USDCHF",
+        "closed": 7,
+        "wins": 6,
+        "losses": 1,
+        "pnl": 1563.62,
+        "gross_win": 2345.1,
+        "gross_loss": -781.48,
+        "avg_win": 390.84999999999997,
+        "avg_loss": -781.48,
+        "expectancy": 223.3742857142857
+      },
+      "260434": {
+        "label": "GBPUSD",
+        "closed": 8,
+        "wins": 6,
+        "losses": 2,
+        "pnl": -433.79999999999995,
+        "gross_win": 902.5699999999999,
+        "gross_loss": -1336.37,
+        "avg_win": 150.4283333333333,
+        "avg_loss": -668.185,
+        "expectancy": -54.224999999999994
+      },
+      "260435": {
+        "label": "USDJPY",
+        "closed": 3,
+        "wins": 2,
+        "losses": 1,
+        "pnl": -3.3699999999999997,
+        "gross_win": 0.94,
+        "gross_loss": -4.31,
+        "avg_win": 0.47,
+        "avg_loss": -4.31,
+        "expectancy": -1.1233333333333333
+      },
+      "260442": {
+        "label": "NZDUSD",
+        "closed": 3,
+        "wins": 2,
+        "losses": 1,
+        "pnl": -395.03999999999996,
+        "gross_win": 281.76,
+        "gross_loss": -676.8,
+        "avg_win": 140.88,
+        "avg_loss": -676.8,
+        "expectancy": -131.67999999999998
+      },
+      "260440": {
+        "label": "XAUUSD_M5",
+        "closed": 1,
+        "wins": 0,
+        "losses": 1,
+        "pnl": -603.84,
+        "gross_win": 0.0,
+        "gross_loss": -603.84,
+        "avg_win": 0.0,
+        "avg_loss": -603.84,
+        "expectancy": -603.84
+      },
+      "260441": {
+        "label": "USDCAD",
+        "closed": 1,
+        "wins": 0,
+        "losses": 1,
+        "pnl": -482.42,
+        "gross_win": 0.0,
+        "gross_loss": -482.42,
+        "avg_win": 0.0,
+        "avg_loss": -482.42,
+        "expectancy": -482.42
+      },
+      "260445": {
+        "label": "USDJPY_ASIA",
+        "closed": 1,
+        "wins": 0,
+        "losses": 1,
+        "pnl": -3.66,
+        "gross_win": 0.0,
+        "gross_loss": -3.66,
+        "avg_win": 0.0,
+        "avg_loss": -3.66,
+        "expectancy": -3.66
+      }
+    }
+  },
+  "critical_logs": [],
+  "dbs": [
+    {
+      "db": "pro.sqlite",
+      "size": 31121408,
+      "mtime": "2026-05-19T11:52:07.848015",
+      "trade_journal_rows": 6306,
+      "latest_journal": "2026-05-19T16:52:07.846841+00:00"
+    },
+    {
+      "db": "pro_aud.sqlite",
+      "size": 12132352,
+      "mtime": "2026-05-19T11:53:56.668279",
+      "trade_journal_rows": 1561,
+      "latest_journal": "2026-05-19T16:53:56.667498+00:00"
+    },
+    {
+      "db": "pro_gbp.sqlite",
+      "size": 33628160,
+      "mtime": "2026-05-19T11:53:53.724488",
+      "trade_journal_rows": 7427,
+      "latest_journal": "2026-05-19T16:53:53.723000+00:00"
+    },
+    {
+      "db": "pro_gbpjpy.sqlite",
+      "size": 19468288,
+      "mtime": "2026-05-19T15:32:04.895769",
+      "trade_journal_rows": 10175,
+      "latest_journal": "2026-05-19T20:32:04.895050+00:00"
+    },
+    {
+      "db": "pro_gold.sqlite",
+      "size": 22564864,
+      "mtime": "2026-05-19T15:33:03.581161",
+      "trade_journal_rows": 9018,
+      "latest_journal": "2026-05-19T20:33:03.579859+00:00"
+    },
+    {
+      "db": "pro_gold_m5.sqlite",
+      "size": 3616768,
+      "mtime": "2026-05-19T11:52:07.387988",
+      "trade_journal_rows": 1441,
+      "latest_journal": "2026-05-19T16:52:07.386711+00:00"
+    },
+    {
+      "db": "pro_jpy.sqlite",
+      "size": 33374208,
+      "mtime": "2026-05-19T11:52:54.954754",
+      "trade_journal_rows": 9004,
+      "latest_journal": "2026-05-19T16:52:54.953045+00:00"
+    },
+    {
+      "db": "pro_jpy_asia.sqlite",
+      "size": 17891328,
+      "mtime": "2026-05-19T11:54:08.025517",
+      "trade_journal_rows": 8106,
+      "latest_journal": "2026-05-19T16:54:08.024844+00:00"
+    },
+    {
+      "db": "pro_nzdusd.sqlite",
+      "size": 17350656,
+      "mtime": "2026-05-19T11:53:54.038169",
+      "trade_journal_rows": 8087,
+      "latest_journal": "2026-05-19T16:53:54.037482+00:00"
+    },
+    {
+      "db": "pro_silver.sqlite",
+      "size": 20799488,
+      "mtime": "2026-05-19T11:54:18.919641",
+      "trade_journal_rows": 12385,
+      "latest_journal": "2026-05-19T16:54:18.918031+00:00"
+    },
+    {
+      "db": "pro_usdcad.sqlite",
+      "size": 16678912,
+      "mtime": "2026-05-19T11:53:55.130549",
+      "trade_journal_rows": 7931,
+      "latest_journal": "2026-05-19T16:53:55.129825+00:00"
+    },
+    {
+      "db": "pro_usdchf.sqlite",
+      "size": 18276352,
+      "mtime": "2026-05-19T15:31:58.722523",
+      "trade_journal_rows": 9892,
+      "latest_journal": "2026-05-19T20:31:58.721540+00:00"
+    }
+  ]
+}

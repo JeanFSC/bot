@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, replace as _replace
+from datetime import datetime, timezone, timedelta
 from typing import Any, Optional
 
 from mt5_bot.config import BotConfig, ExecutionConfig, RiskConfig
-from mt5_bot.risk import calculate_volume, pip_size, prices_for_order
+from mt5_bot.risk import calculate_volume, normalize_volume, pip_size, prices_for_order
 from mt5_bot.strategy import Signal, SignalType
 
 
@@ -205,7 +206,7 @@ class TradeExecutor:
                     if not self.config.execution.trade_enabled:
                         return ExecutionResult("dry_run", "profit_target_hit_dry", close_req, close_chk)
                     close_result = self.gateway.order_send(close_req)
-                    self.storage.record_order_result(close_req, close_result)
+                    self._record_order_result(close_req, close_result, symbol_info)
                     self.last_trade_monotonic = time.monotonic()
                     return ExecutionResult("sent", f"profit_target_hit_retcode_{getattr(close_result, 'retcode', '?')}", close_req, close_result)
 
@@ -223,6 +224,19 @@ class TradeExecutor:
         if reverse_cooldown > 0 and reverse_elapsed < reverse_cooldown:
             remaining = max(0, int(reverse_cooldown - reverse_elapsed))
             return ExecutionResult("skipped", f"reverse_cooldown_{remaining}s")
+
+        max_trades_hour = int(getattr(self.config, "max_trades_per_symbol_per_hour", 0) or 0)
+        if max_trades_hour > 0:
+            getter = getattr(self.storage, "get_sent_order_count_since", None)
+            if getter is not None:
+                since = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+                try:
+                    sent_last_hour = getter(self.config.symbol, self.config.execution.magic, since)
+                except Exception as exc:
+                    _log.warning("Hourly trade count lookup failed: %s", exc)
+                    sent_last_hour = 0
+                if sent_last_hour >= max_trades_hour:
+                    return ExecutionResult("skipped", f"max_trades_per_symbol_hour_{sent_last_hour}")
 
         # ── 4. Resolve existing positions ─────────────────────────────────────
         close_failed = False
@@ -248,7 +262,7 @@ class TradeExecutor:
                     position.ticket, self.config.symbol, float(position.volume), float(getattr(position, "profit", 0.0)),
                 )
                 close_result = self.gateway.order_send(close_req)
-                self.storage.record_order_result(close_req, close_result)
+                self._record_order_result(close_req, close_result, symbol_info)
                 # Fix #3: verify close succeeded before opening new position
                 close_retcode = getattr(close_result, "retcode", None)
                 if close_retcode not in {0, 10008, 10009}:
@@ -285,6 +299,14 @@ class TradeExecutor:
         if closed_opposite:
             return ExecutionResult("closed_only", "opposite_position_closed_reverse_cooldown", close_req, close_result)
 
+        # Persistent anti-flip guard: if the most recent closed deal for this
+        # symbol/magic was a loss, block any fresh entry for the configured
+        # reverse cooldown window. This covers broker-side SL exits and bot
+        # restarts, not only in-memory signal-reversal closes.
+        recent_loss_block = self._recent_loss_cooldown_reason()
+        if recent_loss_block:
+            return ExecutionResult("skipped", recent_loss_block)
+
         positions_after_close = [] if own_positions else own_positions
         if not should_open_new_position(
             positions_after_close, self.config.symbol, self.config.execution.magic, self.config.max_open_positions
@@ -317,9 +339,14 @@ class TradeExecutor:
             equity=float(account.equity),
         )
 
-        request, check = self._first_valid_order_check(base_request)
+        firewall_result = self._apply_risk_firewall(base_request, risk_to_use, float(account.equity), symbol_info)
+        if firewall_result.status != "ok":
+            return ExecutionResult("rejected", firewall_result.reason, firewall_result.request, firewall_result.result)
+        guarded_request = firewall_result.request or base_request
+
+        request, check = self._first_valid_order_check(guarded_request)
         if request is None or check is None:
-            return ExecutionResult("rejected", "order_check_invalid_fill", base_request, None)
+            return ExecutionResult("rejected", "order_check_invalid_fill", guarded_request, None)
         if not _is_successful_check(check):
             return ExecutionResult("rejected", f"order_check_retcode_{getattr(check, 'retcode', '?')}", request, check)
 
@@ -338,9 +365,47 @@ class TradeExecutor:
             request.get("price"), request.get("sl"), request.get("tp"), self.config.execution.magic,
         )
         result = self.gateway.order_send(request)
-        self.storage.record_order_result(request, result)
+        self._record_order_result(request, result, symbol_info)
         self.last_trade_monotonic = time.monotonic()
+        fill_price = getattr(result, "price", None)
+        if fill_price is not None and float(fill_price) > 0:
+            pip = pip_size(symbol_info)
+            slippage = (float(fill_price) - float(request.get("price", fill_price))) / pip
+            if signal.type is SignalType.SELL:
+                slippage *= -1
+            _log.info("Order fill metrics: requested=%s filled=%s slippage=%.2f pips", request.get("price"), fill_price, slippage)
+        elif fill_price is not None:
+            _log.debug("Order result returned non-actionable fill price=%s; slippage will be left null", fill_price)
         return ExecutionResult("sent", f"order_send_retcode_{getattr(result, 'retcode', '?')}", request, result)
+
+    def _recent_loss_cooldown_reason(self) -> str | None:
+        cooldown = int(getattr(self.config, "reverse_cooldown_seconds", 0) or 0)
+        if cooldown <= 0:
+            return None
+        getter = getattr(self.storage, "get_latest_losing_exit", None)
+        if getter is None:
+            return None
+        try:
+            row = getter(self.config.symbol, self.config.execution.magic)
+        except Exception as exc:
+            _log.warning("Loss cooldown lookup failed: %s", exc)
+            return None
+        if not row:
+            return None
+
+        created_at = row[0]
+        try:
+            closed_at = datetime.fromisoformat(str(created_at).replace("Z", "+00:00"))
+            if closed_at.tzinfo is None:
+                closed_at = closed_at.replace(tzinfo=timezone.utc)
+        except Exception:
+            return None
+
+        age = (datetime.now(timezone.utc) - closed_at.astimezone(timezone.utc)).total_seconds()
+        if 0 <= age < cooldown:
+            remaining = max(0, int(cooldown - age))
+            return f"loss_reentry_cooldown_{remaining}s"
+        return None
 
     # ── Partial close engine ──────────────────────────────────────────────────
 
@@ -435,7 +500,7 @@ class TradeExecutor:
                         continue
                     try:
                         send_result = self.gateway.order_send(partial_req)
-                        self.storage.record_order_result(partial_req, send_result)
+                        self._record_order_result(partial_req, send_result, symbol_info)
                         if _is_successful_send(send_result):
                             self._partial_closed_tickets.add(ticket)
                             results.append(ExecutionResult(
@@ -558,7 +623,203 @@ class TradeExecutor:
 
         return results
 
+    # ── Position telemetry + time stop ───────────────────────────────────────
+
+    def record_position_metrics(self) -> list[ExecutionResult]:
+        """Persist MFE/MAE-style telemetry for currently open positions."""
+        results: list[ExecutionResult] = []
+        recorder = getattr(self.storage, "record_position_metrics", None)
+        if recorder is None:
+            return results
+        try:
+            positions = self.gateway.positions_get(symbol=self.config.symbol) or []
+            own_positions = [p for p in positions if int(p.magic) == self.config.execution.magic]
+            pruner = getattr(self.storage, "prune_position_metrics", None)
+            if pruner is not None:
+                open_tickets = {int(p.ticket) for p in own_positions}
+                removed = pruner(self.config.symbol, self.config.execution.magic, open_tickets)
+                if removed:
+                    results.append(ExecutionResult("telemetry", f"stale_position_metrics_pruned_{removed}"))
+            if not own_positions:
+                return results
+            tick = self.gateway.symbol_info_tick(self.config.symbol)
+            symbol_info = self.gateway.symbol_info(self.config.symbol)
+            pip = pip_size(symbol_info)
+            for position in own_positions:
+                is_buy = int(position.type) == MT5_BUY_POSITION
+                current_price = float(tick.bid) if is_buy else float(tick.ask)
+                entry_price = float(position.price_open)
+                current_pips = (
+                    (current_price - entry_price) / pip if is_buy
+                    else (entry_price - current_price) / pip
+                )
+                recorder(position, current_price, current_pips)
+                results.append(ExecutionResult("telemetry", f"position_metrics_{int(position.ticket)}"))
+        except Exception as exc:
+            _log.warning("record_position_metrics error: %s", exc)
+        return results
+
+    def manage_time_stops(self) -> list[ExecutionResult]:
+        """Close stale positions that failed to move enough after max_position_minutes.
+
+        This prevents M5 scalps from becoming unattended swing trades. It only
+        activates when max_position_minutes > 0.
+        """
+        max_minutes = int(getattr(self.config, "max_position_minutes", 0) or 0)
+        if max_minutes <= 0:
+            return []
+        min_profit_pips = float(getattr(self.config, "time_stop_min_profit_pips", 0.0) or 0.0)
+        results: list[ExecutionResult] = []
+        try:
+            positions = self.gateway.positions_get(symbol=self.config.symbol) or []
+            own_positions = [p for p in positions if int(p.magic) == self.config.execution.magic]
+            if not own_positions:
+                return results
+            tick = self.gateway.symbol_info_tick(self.config.symbol)
+            symbol_info = self.gateway.symbol_info(self.config.symbol)
+            pip = pip_size(symbol_info)
+            constants = self.gateway.constants()
+            now_ts = datetime.now(timezone.utc).timestamp()
+            for position in own_positions:
+                opened_ts = float(getattr(position, "time", 0) or 0)
+                if opened_ts <= 0:
+                    continue
+                age_minutes = (now_ts - opened_ts) / 60.0
+                if age_minutes < max_minutes:
+                    continue
+                is_buy = int(position.type) == MT5_BUY_POSITION
+                current_price = float(tick.bid) if is_buy else float(tick.ask)
+                entry_price = float(position.price_open)
+                profit_pips = (
+                    (current_price - entry_price) / pip if is_buy
+                    else (entry_price - current_price) / pip
+                )
+                if profit_pips > min_profit_pips:
+                    continue
+                close_base = build_close_position_request(
+                    position=position,
+                    symbol=self.config.symbol,
+                    bid=float(tick.bid), ask=float(tick.ask),
+                    execution=self.config.execution,
+                    mt5_constants=constants,
+                )
+                close_req, close_chk = self._first_valid_order_check(close_base)
+                if close_req is None or close_chk is None:
+                    results.append(ExecutionResult("rejected", "time_stop_invalid_fill", close_base, None))
+                    continue
+                if not _is_successful_check(close_chk):
+                    results.append(ExecutionResult(
+                        "rejected", f"time_stop_check_retcode_{getattr(close_chk, 'retcode', '?')}", close_req, close_chk,
+                    ))
+                    continue
+                _log.info(
+                    "Time stop closing stale position: ticket=%s age=%.1fmin profit_pips=%.1f threshold=%.1f",
+                    position.ticket, age_minutes, profit_pips, min_profit_pips,
+                )
+                if self.config.execution.trade_enabled:
+                    send_result = self.gateway.order_send(close_req)
+                    self._record_order_result(close_req, send_result, symbol_info)
+                    results.append(ExecutionResult("time_stop", f"retcode_{getattr(send_result, 'retcode', '?')}", close_req, send_result))
+                else:
+                    results.append(ExecutionResult("dry_run", "time_stop_would_close", close_req, close_chk))
+        except Exception as exc:
+            _log.warning("manage_time_stops error: %s", exc)
+        return results
+
     # ── Internal helpers ──────────────────────────────────────────────────────
+
+    def _record_order_result(self, request: dict[str, Any], result, symbol_info=None) -> None:
+        try:
+            self.storage.record_order_result(request, result, symbol_info=symbol_info)
+        except TypeError:
+            self.storage.record_order_result(request, result)
+
+    def _apply_risk_firewall(self, request: dict[str, Any], risk: RiskConfig, equity: float, symbol_info) -> ExecutionResult:
+        """Cap/verify real cash loss to SL before an entry reaches MT5.
+
+        Long-term goal: allow aggressive testing, but make the maximum loss
+        measurable by the broker itself (`order_calc_profit`) rather than only
+        inferred from tick metadata. If the requested volume is too large, reduce
+        it to the largest valid volume inside risk. If even minimum volume is too
+        risky, reject the trade.
+        """
+        guarded = dict(request)
+        original_volume = float(guarded.get("volume", 0.0) or 0.0)
+        if original_volume <= 0:
+            return ExecutionResult("rejected", "risk_firewall_invalid_volume", guarded)
+
+        max_order_volume = float(getattr(self.config, "max_order_volume", 0.0) or 0.0)
+        if max_order_volume > 0 and original_volume > max_order_volume:
+            capped = normalize_volume(max_order_volume, symbol_info)
+            if capped <= 0:
+                return ExecutionResult("rejected", "risk_firewall_invalid_volume_cap", guarded)
+            guarded["volume"] = capped
+            _log.warning(
+                "Risk firewall volume cap: symbol=%s original=%.2f capped=%.2f max_order_volume=%.2f",
+                self.config.symbol, original_volume, capped, max_order_volume,
+            )
+
+        if not bool(getattr(self.config, "risk_firewall_enabled", True)):
+            return ExecutionResult("ok", "risk_firewall_disabled", guarded)
+
+        calc = getattr(self.gateway, "order_calc_profit", None)
+        if calc is None:
+            return ExecutionResult("rejected", "risk_firewall_no_order_calc_profit", guarded)
+
+        price = float(guarded.get("price", 0.0) or 0.0)
+        sl = float(guarded.get("sl", 0.0) or 0.0)
+        order_type = int(guarded.get("type"))
+        if price <= 0 or sl <= 0:
+            return ExecutionResult("rejected", "risk_firewall_missing_price_or_sl", guarded)
+
+        allowed_loss = equity * (float(risk.risk_pct) / 100.0) * float(getattr(self.config, "risk_firewall_tolerance", 1.15) or 1.15)
+        if allowed_loss <= 0:
+            return ExecutionResult("rejected", "risk_firewall_invalid_allowed_loss", guarded)
+
+        try:
+            projected = float(calc(order_type, self.config.symbol, float(guarded["volume"]), price, sl))
+        except Exception as exc:
+            _log.warning("Risk firewall order_calc_profit failed: %s", exc)
+            return ExecutionResult("rejected", "risk_firewall_calc_failed", guarded, exc)
+
+        projected_loss = max(0.0, -projected)
+        if projected_loss <= allowed_loss:
+            _log.info(
+                "Risk firewall OK: symbol=%s volume=%.2f projected_loss=%.2f allowed=%.2f",
+                self.config.symbol, float(guarded["volume"]), projected_loss, allowed_loss,
+            )
+            return ExecutionResult("ok", "risk_firewall_ok", guarded, {"projected_loss": projected_loss, "allowed_loss": allowed_loss})
+
+        # Auto-reduce volume using broker-calculated loss per lot.
+        current_volume = float(guarded["volume"])
+        if current_volume <= 0:
+            return ExecutionResult("rejected", "risk_firewall_invalid_volume", guarded)
+        loss_per_lot = projected_loss / current_volume if projected_loss > 0 else 0.0
+        if loss_per_lot <= 0:
+            return ExecutionResult("rejected", "risk_firewall_invalid_loss_per_lot", guarded)
+        target_volume = allowed_loss / loss_per_lot
+        reduced = normalize_volume(target_volume, symbol_info)
+        min_volume = float(getattr(symbol_info, "volume_min", 0.0) or 0.0)
+        if reduced < min_volume or reduced <= 0:
+            _log.warning(
+                "Risk firewall reject: symbol=%s min_volume=%.2f projected_loss=%.2f allowed=%.2f",
+                self.config.symbol, min_volume, projected_loss, allowed_loss,
+            )
+            return ExecutionResult("rejected", "risk_firewall_min_volume_too_risky", guarded, {"projected_loss": projected_loss, "allowed_loss": allowed_loss})
+
+        guarded["volume"] = reduced
+        try:
+            reduced_projected = float(calc(order_type, self.config.symbol, reduced, price, sl))
+        except Exception as exc:
+            return ExecutionResult("rejected", "risk_firewall_recalc_failed", guarded, exc)
+        reduced_loss = max(0.0, -reduced_projected)
+        if reduced_loss > allowed_loss:
+            return ExecutionResult("rejected", "risk_firewall_reduced_still_too_risky", guarded, {"projected_loss": reduced_loss, "allowed_loss": allowed_loss})
+        _log.warning(
+            "Risk firewall reduced volume: symbol=%s original=%.2f reduced=%.2f projected_loss=%.2f allowed=%.2f",
+            self.config.symbol, original_volume, reduced, reduced_loss, allowed_loss,
+        )
+        return ExecutionResult("ok", "risk_firewall_reduced_volume", guarded, {"projected_loss": reduced_loss, "allowed_loss": allowed_loss})
 
     def _first_valid_order_check(self, base_request: dict[str, Any]):
         constants = self.gateway.constants()

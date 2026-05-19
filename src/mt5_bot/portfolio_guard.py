@@ -167,6 +167,19 @@ def score_portfolio_overlap(config, positions, signal_type) -> PortfolioOverlapS
             overlap_reasons=tuple(reasons),
         )
 
+    max_same_dir_theme = int(getattr(config, "max_same_direction_theme_positions", 1))
+    if max_same_dir_theme > 0 and same_dir_theme >= max_same_dir_theme:
+        return PortfolioOverlapScore(
+            False,
+            f"same_direction_theme_overlap_{same_dir_theme}",
+            risk_multiplier=0.0,
+            score_penalty=4.5,
+            exact_symbol_positions=exact,
+            same_currency_positions=same_ccy,
+            same_direction_theme_positions=same_dir_theme,
+            overlap_reasons=tuple(reasons),
+        )
+
     risk_multiplier = 1.0
     score_penalty = 0.0
     if same_dir_theme >= 1:

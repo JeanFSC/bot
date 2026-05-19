@@ -5,7 +5,7 @@ import logging
 import logging.handlers
 import time
 from dataclasses import replace
-from datetime import datetime, time as datetime_time, timezone
+from datetime import datetime, time as datetime_time, timedelta, timezone
 from pathlib import Path
 
 from mt5_bot.backtest import run_backtest
@@ -17,7 +17,7 @@ from mt5_bot.news_filter import is_high_impact_news_nearby
 from mt5_bot.portfolio_guard import portfolio_guard_decision, score_portfolio_overlap
 from mt5_bot.report import format_report, generate_report
 from mt5_bot.report_live import format_pnl_report, get_live_pnl
-from mt5_bot.risk import DailyRiskState, is_daily_loss_limit_hit, is_trade_count_limit_hit, spread_pips
+from mt5_bot.risk import DailyRiskState, is_daily_loss_limit_hit, is_trade_count_limit_hit, pip_size, spread_pips
 from mt5_bot.safety import equity_stop_decision
 from mt5_bot.storage import BotStorage
 from mt5_bot.strategy import (
@@ -269,8 +269,10 @@ def run_trade(
 
             today = datetime.now(timezone.utc).date()
             if daily_state is None or daily_state.day != today:
+                day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                persisted_start_equity = storage.get_day_start_equity(day_start)
                 daily_state = DailyRiskState(
-                    day=today, start_equity=float(account.equity),
+                    day=today, start_equity=float(persisted_start_equity or account.equity),
                     current_equity=float(account.equity), trades_count=0,
                 )
             else:
@@ -362,6 +364,12 @@ def run_trade(
                 f"{signal.atr_pips:.1f}" if signal.atr_pips else "n/a",
                 f"{signal.adx:.1f}" if signal.adx else "n/a",
             )
+
+            # Open-position management/telemetry every tick, before new entries.
+            for pm in executor.record_position_metrics():
+                LOGGER.debug("PositionMetrics status=%s reason=%s", pm.status, pm.reason)
+            for ts in executor.manage_time_stops():
+                LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
 
             # Partial close at TP1 (every tick, before entry check)
             if signal.atr_pips:
@@ -491,6 +499,18 @@ def run_trade(
 
             # Compute adaptive cooldown from consecutive losses
             _consec = storage.get_consecutive_losses(config.symbol, config.execution.magic) if config.use_equity_curve_filter else 0
+            _adaptive_cooldown = 0.0
+            max_symbol_consecutive_losses = int(getattr(config, "max_symbol_consecutive_losses", 0) or 0)
+            if entry_signal.type is not SignalType.NONE and max_symbol_consecutive_losses > 0 and _consec >= max_symbol_consecutive_losses:
+                LOGGER.warning(
+                    "Symbol loss streak guard: blocking %s entry after %d consecutive losing exits",
+                    config.symbol, _consec,
+                )
+                entry_signal = Signal(
+                    SignalType.NONE, entry_signal.price, entry_signal.time,
+                    "max_symbol_consecutive_losses", entry_signal.fast_ema, entry_signal.slow_ema,
+                    entry_signal.rsi, entry_signal.atr, entry_signal.atr_pips, entry_signal.trend_bias, entry_signal.adx,
+                )
             if _consec == 1:
                 _adaptive_cooldown = 90.0
             elif _consec == 2:
@@ -529,6 +549,87 @@ def run_trade(
                         "max_loss_per_symbol_per_hour", signal.fast_ema, signal.slow_ema,
                         signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
                     )
+
+            # Risk Engine 10/10: per-symbol day/week loss caps and SL/noise sanity.
+            if entry_signal.type is not SignalType.NONE:
+                now_utc_risk = datetime.now(timezone.utc)
+                day_start = now_utc_risk.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                week_start = (now_utc_risk - timedelta(days=now_utc_risk.weekday())).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ).isoformat()
+                max_symbol_day_pct = float(getattr(config, "max_symbol_daily_loss_pct", 0.0) or 0.0)
+                max_symbol_week_pct = float(getattr(config, "max_symbol_weekly_loss_pct", 0.0) or 0.0)
+                if max_symbol_day_pct > 0:
+                    pnl_today = storage.get_pnl_since(config.symbol, config.execution.magic, day_start)
+                    day_limit = float(account.equity) * max_symbol_day_pct / 100.0
+                    if pnl_today <= -day_limit:
+                        LOGGER.warning(
+                            "Daily symbol loss cap: blocking %s entry. pnl_today=%.2f limit=-%.2f pct=%.2f%%",
+                            config.symbol, pnl_today, day_limit, max_symbol_day_pct,
+                        )
+                        entry_signal = Signal(
+                            SignalType.NONE, signal.price, signal.time,
+                            "max_symbol_daily_loss", signal.fast_ema, signal.slow_ema,
+                            signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                        )
+                if entry_signal.type is not SignalType.NONE and max_symbol_week_pct > 0:
+                    pnl_week = storage.get_pnl_since(config.symbol, config.execution.magic, week_start)
+                    week_limit = float(account.equity) * max_symbol_week_pct / 100.0
+                    if pnl_week <= -week_limit:
+                        LOGGER.warning(
+                            "Weekly symbol loss cap: blocking %s entry. pnl_week=%.2f limit=-%.2f pct=%.2f%%",
+                            config.symbol, pnl_week, week_limit, max_symbol_week_pct,
+                        )
+                        entry_signal = Signal(
+                            SignalType.NONE, signal.price, signal.time,
+                            "max_symbol_weekly_loss", signal.fast_ema, signal.slow_ema,
+                            signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                        )
+
+            if entry_signal.type is not SignalType.NONE:
+                effective_sl_pips = float(config.risk.sl_pips)
+                if (
+                    getattr(strategy_config, "use_atr_sl_tp", False)
+                    and entry_signal.atr_pips is not None
+                    and entry_signal.atr_pips > 0
+                ):
+                    effective_sl_pips = float(entry_signal.atr_pips) * float(getattr(strategy_config, "atr_sl_multiplier", 1.5))
+                max_spread_ratio = float(getattr(config, "max_spread_to_sl_ratio", 0.0) or 0.0)
+                if max_spread_ratio > 0 and effective_sl_pips > 0 and (current_spread / effective_sl_pips) > max_spread_ratio:
+                    LOGGER.warning(
+                        "SL/spread sanity: blocking %s entry. spread=%.2f sl=%.2f ratio=%.2f max=%.2f",
+                        config.symbol, current_spread, effective_sl_pips, current_spread / effective_sl_pips, max_spread_ratio,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "spread_too_large_vs_sl", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
+                min_sl_atr_ratio = float(getattr(config, "min_sl_atr_ratio", 0.0) or 0.0)
+                if (
+                    entry_signal.type is not SignalType.NONE
+                    and min_sl_atr_ratio > 0
+                    and entry_signal.atr_pips is not None
+                    and entry_signal.atr_pips > 0
+                    and effective_sl_pips < (float(entry_signal.atr_pips) * min_sl_atr_ratio)
+                ):
+                    LOGGER.warning(
+                        "SL/ATR sanity: blocking %s entry. sl=%.2f atr=%.2f min_ratio=%.2f",
+                        config.symbol, effective_sl_pips, entry_signal.atr_pips, min_sl_atr_ratio,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "sl_too_tight_vs_atr", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
+
+            max_effective_risk_pct = float(getattr(config, "max_effective_risk_pct", 0.0) or 0.0)
+            if max_effective_risk_pct > 0 and base_risk_pct > max_effective_risk_pct:
+                LOGGER.warning(
+                    "Effective risk cap: symbol=%s risk_pct=%.2f capped=%.2f",
+                    config.symbol, base_risk_pct, max_effective_risk_pct,
+                )
+                base_risk_pct = max_effective_risk_pct
 
             exec_config_override = None
             if config.use_equity_curve_filter:
@@ -598,6 +699,10 @@ def run_trade(
                         "rsi": entry_signal.rsi,
                         "atr_pips": entry_signal.atr_pips,
                         "adx": entry_signal.adx,
+                        "requested_price": (result.request or {}).get("price") if result.request else None,
+                        "filled_price": getattr(result.result, "price", None) if result.result is not None else None,
+                        "retcode": getattr(result.result, "retcode", None) if result.result is not None else None,
+                        "slippage_pips": _slippage_pips(result, entry_signal, symbol_info),
                         "overlap_reasons": list(overlap_score.overlap_reasons) if overlap_score else [],
                     },
                 )
@@ -721,19 +826,26 @@ def _sync_today_deals(gateway, storage: BotStorage, symbol: str, magic: int | No
         # Pull all account deals for today, not only group=*SYMBOL*. Some MT5
         # terminals/brokers return empty lists for symbol-group filters even
         # when balance changed. INSERT OR IGNORE keeps multi-bot sync safe.
-        deals = gateway.history_deals_get(start, now)
-        if symbol:
-            deals = [d for d in deals if str(getattr(d, "symbol", "")).upper() == symbol.upper()]
-        if magic is not None:
-            magic_deals = [d for d in deals if int(getattr(d, "magic", 0) or 0) == int(magic)]
-            # Some close deals can arrive with magic=0; do not drop everything
-            # if the broker omits magic on close.
-            deals = magic_deals or deals
+        # MT5 history timestamps can be ahead of local UTC by broker/server
+        # offset. Query a forward buffer so recently closed trades are not
+        # silently missed in the local ledger/report.
+        deals = gateway.history_deals_get(start, now + timedelta(hours=6))
+        deals = _filter_history_deals_for_bot(deals, symbol, magic)
         inserted = storage.record_deals(deals)
         if inserted:
             LOGGER.info("Synced %s new history deals", inserted)
     except RuntimeError as exc:
         LOGGER.warning("Could not sync history deals: %s", exc)
+
+
+def _filter_history_deals_for_bot(deals, symbol: str, magic: int | None):
+    if symbol:
+        deals = [d for d in deals if str(getattr(d, "symbol", "")).upper() == symbol.upper()]
+    if magic is None:
+        return deals
+    # Same-symbol bots can run different strategies/magics. Accepting magic=0
+    # here lets one XAUUSD bot import a sibling bot\'s broker-side exit deal.
+    return [deal for deal in deals if int(getattr(deal, "magic", 0) or 0) == int(magic)]
 
 
 def _apply_retest_filter(
@@ -806,8 +918,32 @@ def _none_signal(reason: str) -> Signal:
     )
 
 
+def _slippage_pips(result, signal, symbol_info) -> float | None:
+    try:
+        request_price = (result.request or {}).get("price") if result.request else None
+        fill_price = getattr(result.result, "price", None) if result.result is not None else None
+        if request_price is None or fill_price is None:
+            return None
+        if float(fill_price) <= 0 or float(request_price) <= 0:
+            return None
+        pip = pip_size(symbol_info)
+        value = (float(fill_price) - float(request_price)) / pip
+        if signal.type is SignalType.SELL:
+            value *= -1
+        return value
+    except Exception:
+        return None
+
+
 def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: float) -> None:
-    """Sleep one poll cycle while keeping trailing stops and partial closes active."""
+    """Sleep one poll cycle while keeping exits/telemetry active."""
+    try:
+        for pm in executor.record_position_metrics():
+            LOGGER.debug("PositionMetrics (idle) status=%s reason=%s", pm.status, pm.reason)
+        for ts in executor.manage_time_stops():
+            LOGGER.info("TimeStop (idle) status=%s reason=%s", ts.status, ts.reason)
+    except Exception as exc:
+        LOGGER.debug("Position management during idle: %s", exc)
     if config.strategy.use_trailing_stop:
         try:
             signal_rates = executor.gateway.copy_rates_from_pos(

@@ -130,6 +130,13 @@ class MT5Gateway:
     def order_check(self, request: dict[str, Any]):
         return self._call_read("order_check", lambda: self.mt5.order_check(request))
 
+    def order_calc_profit(self, order_type: int, symbol: str, volume: float, price_open: float, price_close: float) -> float:
+        value = self._call_read(
+            "order_calc_profit",
+            lambda: self.mt5.order_calc_profit(order_type, symbol, volume, price_open, price_close),
+        )
+        return float(value)
+
     def order_send(self, request: dict[str, Any]):
         result = self.mt5.order_send(request)
         if result is None:

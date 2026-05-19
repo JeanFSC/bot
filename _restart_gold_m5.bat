@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [GOLD M5] CHECK OK -- arrancando TRADE loop... >> logs\bot_gold_m5.log
 echo [%TIME%] [GOLD M5] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_gold_m5.yaml --db data/pro_gold_m5.sqlite >> logs\bot_gold_m5.log 2>&1
+python -m mt5_bot trade --config config/pro_gold_m5.yaml --db data/pro_gold_m5.sqlite --trade-enabled >> logs\bot_gold_m5.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [GOLD M5] Bot crasheo -- reiniciando en 10s... >> logs\bot_gold_m5.log
     echo [%TIME%] [GOLD M5] Bot crasheo -- reiniciando en 10s...
