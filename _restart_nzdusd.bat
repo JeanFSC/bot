@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [NZDUSD] Bot detenido por el usuario. >> logs\bot_nzdusd.log
 echo [%TIME%] [NZDUSD] Bot detenido por el usuario.
 pause
+

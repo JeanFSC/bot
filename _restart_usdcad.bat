@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [USDCAD] Bot detenido por el usuario. >> logs\bot_usdcad.log
 echo [%TIME%] [USDCAD] Bot detenido por el usuario.
 pause
+

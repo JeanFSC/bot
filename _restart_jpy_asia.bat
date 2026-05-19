@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [JPY ASIA] Bot detenido por el usuario. >> logs\bot_jpy_asia.log
 echo [%TIME%] [JPY ASIA] Bot detenido por el usuario.
 pause
+

@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [GOLD] Bot detenido por el usuario. >> logs\bot_gold.log
 echo [%TIME%] [GOLD] Bot detenido por el usuario.
 pause
+

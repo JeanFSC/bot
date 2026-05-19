@@ -1,11 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import logging
 import logging.handlers
 import time
 from dataclasses import replace
-from datetime import datetime, time as datetime_time, timezone
+from datetime import datetime, time as datetime_time, timedelta, timezone
 from pathlib import Path
 
 from mt5_bot.backtest import run_backtest
@@ -14,10 +14,10 @@ from mt5_bot.executor import TradeExecutor
 from mt5_bot.mt5_gateway import MT5Gateway
 from mt5_bot import notifier
 from mt5_bot.news_filter import is_high_impact_news_nearby
-from mt5_bot.portfolio_guard import portfolio_guard_decision
+from mt5_bot.portfolio_guard import portfolio_guard_decision, score_portfolio_overlap
 from mt5_bot.report import format_report, generate_report
 from mt5_bot.report_live import format_pnl_report, get_live_pnl
-from mt5_bot.risk import DailyRiskState, is_daily_loss_limit_hit, is_trade_count_limit_hit, spread_pips
+from mt5_bot.risk import DailyRiskState, is_daily_loss_limit_hit, is_trade_count_limit_hit, pip_size, spread_pips
 from mt5_bot.safety import equity_stop_decision
 from mt5_bot.storage import BotStorage
 from mt5_bot.strategy import (
@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     pnl_parser.add_argument("--magic", type=int, default=None)
 
     args = parser.parse_args(argv)
-    setup_logging()
+    setup_logging(log_name=_log_name_for_args(args))
 
     if args.command == "trade":
         return run_trade(
@@ -95,7 +95,23 @@ def main(argv: list[str] | None = None) -> int:
     return 2
 
 
-def setup_logging(log_dir: str | None = None) -> None:
+def _log_name_for_args(args: argparse.Namespace) -> str:
+    """Return a per-command/per-config log name.
+
+    The 12-bot suite runs many Python processes at the same time. A single
+    TimedRotatingFileHandler target (bot_YYYYMMDD.log) causes Windows file-lock
+    races at midnight / rollover and emits noisy ``PermissionError`` logging
+    errors. Each process already writes to its own redirected bot_<symbol>.log;
+    this extra file handler is only for diagnostics, so keep it unique.
+    """
+    config = getattr(args, "config", None)
+    if config:
+        stem = Path(str(config)).stem.replace(".", "_").replace(" ", "_")
+        return f"{args.command}_{stem}"
+    return str(args.command)
+
+
+def setup_logging(log_dir: str | None = None, log_name: str = "mt5_bot") -> None:
     """Console + rotating file logging (14 days retention)."""
     fmt = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s - %(message)s",
@@ -110,8 +126,9 @@ def setup_logging(log_dir: str | None = None) -> None:
     log_path = Path(log_dir or "logs")
     log_path.mkdir(parents=True, exist_ok=True)
     today = datetime.now().strftime("%Y%m%d")
+    safe_name = "".join(ch if ch.isalnum() or ch in "_-" else "_" for ch in log_name)
     fh = logging.handlers.TimedRotatingFileHandler(
-        filename=log_path / f"bot_{today}.log",
+        filename=log_path / f"{safe_name}_{today}.log",
         when="midnight", backupCount=14, encoding="utf-8", utc=True,
     )
     fh.setFormatter(fmt)
@@ -191,7 +208,7 @@ def run_trade(
     signal_bars = 300
     use_mtf = config.strategy.use_trend_filter and config.trend_timeframe != config.timeframe
 
-    # ── Retest state machine ─────────────────────────────────────────────────
+    # â”€â”€ Retest state machine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     # When use_retest_filter=True, after a crossover we wait for price to
     # pull back to the slow EMA before entering. pending_retest holds the
     # original crossover signal until the retest fires or is invalidated.
@@ -230,12 +247,12 @@ def run_trade(
                 LOGGER.info("Stopped after max_seconds=%s", max_seconds)
                 return 0
 
-            # ── Weekend gap protection ─────────────────────────────────────────
+            # â”€â”€ Weekend gap protection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             now_utc = datetime.now(timezone.utc)
-            weekday = now_utc.weekday()   # 0=Mon … 4=Fri, 5=Sat, 6=Sun
+            weekday = now_utc.weekday()   # 0=Mon â€¦ 4=Fri, 5=Sat, 6=Sun
             is_weekend_close = (weekday == 4 and now_utc.hour >= 21) or weekday in {5, 6}
             if is_weekend_close:
-                LOGGER.info("Weekend gap protection: markets closed — sleeping 5 min")
+                LOGGER.info("Weekend gap protection: markets closed â€” sleeping 5 min")
                 time.sleep(300)
                 continue
 
@@ -252,8 +269,10 @@ def run_trade(
 
             today = datetime.now(timezone.utc).date()
             if daily_state is None or daily_state.day != today:
+                day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                persisted_start_equity = storage.get_day_start_equity(day_start)
                 daily_state = DailyRiskState(
-                    day=today, start_equity=float(account.equity),
+                    day=today, start_equity=float(persisted_start_equity or account.equity),
                     current_equity=float(account.equity), trades_count=0,
                 )
             else:
@@ -315,14 +334,14 @@ def run_trade(
                     _sleep_and_manage_trailing(executor, config, current_spread)
                     continue
 
-            # ── MEJORA 3: News filter ─────────────────────────────────────────
+            # â”€â”€ MEJORA 3: News filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             if config.use_news_filter:
                 if is_high_impact_news_nearby(
                     config.symbol,
                     minutes_before=config.news_minutes_before,
                     minutes_after=config.news_minutes_after,
                 ):
-                    LOGGER.info("News filter: high-impact event nearby — skipping entry")
+                    LOGGER.info("News filter: high-impact event nearby â€” skipping entry")
                     pending_retest = None  # invalidate any pending retest during news
                     _sleep_and_manage_trailing(executor, config, current_spread)
                     continue
@@ -346,6 +365,12 @@ def run_trade(
                 f"{signal.adx:.1f}" if signal.adx else "n/a",
             )
 
+            # Open-position management/telemetry every tick, before new entries.
+            for pm in executor.record_position_metrics():
+                LOGGER.debug("PositionMetrics status=%s reason=%s", pm.status, pm.reason)
+            for ts in executor.manage_time_stops():
+                LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
+
             # Partial close at TP1 (every tick, before entry check)
             if signal.atr_pips:
                 for pc in executor.manage_partial_close(signal.atr_pips):
@@ -362,7 +387,7 @@ def run_trade(
                 for tr in executor.manage_trailing_stops(signal.atr_pips):
                     LOGGER.info("TrailingStop status=%s reason=%s", tr.status, tr.reason)
 
-            # ── Correlation guard — reduce risk on correlated pairs ───────────
+            # â”€â”€ Correlation guard â€” reduce risk on correlated pairs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # EURUSD & GBPUSD ~85% correlated. If both signal same direction
             # simultaneously, effective risk doubles. Detect via open positions
             # on correlated magic numbers and halve size if conflict found.
@@ -389,19 +414,30 @@ def run_trade(
                             if _same_dir:
                                 _corr_risk_factor = 0.5
                                 LOGGER.info(
-                                    "Correlation guard: %s already %s → halving risk for %s",
+                                    "Correlation guard: %s already %s â†’ halving risk for %s",
                                     _corr_sym, signal.type.value, config.symbol,
                                 )
                 except Exception:
                     pass  # non-blocking
 
-            # ── MEJORA 4: Crossover + Retest state machine ────────────────────
+            # â”€â”€ MEJORA 4: Crossover + Retest state machine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # If retest filter is enabled:
-            #   - On fresh crossover → save as pending_retest, skip immediate entry
-            #   - On subsequent ticks → check if price touched slow EMA
-            #   - On opposite crossover → invalidate pending retest
+            #   - On fresh crossover â†’ save as pending_retest, skip immediate entry
+            #   - On subsequent ticks â†’ check if price touched slow EMA
+            #   - On opposite crossover â†’ invalidate pending retest
             entry_signal = signal
-            if use_retest:
+            own_positions_open = [
+                p for p in (gateway.positions_get(symbol=config.symbol) or [])
+                if int(p.magic) == config.execution.magic
+            ]
+            if use_retest and own_positions_open:
+                # Do not keep advancing/reconfirming the retest state machine while
+                # this bot already owns a position. This prevents noisy repeated
+                # "retest confirmed" + "same_direction_position" cycles, while
+                # still allowing executor.execute(signal) to close an opposite
+                # position if a true reversal signal appears.
+                pending_retest = None
+            elif use_retest:
                 entry_signal = _apply_retest_filter(
                     signal,
                     pending_retest,
@@ -411,15 +447,41 @@ def run_trade(
                     use_candle_confirm=use_candle_confirm,
                 )
                 if signal.type is not SignalType.NONE:
-                    # Fresh crossover — save as pending (wait for retest)
+                    # Fresh crossover â€” save as pending (wait for retest)
                     pending_retest = signal
                     LOGGER.info("Retest filter: crossover detected, waiting for pullback to slow EMA")
                 if entry_signal.type is not SignalType.NONE and entry_signal is not signal:
-                    LOGGER.info("Retest filter: retest confirmed — entering trade")
+                    LOGGER.info("Retest filter: retest confirmed â€” entering trade")
                     pending_retest = None  # consumed
 
-            # ── MEJORA 5: Equity curve management ────────────────────────────
+            # â”€â”€ MEJORA 5: Equity curve management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # After N consecutive losses, apply lot_reduction_factor to config
+            overlap_score = None
+            _portfolio_overlap_risk_factor = 1.0
+            if entry_signal.type is not SignalType.NONE:
+                try:
+                    overlap_score = score_portfolio_overlap(config, gateway.positions_get(), entry_signal.type)
+                    _portfolio_overlap_risk_factor = overlap_score.risk_multiplier
+                    if not overlap_score.allow_new_entry:
+                        LOGGER.warning(
+                            "Portfolio overlap: blocking %s %s reason=%s details=%s",
+                            config.symbol, entry_signal.type.value, overlap_score.reason,
+                            ",".join(overlap_score.overlap_reasons) or "n/a",
+                        )
+                        entry_signal = Signal(
+                            SignalType.NONE, entry_signal.price, entry_signal.time,
+                            overlap_score.reason, entry_signal.fast_ema, entry_signal.slow_ema,
+                            entry_signal.rsi, entry_signal.atr, entry_signal.atr_pips,
+                            entry_signal.trend_bias, entry_signal.adx,
+                        )
+                    elif overlap_score.risk_multiplier < 1.0:
+                        LOGGER.info(
+                            "Portfolio overlap de-score: symbol=%s risk_multiplier=%.2f penalty=%.1f reason=%s details=%s",
+                            config.symbol, overlap_score.risk_multiplier, overlap_score.score_penalty,
+                            overlap_score.reason, ",".join(overlap_score.overlap_reasons) or "n/a",
+                        )
+                except Exception as exc:
+                    LOGGER.warning("Portfolio overlap scorer unavailable: %s", exc)
             from dataclasses import replace as dc_replace
             # Positive compounding: for each +5% equity growth over baseline,
             # add +10% to risk, capped at 2.5x. This accelerates winners but
@@ -428,7 +490,7 @@ def run_trade(
             equity_growth_pct = max(0.0, (float(account.equity) - baseline_equity) / baseline_equity * 100.0)
             compound_factor = 1.0 + int(equity_growth_pct // 5.0) * 0.10
             compound_factor = min(compound_factor, 2.5)
-            base_risk_pct = config.risk.risk_pct * compound_factor * _corr_risk_factor
+            base_risk_pct = config.risk.risk_pct * compound_factor * _portfolio_overlap_risk_factor
             if compound_factor > 1.0:
                 LOGGER.info(
                     "Compounding boost: equity=%.2f baseline=%.2f growth=%.1f%% factor=%.2fx risk_pct=%.2f%%",
@@ -437,6 +499,18 @@ def run_trade(
 
             # Compute adaptive cooldown from consecutive losses
             _consec = storage.get_consecutive_losses(config.symbol, config.execution.magic) if config.use_equity_curve_filter else 0
+            _adaptive_cooldown = 0.0
+            max_symbol_consecutive_losses = int(getattr(config, "max_symbol_consecutive_losses", 0) or 0)
+            if entry_signal.type is not SignalType.NONE and max_symbol_consecutive_losses > 0 and _consec >= max_symbol_consecutive_losses:
+                LOGGER.warning(
+                    "Symbol loss streak guard: blocking %s entry after %d consecutive losing exits",
+                    config.symbol, _consec,
+                )
+                entry_signal = Signal(
+                    SignalType.NONE, entry_signal.price, entry_signal.time,
+                    "max_symbol_consecutive_losses", entry_signal.fast_ema, entry_signal.slow_ema,
+                    entry_signal.rsi, entry_signal.atr, entry_signal.atr_pips, entry_signal.trend_bias, entry_signal.adx,
+                )
             if _consec == 1:
                 _adaptive_cooldown = 90.0
             elif _consec == 2:
@@ -444,22 +518,118 @@ def run_trade(
             elif _consec >= 3:
                 _adaptive_cooldown = 300.0
 
-            # ── MEJORA 6: Dynamic ADX risk scaling ───────────────────────────
+            # â”€â”€ MEJORA 6: Dynamic ADX risk scaling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # Tiered risk: strongest trends get paid, weak trends shrink.
             if entry_signal.adx is not None:
                 adx_val = entry_signal.adx
                 if adx_val > 50:
                     base_risk_pct = base_risk_pct * 2.0
-                    LOGGER.info("ADX extreme boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX extreme boost: adx=%.1f â†’ risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 40:
                     base_risk_pct = base_risk_pct * 1.75
-                    LOGGER.info("ADX strong boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX strong boost: adx=%.1f â†’ risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val > 30:
                     base_risk_pct = base_risk_pct * 1.25
-                    LOGGER.info("ADX boost: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX boost: adx=%.1f â†’ risk_pct=%.2f%%", adx_val, base_risk_pct)
                 elif adx_val < strategy_config.adx_min_value:
                     base_risk_pct = base_risk_pct * 0.75
-                    LOGGER.info("ADX reduce: adx=%.1f → risk_pct=%.2f%%", adx_val, base_risk_pct)
+                    LOGGER.info("ADX reduce: adx=%.1f â†’ risk_pct=%.2f%%", adx_val, base_risk_pct)
+
+            max_loss_hour_pct = getattr(config, "max_loss_per_symbol_per_hour_pct", 0.0)
+            if entry_signal.type is not SignalType.NONE and max_loss_hour_pct > 0:
+                pnl_last_hour = storage.get_pnl_last_hour(config.symbol, config.execution.magic)
+                max_loss_hour_usd = float(account.equity) * max_loss_hour_pct / 100.0
+                if pnl_last_hour <= -max_loss_hour_usd:
+                    LOGGER.warning(
+                        "Hourly symbol loss cap: blocking %s entry. pnl_last_hour=%.2f limit=-%.2f pct=%.2f%%",
+                        config.symbol, pnl_last_hour, max_loss_hour_usd, max_loss_hour_pct,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "max_loss_per_symbol_per_hour", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
+
+            # Risk Engine 10/10: per-symbol day/week loss caps and SL/noise sanity.
+            if entry_signal.type is not SignalType.NONE:
+                now_utc_risk = datetime.now(timezone.utc)
+                day_start = now_utc_risk.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                week_start = (now_utc_risk - timedelta(days=now_utc_risk.weekday())).replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ).isoformat()
+                max_symbol_day_pct = float(getattr(config, "max_symbol_daily_loss_pct", 0.0) or 0.0)
+                max_symbol_week_pct = float(getattr(config, "max_symbol_weekly_loss_pct", 0.0) or 0.0)
+                if max_symbol_day_pct > 0:
+                    pnl_today = storage.get_pnl_since(config.symbol, config.execution.magic, day_start)
+                    day_limit = float(account.equity) * max_symbol_day_pct / 100.0
+                    if pnl_today <= -day_limit:
+                        LOGGER.warning(
+                            "Daily symbol loss cap: blocking %s entry. pnl_today=%.2f limit=-%.2f pct=%.2f%%",
+                            config.symbol, pnl_today, day_limit, max_symbol_day_pct,
+                        )
+                        entry_signal = Signal(
+                            SignalType.NONE, signal.price, signal.time,
+                            "max_symbol_daily_loss", signal.fast_ema, signal.slow_ema,
+                            signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                        )
+                if entry_signal.type is not SignalType.NONE and max_symbol_week_pct > 0:
+                    pnl_week = storage.get_pnl_since(config.symbol, config.execution.magic, week_start)
+                    week_limit = float(account.equity) * max_symbol_week_pct / 100.0
+                    if pnl_week <= -week_limit:
+                        LOGGER.warning(
+                            "Weekly symbol loss cap: blocking %s entry. pnl_week=%.2f limit=-%.2f pct=%.2f%%",
+                            config.symbol, pnl_week, week_limit, max_symbol_week_pct,
+                        )
+                        entry_signal = Signal(
+                            SignalType.NONE, signal.price, signal.time,
+                            "max_symbol_weekly_loss", signal.fast_ema, signal.slow_ema,
+                            signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                        )
+
+            if entry_signal.type is not SignalType.NONE:
+                effective_sl_pips = float(config.risk.sl_pips)
+                if (
+                    getattr(strategy_config, "use_atr_sl_tp", False)
+                    and entry_signal.atr_pips is not None
+                    and entry_signal.atr_pips > 0
+                ):
+                    effective_sl_pips = float(entry_signal.atr_pips) * float(getattr(strategy_config, "atr_sl_multiplier", 1.5))
+                max_spread_ratio = float(getattr(config, "max_spread_to_sl_ratio", 0.0) or 0.0)
+                if max_spread_ratio > 0 and effective_sl_pips > 0 and (current_spread / effective_sl_pips) > max_spread_ratio:
+                    LOGGER.warning(
+                        "SL/spread sanity: blocking %s entry. spread=%.2f sl=%.2f ratio=%.2f max=%.2f",
+                        config.symbol, current_spread, effective_sl_pips, current_spread / effective_sl_pips, max_spread_ratio,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "spread_too_large_vs_sl", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
+                min_sl_atr_ratio = float(getattr(config, "min_sl_atr_ratio", 0.0) or 0.0)
+                if (
+                    entry_signal.type is not SignalType.NONE
+                    and min_sl_atr_ratio > 0
+                    and entry_signal.atr_pips is not None
+                    and entry_signal.atr_pips > 0
+                    and effective_sl_pips < (float(entry_signal.atr_pips) * min_sl_atr_ratio)
+                ):
+                    LOGGER.warning(
+                        "SL/ATR sanity: blocking %s entry. sl=%.2f atr=%.2f min_ratio=%.2f",
+                        config.symbol, effective_sl_pips, entry_signal.atr_pips, min_sl_atr_ratio,
+                    )
+                    entry_signal = Signal(
+                        SignalType.NONE, signal.price, signal.time,
+                        "sl_too_tight_vs_atr", signal.fast_ema, signal.slow_ema,
+                        signal.rsi, signal.atr, signal.atr_pips, signal.trend_bias, signal.adx,
+                    )
+
+            max_effective_risk_pct = float(getattr(config, "max_effective_risk_pct", 0.0) or 0.0)
+            if max_effective_risk_pct > 0 and base_risk_pct > max_effective_risk_pct:
+                LOGGER.warning(
+                    "Effective risk cap: symbol=%s risk_pct=%.2f capped=%.2f",
+                    config.symbol, base_risk_pct, max_effective_risk_pct,
+                )
+                base_risk_pct = max_effective_risk_pct
 
             exec_config_override = None
             if config.use_equity_curve_filter:
@@ -468,30 +638,76 @@ def run_trade(
                 )
                 if consecutive_losses >= config.max_consecutive_losses:
                     LOGGER.warning(
-                        "Equity curve filter: %d consecutive losses — reducing risk %.0f%%",
+                        "Equity curve filter: %d consecutive losses â€” reducing risk %.0f%%",
                         consecutive_losses, config.lot_reduction_factor * 100,
                     )
                     reduced_risk_pct = base_risk_pct * config.lot_reduction_factor
                     reduced_risk = dc_replace(config.risk, risk_pct=reduced_risk_pct)
                     exec_config_override = dc_replace(config, risk=reduced_risk)
                     executor_override = TradeExecutor(gateway, storage, exec_config_override)
+                    executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                    executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
                     result = executor_override.execute(entry_signal)
+                    executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                    executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                 else:
                     if base_risk_pct != config.risk.risk_pct:
                         adjusted_risk = dc_replace(config.risk, risk_pct=base_risk_pct)
                         adjusted_config = dc_replace(config, risk=adjusted_risk)
-                        result = TradeExecutor(gateway, storage, adjusted_config).execute(entry_signal)
+                        executor_override = TradeExecutor(gateway, storage, adjusted_config)
+                        executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                        executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
+                        result = executor_override.execute(entry_signal)
+                        executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                        executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                     else:
                         result = executor.execute(entry_signal)
             else:
                 if base_risk_pct != config.risk.risk_pct:
                     adjusted_risk = dc_replace(config.risk, risk_pct=base_risk_pct)
                     adjusted_config = dc_replace(config, risk=adjusted_risk)
-                    result = TradeExecutor(gateway, storage, adjusted_config).execute(entry_signal)
+                    executor_override = TradeExecutor(gateway, storage, adjusted_config)
+                    executor_override.last_trade_monotonic = executor.last_trade_monotonic
+                    executor_override.last_reverse_close_monotonic = executor.last_reverse_close_monotonic
+                    result = executor_override.execute(entry_signal)
+                    executor.last_trade_monotonic = executor_override.last_trade_monotonic
+                    executor.last_reverse_close_monotonic = executor_override.last_reverse_close_monotonic
                 else:
                     result = executor.execute(entry_signal)
 
             LOGGER.info("Execution status=%s reason=%s", result.status, result.reason)
+            try:
+                rr = None
+                if float(config.risk.sl_pips or 0) > 0:
+                    rr = float(config.risk.tp_pips) / float(config.risk.sl_pips)
+                storage.record_trade_journal(
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    signal=entry_signal,
+                    decision="executed" if result.status == "sent" else ("candidate" if entry_signal.type is not SignalType.NONE else "blocked_or_no_signal"),
+                    execution_status=result.status,
+                    execution_reason=result.reason,
+                    risk_pct=base_risk_pct,
+                    risk_multiplier=(overlap_score.risk_multiplier if overlap_score else 1.0),
+                    portfolio_reason=(overlap_score.reason if overlap_score else "not_scored"),
+                    rr=rr,
+                    context={
+                        "spread_pips": current_spread,
+                        "account_equity": float(account.equity),
+                        "signal_reason": entry_signal.reason,
+                        "trend_bias": entry_signal.trend_bias,
+                        "rsi": entry_signal.rsi,
+                        "atr_pips": entry_signal.atr_pips,
+                        "adx": entry_signal.adx,
+                        "requested_price": (result.request or {}).get("price") if result.request else None,
+                        "filled_price": getattr(result.result, "price", None) if result.result is not None else None,
+                        "retcode": getattr(result.result, "retcode", None) if result.result is not None else None,
+                        "slippage_pips": _slippage_pips(result, entry_signal, symbol_info),
+                        "overlap_reasons": list(overlap_score.overlap_reasons) if overlap_score else [],
+                    },
+                )
+            except Exception as exc:
+                LOGGER.warning("Trade journal write failed: %s", exc)
 
             if result.status == "sent":
                 daily_state = DailyRiskState(
@@ -512,9 +728,9 @@ def run_trade(
                 LOGGER.info("Stopped after first action: %s %s", result.status, result.reason)
                 return 0
 
-            # ── Adaptive cooldown post-loss ───────────────────────────────────
+            # â”€â”€ Adaptive cooldown post-loss â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # After a loss, increase wait time to avoid revenge trading
-            # and let the market stabilize: 1 loss→90s, 2→180s, 3+→300s
+            # and let the market stabilize: 1 lossâ†’90s, 2â†’180s, 3+â†’300s
             if _adaptive_cooldown > 0:
                 if max_seconds > 0:
                     remaining = max_seconds - (time.monotonic() - started_at)
@@ -610,19 +826,26 @@ def _sync_today_deals(gateway, storage: BotStorage, symbol: str, magic: int | No
         # Pull all account deals for today, not only group=*SYMBOL*. Some MT5
         # terminals/brokers return empty lists for symbol-group filters even
         # when balance changed. INSERT OR IGNORE keeps multi-bot sync safe.
-        deals = gateway.history_deals_get(start, now)
-        if symbol:
-            deals = [d for d in deals if str(getattr(d, "symbol", "")).upper() == symbol.upper()]
-        if magic is not None:
-            magic_deals = [d for d in deals if int(getattr(d, "magic", 0) or 0) == int(magic)]
-            # Some close deals can arrive with magic=0; do not drop everything
-            # if the broker omits magic on close.
-            deals = magic_deals or deals
+        # MT5 history timestamps can be ahead of local UTC by broker/server
+        # offset. Query a forward buffer so recently closed trades are not
+        # silently missed in the local ledger/report.
+        deals = gateway.history_deals_get(start, now + timedelta(hours=6))
+        deals = _filter_history_deals_for_bot(deals, symbol, magic)
         inserted = storage.record_deals(deals)
         if inserted:
             LOGGER.info("Synced %s new history deals", inserted)
     except RuntimeError as exc:
         LOGGER.warning("Could not sync history deals: %s", exc)
+
+
+def _filter_history_deals_for_bot(deals, symbol: str, magic: int | None):
+    if symbol:
+        deals = [d for d in deals if str(getattr(d, "symbol", "")).upper() == symbol.upper()]
+    if magic is None:
+        return deals
+    # Same-symbol bots can run different strategies/magics. Accepting magic=0
+    # here lets one XAUUSD bot import a sibling bot\'s broker-side exit deal.
+    return [deal for deal in deals if int(getattr(deal, "magic", 0) or 0) == int(magic)]
 
 
 def _apply_retest_filter(
@@ -640,12 +863,12 @@ def _apply_retest_filter(
       pulled back to (or through) the slow EMA, trigger entry.
     - If the new signal is in the opposite direction of the pending one,
       invalidate the pending retest.
-    - If no pending retest and signal is NONE → return NONE.
+    - If no pending retest and signal is NONE â†’ return NONE.
 
     Returns the signal to actually execute (may be the pending one).
     """
     if pending is None or pending.type is SignalType.NONE:
-        # No pending retest — nothing to check
+        # No pending retest â€” nothing to check
         return _none_signal("retest_waiting")
 
     # Opposite crossover invalidates pending retest
@@ -695,8 +918,32 @@ def _none_signal(reason: str) -> Signal:
     )
 
 
+def _slippage_pips(result, signal, symbol_info) -> float | None:
+    try:
+        request_price = (result.request or {}).get("price") if result.request else None
+        fill_price = getattr(result.result, "price", None) if result.result is not None else None
+        if request_price is None or fill_price is None:
+            return None
+        if float(fill_price) <= 0 or float(request_price) <= 0:
+            return None
+        pip = pip_size(symbol_info)
+        value = (float(fill_price) - float(request_price)) / pip
+        if signal.type is SignalType.SELL:
+            value *= -1
+        return value
+    except Exception:
+        return None
+
+
 def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: float) -> None:
-    """Sleep one poll cycle while keeping trailing stops and partial closes active."""
+    """Sleep one poll cycle while keeping exits/telemetry active."""
+    try:
+        for pm in executor.record_position_metrics():
+            LOGGER.debug("PositionMetrics (idle) status=%s reason=%s", pm.status, pm.reason)
+        for ts in executor.manage_time_stops():
+            LOGGER.info("TimeStop (idle) status=%s reason=%s", ts.status, ts.reason)
+    except Exception as exc:
+        LOGGER.debug("Position management during idle: %s", exc)
     if config.strategy.use_trailing_stop:
         try:
             signal_rates = executor.gateway.copy_rates_from_pos(
@@ -717,3 +964,5 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
         except Exception as exc:
             LOGGER.debug("Trailing stop during idle: %s", exc)
     time.sleep(config.poll_seconds)
+
+

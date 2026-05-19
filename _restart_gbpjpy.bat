@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [GBPJPY] Bot detenido por el usuario. >> logs\bot_gbpjpy.log
 echo [%TIME%] [GBPJPY] Bot detenido por el usuario.
 pause
+

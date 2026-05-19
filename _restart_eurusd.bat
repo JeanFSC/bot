@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [EURUSD] Bot detenido por el usuario. >> logs\bot_eurusd.log
 echo [%TIME%] [EURUSD] Bot detenido por el usuario.
 pause
+

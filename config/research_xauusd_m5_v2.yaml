@@ -1,0 +1,82 @@
+symbol: XAUUSD
+timeframe: M5
+trend_timeframe: M15
+poll_seconds: 15
+demo_only: true
+max_spread_pips: 30.0
+max_open_positions: 1
+max_daily_loss_pct: 0.4
+max_trades_per_day: 4
+use_global_risk_guard: true
+max_total_margin_pct: 50.0
+max_portfolio_open_positions: 3
+max_same_currency_positions: 1
+max_same_direction_theme_positions: 1
+cooldown_seconds: 600
+reverse_cooldown_seconds: 1200
+max_loss_per_symbol_per_hour_pct: 0.15
+use_news_filter: true
+news_minutes_before: 30
+news_minutes_after: 15
+use_equity_curve_filter: true
+max_consecutive_losses: 1
+max_symbol_consecutive_losses: 1
+lot_reduction_factor: 0.5
+use_partial_close: false
+partial_close_ratio: 0.35
+profit_target_usd: null
+baseline_equity: 102000.0
+database_path: data/research_xauusd_m5_v2.sqlite
+risk:
+  mode: percent_equity
+  risk_pct: 0.08
+  fixed_lot: 0.05
+  sl_pips: 35
+  tp_pips: 80
+strategy:
+  fast_ema: 8
+  slow_ema: 21
+  trend_ema: 50
+  use_trend_filter: true
+  rsi_period: 14
+  rsi_buy_max: 62
+  rsi_sell_min: 38
+  use_rsi_filter: true
+  use_rsi_momentum: true
+  atr_period: 14
+  min_atr_pips: 80.0
+  use_atr_filter: true
+  adx_period: 14
+  adx_min_value: 26
+  use_adx_filter: true
+  atr_sl_multiplier: 1.2
+  atr_tp_multiplier: 2.6
+  use_atr_sl_tp: true
+  session_start_hour: 13
+  session_end_hour: 20
+  use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour: 0
+  use_session2: false
+  use_trailing_stop: false
+  breakeven_atr_multiplier: 1.0
+  trailing_atr_multiplier: 1.5
+  use_retest_filter: true
+  retest_timeout_bars: 4
+  use_candle_confirm: true
+execution:
+  magic: 260540
+  deviation: 20
+  filling_mode: AUTO
+  trade_enabled: false
+max_trades_per_symbol_per_hour: 1
+max_position_minutes: 45
+time_stop_min_profit_pips: 0.0
+risk_firewall_enabled: true
+risk_firewall_tolerance: 1.10
+max_order_volume: 0.2
+max_symbol_daily_loss_pct: 0.15
+max_symbol_weekly_loss_pct: 0.3
+max_effective_risk_pct: 0.08
+max_spread_to_sl_ratio: 0.12
+min_sl_atr_ratio: 0.8

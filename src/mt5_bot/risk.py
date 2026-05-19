@@ -57,7 +57,16 @@ def _pip_value_per_lot(symbol_info) -> float:
     tick_size = float(symbol_info.trade_tick_size or 0)
     if tick_value <= 0 or tick_size <= 0:
         raise ValueError("Symbol tick value and tick size are required for percent_equity risk")
-    return tick_value * (pip_size(symbol_info) / tick_size)
+    broker_value = tick_value * (pip_size(symbol_info) / tick_size)
+
+    # Some demo/CFD feeds report trade_tick_value scaled to the minimum lot or
+    # otherwise understate metals by 10x. For USD-quoted contracts, contract
+    # size gives the hard cash value of one price unit per 1.00 lot. Use it as
+    # a conservative floor so position sizing never becomes oversized because a
+    # broker metadata field is too small.
+    contract_size = float(getattr(symbol_info, "trade_contract_size", 0) or 0)
+    contract_value = contract_size * pip_size(symbol_info) if contract_size > 0 else 0.0
+    return max(broker_value, contract_value)
 
 
 def prices_for_order(signal_type: SignalType, entry_price: float, sl_pips: float, tp_pips: float, symbol_info) -> OrderPrices:

@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [GBPUSD] Bot detenido por el usuario. >> logs\bot_gbpusd.log
 echo [%TIME%] [GBPUSD] Bot detenido por el usuario.
 pause
+
