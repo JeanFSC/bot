@@ -238,3 +238,52 @@ Real functional changes already present in that commit include:
   - launcher/watchdog/QA fixes
   - Telegram commander/QA updates
   - audit markdown files
+
+---
+
+## Verification Session — 2026-05-19
+
+- Timestamp: `2026-05-19T19:59:00-05:00`
+- Current branch: `codex/handoff-qa-cleanup`
+- HEAD: `286a28978b22304dc4bda9ef1d4a9f93f8a0f27d`
+- origin/main: `b3e5d877e1a46767b2d5c41e94385d78a88944fd`
+- Working tree at session start: clean (no uncommitted changes)
+
+### Objective
+
+Confirm the branch is ready for Bobby's review and eventual merge to main.
+No code changes intended — verification and audit doc update only.
+
+### Files reviewed/touched
+
+- `docs/memory/CODEX_WORKLOG.md` (this file — audit entry added)
+- `docs/reports/CODEX_HANDOFF.md` (verification section added)
+
+### Commands executed and results
+
+| Command | Result |
+|---|---|
+| `git status --short` | (clean) |
+| `git branch --show-current` | `codex/handoff-qa-cleanup` |
+| `git rev-parse HEAD` | `286a28978b22304dc4bda9ef1d4a9f93f8a0f27d` |
+| `git rev-parse origin/main` | `b3e5d877e1a46767b2d5c41e94385d78a88944fd` |
+| `git diff --stat origin/main...HEAD` | 157 files changed, 11671 ins, 260912 del |
+| `pytest -q` | `37 passed in 2.81s` |
+| `python qa_mt5_checks.py` | `MT5_CHECKS_ALL_OK` (12/12 symbols OK) |
+| `python qa_suite_smoke.py` | `SMOKE_OK all 12 configs passed MT5 check` |
+| `python WATCHDOG_SAFE_24H.py --mode live-demo --preflight` | `PREFLIGHT_OK mode=live-demo` |
+| `python qa_safe_24h.py` | `QA_SAFE_24H_OK` |
+| `python qa_full_mt5.py` | `QA_STATIC_OK` |
+
+### Watchdog live status observed during QA
+
+- trade_loops=11, live_loops=3, dry_run_loops=8
+- account balance=89397.38, equity=89397.38, open_positions=0
+- 3 live PIDs confirmed with `--trade-enabled`
+- recent_log_errors=0
+- Journals: pro_gbpjpy, pro_gold, pro_usdchf active
+
+### Verdict
+
+All QA green. No regressions detected. No code changes needed.
+Branch is ready for Bobby's review.

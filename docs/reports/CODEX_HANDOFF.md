@@ -201,6 +201,38 @@ Real functional content already included in `1721708`:
   - reduced live suite still behaves normally after a restart
   - research sandbox still remains dry-run only after a restart
 
+## Verification run — 2026-05-19
+
+Second-pass verification executed after the original handoff to confirm nothing drifted.
+
+- Timestamp: `2026-05-19T19:59:00-05:00`
+- HEAD unchanged: `286a28978b22304dc4bda9ef1d4a9f93f8a0f27d`
+- Working tree: clean
+
+### Results
+
+| QA script | Result |
+|---|---|
+| `pytest -q` | **37 passed** in 2.81s |
+| `qa_mt5_checks.py` | **MT5_CHECKS_ALL_OK** — 12/12 symbols |
+| `qa_suite_smoke.py` | **SMOKE_OK** — all 12 configs |
+| `WATCHDOG_SAFE_24H.py --mode live-demo --preflight` | **PREFLIGHT_OK** |
+| `qa_safe_24h.py` | **QA_SAFE_24H_OK** |
+| `qa_full_mt5.py` | **QA_STATIC_OK** |
+
+### Live state at time of check
+
+- live_loops=3, dry_run_loops=8, open_positions=0
+- balance=89397.38, recent_log_errors=0
+- Journals active: pro_gbpjpy, pro_gold, pro_usdchf
+
+### Conclusion
+
+No regressions. No new failures. Branch is stable and ready for Bobby's review.
+Recommendation: **merge to main once Bobby approves**.
+
+---
+
 ## How to review or revert
 
 ### Review
