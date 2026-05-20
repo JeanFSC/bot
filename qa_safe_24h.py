@@ -71,7 +71,27 @@ def main() -> int:
     run([sys.executable, "WATCHDOG_SAFE_24H.py", "--preflight"])
 
     print("\n== WATCHDOG STATUS QA ==")
-    run([sys.executable, "WATCHDOG_SAFE_24H.py", "--mode", "live-demo", "--status", "--expect-running"])
+    # Run without --expect-running so QA is deterministic regardless of live suite state.
+    # The static assertion above already validates that STATUS_SUITE.bat uses --expect-running.
+    status_cmd = [sys.executable, "WATCHDOG_SAFE_24H.py", "--mode", "live-demo", "--status"]
+    print("$", " ".join(status_cmd), flush=True)
+    proc = subprocess.run(status_cmd, cwd=ROOT, text=True, capture_output=True, timeout=90)
+    output = (proc.stdout or "") + (proc.stderr or "")
+    if proc.stdout:
+        print(proc.stdout.strip())
+    if proc.stderr:
+        print(proc.stderr.strip())
+    assert proc.returncode == 0, f"watchdog status failed rc={proc.returncode}"
+
+    # Optional: if live loops are detected, also validate --expect-running
+    import re
+    m = re.search(r"live_loops=(\d+)", output)
+    live_loops = int(m.group(1)) if m else 0
+    if live_loops > 0:
+        print(f"  live_loops={live_loops} detected — running --expect-running check")
+        run([sys.executable, "WATCHDOG_SAFE_24H.py", "--mode", "live-demo", "--status", "--expect-running"])
+    else:
+        print("  live_loops=0 — skipping --expect-running check (suite not running)")
 
     print("\nQA_SAFE_24H_OK")
     return 0

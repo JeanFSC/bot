@@ -287,3 +287,41 @@ No code changes intended — verification and audit doc update only.
 
 All QA green. No regressions detected. No code changes needed.
 Branch is ready for Bobby's review.
+
+---
+
+## Bobby Review Fixes — 2026-05-19
+
+- Timestamp: `2026-05-19T20:30:00-05:00`
+- Branch: `codex/handoff-qa-cleanup`
+- HEAD at start: `696c60eaee39396ca0322ee6a2889d14b7a6abc4`
+- Working tree: clean
+
+### Objective
+
+Two minimal fixes requested by Bobby after reviewing the branch:
+1. Make `qa_safe_24h.py` deterministic — runtime status must not require live loops
+2. Fix typo in `START_REDUCED_FORWARD_TEST.bat` — broken path `scriptssuite_status_report.py`
+
+### Files touched
+
+- `qa_safe_24h.py`
+- `START_REDUCED_FORWARD_TEST.bat`
+
+### Change 1 — qa_safe_24h.py: deterministic runtime status
+
+- Problem: line 74 ran `--expect-running` unconditionally, failing when suite was not running
+- Static assertion (lines 54-59) that `STATUS_SUITE.bat` contains `--expect-running` is kept intact
+- New rule:
+  - Runtime status call uses `--mode live-demo --status` (no --expect-running)
+  - Optional `--expect-running` check added in a separate conditional block,
+    only runs if `live_loops > 0` is detected from status output
+- Risk reduced: QA now passes regardless of whether the live suite is running at test time
+- Risk introduced: none — static contract validation is preserved
+
+### Change 2 — START_REDUCED_FORWARD_TEST.bat: path typo
+
+- Problem: `python scriptssuite_status_report.py` (missing backslash)
+- Fix: `python scripts\suite_status_report.py --since 2026-05-15 --write`
+- This was a broken echo line, not a runtime call — cosmetic but misleading to operators
+- Risk: none

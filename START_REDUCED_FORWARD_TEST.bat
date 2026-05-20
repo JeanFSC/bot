@@ -31,6 +31,6 @@ start "PRO GBPJPY" cmd /k "_restart_gbpjpy.bat --trade-enabled"
 
 echo.
 echo Reduced forward-test launch requested.
-echo Run: python scriptssuite_status_report.py --since 2026-05-15 --write
+echo Run: python scripts\suite_status_report.py --since 2026-05-15 --write
 echo.
 pause
