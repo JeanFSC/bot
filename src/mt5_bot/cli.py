@@ -290,12 +290,40 @@ def run_trade(
             account = gateway.account_info()
             storage.record_account(account)
             _sync_today_deals(gateway, storage, config.symbol, config.execution.magic)
+            terminal = gateway.terminal_info()
+            runtime_block = _runtime_trading_block_reason(account, terminal)
+            if runtime_block:
+                LOGGER.warning("Runtime trading permission block: %s", runtime_block)
+                storage.record_runtime_event(
+                    "pretrade_block",
+                    runtime_block,
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    level="critical",
+                    context={
+                        "account_trade_allowed": bool(getattr(account, "trade_allowed", False)),
+                        "account_trade_expert": bool(getattr(account, "trade_expert", False)),
+                        "terminal_trade_allowed": bool(getattr(terminal, "trade_allowed", False)),
+                        "tradeapi_disabled": bool(getattr(terminal, "tradeapi_disabled", False)),
+                    },
+                )
+                notifier.error_alert(config.symbol, runtime_block)
+                time.sleep(config.poll_seconds)
+                continue
 
             stop_decision = equity_stop_decision(
                 float(account.equity), target_equity=target_equity, floor_equity=floor_equity,
             )
             if stop_decision.stop:
                 LOGGER.warning("Equity stop: reason=%s equity=%.2f", stop_decision.reason, account.equity)
+                storage.record_runtime_event(
+                    "equity_stop",
+                    stop_decision.reason,
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    level="critical",
+                    context={"equity": float(account.equity), "target_equity": target_equity, "floor_equity": floor_equity},
+                )
                 return 0
 
             today = datetime.now(timezone.utc).date()
@@ -322,17 +350,40 @@ def run_trade(
 
             if is_daily_loss_limit_hit(daily_state, config.max_daily_loss_pct):
                 LOGGER.warning("Daily loss limit hit. New entries blocked.")
+                storage.record_runtime_event(
+                    "pretrade_block",
+                    "daily_loss_pct",
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    level="warning",
+                    context={"equity": float(account.equity), "start_equity": daily_state.start_equity, "max_daily_loss_pct": config.max_daily_loss_pct},
+                )
                 notifier.daily_limit_hit("daily_loss_pct", float(account.equity), config.symbol)
                 _sleep_and_manage_trailing(executor, config, current_spread)
                 continue
             if is_trade_count_limit_hit(daily_state, config.max_trades_per_day):
                 LOGGER.warning("Daily trade count limit hit. New entries blocked.")
+                storage.record_runtime_event(
+                    "pretrade_block",
+                    "max_trades_per_day",
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    level="warning",
+                    context={"trades_count": daily_state.trades_count, "max_trades_per_day": config.max_trades_per_day},
+                )
                 notifier.daily_limit_hit("max_trades_per_day", float(account.equity), config.symbol)
                 _sleep_and_manage_trailing(executor, config, current_spread)
                 continue
 
             if current_spread > config.max_spread_pips:
                 LOGGER.info("Spread filter: %.2f > %.2f", current_spread, config.max_spread_pips)
+                storage.record_runtime_event(
+                    "pretrade_block",
+                    "spread_filter",
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    context={"spread_pips": current_spread, "max_spread_pips": config.max_spread_pips},
+                )
                 _sleep_and_manage_trailing(executor, config, current_spread)
                 continue
 
@@ -343,6 +394,14 @@ def run_trade(
                         LOGGER.warning(
                             "Portfolio guard: new entries blocked reason=%s margin_pct=%.1f open_positions=%s",
                             guard.reason, guard.margin_pct, guard.open_positions,
+                        )
+                        storage.record_runtime_event(
+                            "pretrade_block",
+                            guard.reason,
+                            symbol=config.symbol,
+                            magic=config.execution.magic,
+                            level="warning",
+                            context={"margin_pct": guard.margin_pct, "open_positions": guard.open_positions},
                         )
                         _sleep_and_manage_trailing(executor, config, current_spread)
                         continue
@@ -363,6 +422,19 @@ def run_trade(
                                 strategy_config.session_start_hour, strategy_config.session_end_hour,
                                 getattr(strategy_config, "session2_start_hour", 0),
                                 getattr(strategy_config, "session2_end_hour", 0))
+                    storage.record_runtime_event(
+                        "pretrade_block",
+                        "session_filter",
+                        symbol=config.symbol,
+                        magic=config.execution.magic,
+                        context={
+                            "hour_utc": hour_utc,
+                            "session_start_hour": strategy_config.session_start_hour,
+                            "session_end_hour": strategy_config.session_end_hour,
+                            "session2_start_hour": getattr(strategy_config, "session2_start_hour", 0),
+                            "session2_end_hour": getattr(strategy_config, "session2_end_hour", 0),
+                        },
+                    )
                     _sleep_and_manage_trailing(executor, config, current_spread)
                     continue
 
@@ -375,6 +447,14 @@ def run_trade(
                 ):
                     LOGGER.info("News filter: high-impact event nearby â€” skipping entry")
                     pending_retest = None  # invalidate any pending retest during news
+                    storage.record_runtime_event(
+                        "pretrade_block",
+                        "news_filter",
+                        symbol=config.symbol,
+                        magic=config.execution.magic,
+                        level="warning",
+                        context={"minutes_before": config.news_minutes_before, "minutes_after": config.news_minutes_after},
+                    )
                     _sleep_and_manage_trailing(executor, config, current_spread)
                     continue
 
@@ -760,11 +840,29 @@ def run_trade(
                     context={
                         "spread_pips": current_spread,
                         "account_equity": float(account.equity),
+                        "account_balance": float(account.balance),
+                        "margin": float(getattr(account, "margin", 0.0) or 0.0),
+                        "hour_utc": datetime.now(timezone.utc).hour,
+                        "weekday_utc": datetime.now(timezone.utc).weekday(),
+                        "session": _session_bucket(datetime.now(timezone.utc).hour),
+                        "timeframe": config.timeframe,
+                        "trend_timeframe": config.trend_timeframe,
                         "signal_reason": entry_signal.reason,
+                        "raw_signal_type": signal.type.value,
+                        "raw_signal_reason": signal.reason,
                         "trend_bias": entry_signal.trend_bias,
                         "rsi": entry_signal.rsi,
                         "atr_pips": entry_signal.atr_pips,
                         "adx": entry_signal.adx,
+                        "max_spread_pips": config.max_spread_pips,
+                        "max_daily_loss_pct": config.max_daily_loss_pct,
+                        "max_symbol_daily_loss_pct": config.max_symbol_daily_loss_pct,
+                        "max_symbol_weekly_loss_pct": config.max_symbol_weekly_loss_pct,
+                        "max_effective_risk_pct": config.max_effective_risk_pct,
+                        "base_config_risk_pct": config.risk.risk_pct,
+                        "final_risk_pct": base_risk_pct,
+                        "correlation_risk_factor": _corr_risk_factor,
+                        "portfolio_risk_factor": _portfolio_overlap_risk_factor,
                         "requested_price": (result.request or {}).get("price") if result.request else None,
                         "filled_price": getattr(result.result, "price", None) if result.result is not None else None,
                         "retcode": getattr(result.result, "retcode", None) if result.result is not None else None,
@@ -886,6 +984,30 @@ def _connect_and_validate(gateway, config) -> None:
             "Asesores Expertos and uncheck 'Desactivar el comercio algoritmico a traves de Python'."
         )
     gateway.symbol_select(config.symbol)
+
+
+def _runtime_trading_block_reason(account, terminal) -> str | None:
+    if not bool(getattr(terminal, "connected", True)):
+        return "terminal_disconnected"
+    if not bool(getattr(account, "trade_allowed", False)):
+        return "account_trade_allowed_false"
+    if not bool(getattr(account, "trade_expert", False)):
+        return "account_trade_expert_false"
+    if not bool(getattr(terminal, "trade_allowed", False)):
+        return "terminal_trade_allowed_false"
+    if bool(getattr(terminal, "tradeapi_disabled", False)):
+        return "tradeapi_disabled_true"
+    return None
+
+
+def _session_bucket(hour_utc: int) -> str:
+    if 7 <= hour_utc < 12:
+        return "session_london"
+    if 12 <= hour_utc < 17:
+        return "session_london_ny"
+    if 17 <= hour_utc < 22:
+        return "session_ny"
+    return "session_asia"
 
 
 def _parse_date(value: str) -> datetime:

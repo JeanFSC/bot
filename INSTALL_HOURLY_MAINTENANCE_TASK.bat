@@ -5,7 +5,7 @@ REM Ejecutar como Administrador en el VPS si quieres que corra sin sesion intera
 set TASK_NAME=MT5AgentMaintenanceHourly
 set BOT_DIR=%~dp0
 
-schtasks /Create /TN %TASK_NAME% /SC HOURLY /MO 1 /TR "cmd /c cd /d \"%BOT_DIR%\" && uv run python -m mt5_bot.maintenance --agent-config config/autonomous_agent.yaml --reports-dir reports --backups-dir backups --backup-keep 48" /F
+schtasks /Create /TN %TASK_NAME% /SC HOURLY /MO 1 /TR "\"%BOT_DIR%RUN_AGENT_MAINTENANCE_BACKGROUND.bat\"" /F
 
 echo Tarea creada: %TASK_NAME%
 pause

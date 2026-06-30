@@ -129,6 +129,17 @@ class BotStorage:
                 rr REAL,
                 context_json TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS runtime_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                level TEXT NOT NULL,
+                symbol TEXT,
+                magic INTEGER,
+                event_type TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                context_json TEXT NOT NULL
+            );
             """
         )
         self._ensure_order_columns()
@@ -162,6 +173,35 @@ class BotStorage:
                 payload.get("margin"),
                 payload.get("margin_free"),
                 json.dumps(payload, default=_json_default),
+            ),
+        )
+        self.connection.commit()
+
+    def record_runtime_event(
+        self,
+        event_type: str,
+        reason: str,
+        *,
+        symbol: str | None = None,
+        magic: int | None = None,
+        level: str = "info",
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        self.connection.execute(
+            """
+            INSERT INTO runtime_events (
+                created_at, level, symbol, magic, event_type, reason, context_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                _now(),
+                level,
+                symbol,
+                magic,
+                event_type,
+                reason,
+                json.dumps(context or {}, default=_json_default),
             ),
         )
         self.connection.commit()

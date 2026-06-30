@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import uuid
 from datetime import datetime, timezone
@@ -35,6 +36,33 @@ class ExperimentLog:
         self._append(event)
         return event
 
+    def snapshot_configs(self, config_paths: Sequence[str | Path]) -> dict[str, Any] | None:
+        """Append one event only when the tracked config fingerprint changes."""
+        fingerprints = {}
+        for raw_path in config_paths:
+            path = Path(raw_path)
+            if not path.exists():
+                fingerprints[str(path)] = {"exists": False, "sha256": None}
+                continue
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            fingerprints[str(path)] = {"exists": True, "sha256": digest}
+        fingerprint = hashlib.sha256(json.dumps(fingerprints, sort_keys=True).encode("utf-8")).hexdigest()
+        previous = next(
+            (event for event in reversed(self.read_all()) if event.get("event") == "config_snapshot"),
+            None,
+        )
+        if previous and previous.get("fingerprint") == fingerprint:
+            return None
+        event = {
+            "id": f"cfg-{fingerprint[:12]}",
+            "event": "config_snapshot",
+            "created_at": _now(),
+            "fingerprint": fingerprint,
+            "configs": fingerprints,
+        }
+        self._append(event)
+        return event
+
     def read_all(self) -> list[dict[str, Any]]:
         if not self.path.exists():
             return []
@@ -55,6 +83,17 @@ class ExperimentLog:
             return "\n".join(lines) + "\n"
         for experiment_id, events in grouped.items():
             start = next((event for event in events if event["event"] == "start"), events[0])
+            if start.get("event") == "config_snapshot":
+                lines.extend([
+                    f"## Config snapshot {start.get('fingerprint', experiment_id)[:12]}",
+                    "",
+                    f"- ID: `{experiment_id}`",
+                    f"- Created: `{start.get('created_at')}`",
+                ])
+                for path, payload in sorted((start.get("configs") or {}).items()):
+                    lines.append(f"- `{path}`: `{payload.get('sha256') if payload.get('exists') else 'missing'}`")
+                lines.append("")
+                continue
             lines.extend([
                 f"## {start.get('name', experiment_id)}",
                 "",
@@ -97,6 +136,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--outcome")
     parser.add_argument("--metrics-json", default="{}")
     parser.add_argument("--markdown", default="reports/experiments.md")
+    parser.add_argument("--config", action="append", dest="configs")
     args = parser.parse_args(argv)
     log = ExperimentLog(args.path)
     if args.action == "start":
@@ -109,6 +149,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         event = log.finish(args.id or "unknown", args.outcome or "unknown", json.loads(args.metrics_json))
         print(json.dumps(event, ensure_ascii=False))
     elif args.action == "render":
+        if args.configs:
+            log.snapshot_configs(args.configs)
         print(f"EXPERIMENTS_MD {log.write_markdown(args.markdown)}")
     return 0
 

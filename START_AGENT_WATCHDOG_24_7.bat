@@ -11,5 +11,7 @@ echo [INFO] Reportes: data\watchdog_health.jsonl
 echo.
 pause
 cd /d "%~dp0"
+set PYTHONIOENCODING=utf-8
+set PYTHONUTF8=1
 uv run python -m mt5_bot.agent_watchdog --agent-config config/autonomous_agent.yaml --interval-seconds 900 --stale-after-seconds 1200 --report-path data/watchdog_health.jsonl
 pause

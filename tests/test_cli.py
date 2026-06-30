@@ -1,7 +1,7 @@
 from datetime import date
 from types import SimpleNamespace
 
-from mt5_bot.cli import _connect_and_validate, _new_daily_risk_state, _should_stop_after_action
+from mt5_bot.cli import _connect_and_validate, _new_daily_risk_state, _runtime_trading_block_reason, _should_stop_after_action
 
 
 def test_new_daily_risk_state_starts_with_zero_trades():
@@ -69,3 +69,17 @@ def test_connect_and_validate_initializes_terminal_with_credentials_before_login
     )
     assert gateway.login_args == (123456, "secret-demo-password", "MetaQuotes-Demo")
     assert gateway.selected_symbol == "USDCHF"
+
+
+def test_runtime_trading_block_reason_detects_terminal_python_disabled():
+    account = SimpleNamespace(trade_allowed=True, trade_expert=True)
+    terminal = SimpleNamespace(connected=True, trade_allowed=True, tradeapi_disabled=True)
+
+    assert _runtime_trading_block_reason(account, terminal) == "tradeapi_disabled_true"
+
+
+def test_runtime_trading_block_reason_allows_clean_permissions():
+    account = SimpleNamespace(trade_allowed=True, trade_expert=True)
+    terminal = SimpleNamespace(connected=True, trade_allowed=True, tradeapi_disabled=False)
+
+    assert _runtime_trading_block_reason(account, terminal) is None

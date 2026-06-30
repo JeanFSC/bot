@@ -21,6 +21,7 @@ if not exist "%NSSM%" (
 "%NSSM%" set %SERVICE_NAME% AppDirectory "%BOT_DIR%"
 "%NSSM%" set %SERVICE_NAME% AppStdout "%BOT_DIR%logs\watchdog_stdout.log"
 "%NSSM%" set %SERVICE_NAME% AppStderr "%BOT_DIR%logs\watchdog_stderr.log"
+"%NSSM%" set %SERVICE_NAME% AppEnvironmentExtra PYTHONIOENCODING=utf-8 PYTHONUTF8=1
 "%NSSM%" set %SERVICE_NAME% AppRestartDelay 10000
 "%NSSM%" set %SERVICE_NAME% Start SERVICE_AUTO_START
 

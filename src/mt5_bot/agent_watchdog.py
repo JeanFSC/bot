@@ -237,6 +237,24 @@ def collect_journal_statuses(agent_config_path: Path | str) -> list[JournalStatu
     return statuses
 
 
+def _legacy_format_report_corrupt(report: WatchdogReport) -> str:
+    summary = report.summary
+    reasons = ", ".join(report.reasons) if report.reasons else "none"
+    journal_bits = []
+    for journal in report.journals:
+        age = journal.get("age_seconds")
+        age_text = "n/a" if age is None else f"{age}s"
+        journal_bits.append(f"{journal['symbol']}:{journal.get('execution_reason')} age={age_text}")
+    journals = " | ".join(journal_bits) if journal_bits else "no journals"
+    return (
+        f"[MT5 Agent Watchdog {report.level.upper()}]\n"
+        f"Equity: {summary['equity']:.2f} | Balance: {summary['balance']:.2f} | Positions: {summary['open_positions']}\n"
+        f"Trading: acct={summary['account_trade_allowed']} terminal={summary['terminal_trade_allowed']} api_disabled={summary['tradeapi_disabled']}\n"
+        f"Reasons: {reasons}\n"
+        f"Journals: {journals}"
+    )
+
+
 def format_report(report: WatchdogReport) -> str:
     summary = report.summary
     reasons = ", ".join(report.reasons) if report.reasons else "none"
@@ -247,12 +265,36 @@ def format_report(report: WatchdogReport) -> str:
         journal_bits.append(f"{journal['symbol']}:{journal.get('execution_reason')} age={age_text}")
     journals = " | ".join(journal_bits) if journal_bits else "no journals"
     return (
-        f"🩺 MT5 Agent Watchdog {report.level.upper()}\n"
+        f"[MT5 Agent Watchdog {report.level.upper()}]\n"
         f"Equity: {summary['equity']:.2f} | Balance: {summary['balance']:.2f} | Positions: {summary['open_positions']}\n"
         f"Trading: acct={summary['account_trade_allowed']} terminal={summary['terminal_trade_allowed']} api_disabled={summary['tradeapi_disabled']}\n"
         f"Reasons: {reasons}\n"
         f"Journals: {journals}"
     )
+
+
+def should_agent_run(report: WatchdogReport) -> bool:
+    """Return whether the managed trader process is allowed to run."""
+    return report.level != "critical"
+
+
+def _start_agent(command: list[str]) -> subprocess.Popen:
+    env = dict(os.environ)
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    env.setdefault("PYTHONUTF8", "1")
+    return subprocess.Popen(command, cwd=Path.cwd(), env=env)
+
+
+def _stop_agent(child: subprocess.Popen, reason: str) -> None:
+    if child.poll() is not None:
+        return
+    child.terminate()
+    try:
+        child.wait(timeout=20)
+    except subprocess.TimeoutExpired:
+        notifier.error_alert("WATCHDOG", f"Force killing agent after stop timeout: {reason}")
+        child.kill()
+        child.wait(timeout=10)
 
 
 def build_agent_command(agent_config_path: Path | str) -> list[str]:
@@ -283,11 +325,6 @@ def run_watchdog(
 
     try:
         while True:
-            if manage_agent and (child is None or child.poll() is not None):
-                if child is not None:
-                    notifier.error_alert("WATCHDOG", f"Agent process exited rc={child.returncode}; restarting")
-                child = subprocess.Popen(command, cwd=Path.cwd())
-
             mt5_health = collect_mt5_health()
             journals = collect_journal_statuses(agent_config_path)
             report = evaluate_health(
@@ -303,6 +340,22 @@ def run_watchdog(
             if report.level != "ok" or report.level != last_level:
                 notifier.notify(message)
             last_level = report.level
+
+            if manage_agent:
+                if child is not None and child.poll() is not None:
+                    notifier.error_alert("WATCHDOG", f"Agent process exited rc={child.returncode}; restart decision follows health gate")
+                    child = None
+
+                if not should_agent_run(report):
+                    if child is not None:
+                        reason = ", ".join(report.reasons) or "critical_health"
+                        notifier.error_alert("WATCHDOG", f"Stopping agent due to critical health: {reason}")
+                        _stop_agent(child, reason)
+                        child = None
+                elif child is None:
+                    child = _start_agent(command)
+                    notifier.notify("[WATCHDOG] Agent process started")
+
             time.sleep(interval_seconds)
     except KeyboardInterrupt:
         if child is not None and child.poll() is None:
