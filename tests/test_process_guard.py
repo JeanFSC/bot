@@ -18,7 +18,7 @@ def test_find_duplicate_trade_groups_allows_normal_uv_pair():
         ProcessRow(2, 1, "python -m mt5_bot trade --config config\\pro_gold.yaml"),
     ]
 
-    assert find_duplicate_trade_groups(rows) == []
+    assert find_duplicate_trade_groups(rows, expected_processes_per_trade=2) == []
 
 
 def test_find_duplicate_trade_groups_flags_more_than_one_pair():
@@ -29,7 +29,7 @@ def test_find_duplicate_trade_groups_flags_more_than_one_pair():
         ProcessRow(4, 3, "python -m mt5_bot trade --config config\\pro_gold.yaml"),
     ]
 
-    groups = find_duplicate_trade_groups(rows)
+    groups = find_duplicate_trade_groups(rows, expected_processes_per_trade=2)
 
     assert len(groups) == 1
     assert groups[0].config_path == "config\\pro_gold.yaml"
