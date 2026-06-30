@@ -6,6 +6,7 @@ from mt5_bot.autonomous_agent import (
     classify_setup,
     decide_trade,
     adjusted_risk_pct,
+    signal_confidence,
 )
 from mt5_bot.strategy import Signal, SignalType
 
@@ -87,6 +88,14 @@ def test_decision_allows_high_confidence_fresh_setup(tmp_path: Path):
     )
 
     assert decision == AgentDecision.ALLOW
+
+
+def test_signal_confidence_accepts_strategy_trend_bias_names():
+    buy = _signal(signal_type=SignalType.BUY, trend_bias="bullish")
+    sell = _signal(signal_type=SignalType.SELL, trend_bias="bearish")
+
+    assert signal_confidence(buy, spread_pips=0.0, max_spread_pips=10.0) >= 0.90
+    assert signal_confidence(sell, spread_pips=0.0, max_spread_pips=10.0) >= 0.90
 
 
 def test_adjusted_risk_pct_applies_memory_multiplier(tmp_path: Path):

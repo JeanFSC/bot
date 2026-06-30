@@ -466,7 +466,7 @@ class BotStorage:
         cutoff = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
         cursor = self.connection.execute(
             """
-            SELECT COALESCE(SUM(profit), 0.0)
+            SELECT COALESCE(SUM(COALESCE(profit, 0) + COALESCE(commission, 0) + COALESCE(swap, 0)), 0.0)
             FROM deals
             WHERE symbol = ?
               AND magic = ?

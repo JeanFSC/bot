@@ -168,7 +168,7 @@ class TradeExecutor:
         self.storage = storage
         self.config  = config
         self.last_trade_monotonic = 0.0
-        self.last_reverse_close_monotonic = 0.0
+        self.last_reverse_close_monotonic: float | None = None
         # Track which position tickets have already been partially closed
         self._partial_closed_tickets: set[int] = set()
 
@@ -219,11 +219,12 @@ class TradeExecutor:
         if elapsed < self.config.cooldown_seconds:
             return ExecutionResult("skipped", "cooldown")
 
-        reverse_elapsed = time.monotonic() - self.last_reverse_close_monotonic
         reverse_cooldown = getattr(self.config, "reverse_cooldown_seconds", 0)
-        if reverse_cooldown > 0 and reverse_elapsed < reverse_cooldown:
-            remaining = max(0, int(reverse_cooldown - reverse_elapsed))
-            return ExecutionResult("skipped", f"reverse_cooldown_{remaining}s")
+        if reverse_cooldown > 0 and self.last_reverse_close_monotonic is not None:
+            reverse_elapsed = time.monotonic() - self.last_reverse_close_monotonic
+            if reverse_elapsed < reverse_cooldown:
+                remaining = max(0, int(reverse_cooldown - reverse_elapsed))
+                return ExecutionResult("skipped", f"reverse_cooldown_{remaining}s")
 
         max_trades_hour = int(getattr(self.config, "max_trades_per_symbol_per_hour", 0) or 0)
         if max_trades_hour > 0:

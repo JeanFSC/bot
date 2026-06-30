@@ -223,10 +223,11 @@ def signal_confidence(signal: Signal, spread_pips: float, max_spread_pips: float
     if signal.type is SignalType.NONE:
         return 0.0
     score = 0.50
-    if signal.trend_bias:
-        if signal.type is SignalType.BUY and signal.trend_bias == "up":
+    trend_bias = (signal.trend_bias or "").lower()
+    if trend_bias:
+        if signal.type is SignalType.BUY and trend_bias in {"up", "bullish"}:
             score += 0.15
-        elif signal.type is SignalType.SELL and signal.trend_bias == "down":
+        elif signal.type is SignalType.SELL and trend_bias in {"down", "bearish"}:
             score += 0.15
     if signal.adx is not None and signal.adx >= 24:
         score += 0.10

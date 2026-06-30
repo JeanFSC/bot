@@ -98,7 +98,7 @@ class BotConfig:
     max_position_minutes: int = 0
     time_stop_min_profit_pips: float = 0.0
     profit_target_usd: Optional[float] = None
-    baseline_equity: float = 102000.0
+    baseline_equity: float = 0.0
     database_path: Path = Path("data/trades.sqlite")
     use_partial_close: bool = False
     partial_close_ratio: float = 0.5
@@ -187,7 +187,7 @@ def load_config(path: str | Path) -> BotConfig:
         max_position_minutes=int(raw.get("max_position_minutes", 0)),
         time_stop_min_profit_pips=float(raw.get("time_stop_min_profit_pips", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
-        baseline_equity=float(raw.get("baseline_equity", 102000.0)),
+        baseline_equity=float(raw["baseline_equity"]) if "baseline_equity" in raw else 0.0,
         database_path=Path(raw.get("database_path", "data/trades.sqlite")),
         use_partial_close=bool(raw.get("use_partial_close", False)),
         partial_close_ratio=float(raw.get("partial_close_ratio", 0.5)),
@@ -253,6 +253,8 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("reverse_cooldown_seconds must be >= 0")
     if config.max_loss_per_symbol_per_hour_pct < 0:
         raise ValueError("max_loss_per_symbol_per_hour_pct must be >= 0")
+    if config.baseline_equity <= 0:
+        raise ValueError("baseline_equity must be explicitly set to a positive value")
     if config.max_symbol_daily_loss_pct < 0:
         raise ValueError("max_symbol_daily_loss_pct must be >= 0")
     if config.max_symbol_weekly_loss_pct < 0:

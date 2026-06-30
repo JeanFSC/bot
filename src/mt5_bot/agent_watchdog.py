@@ -237,24 +237,6 @@ def collect_journal_statuses(agent_config_path: Path | str) -> list[JournalStatu
     return statuses
 
 
-def _legacy_format_report_corrupt(report: WatchdogReport) -> str:
-    summary = report.summary
-    reasons = ", ".join(report.reasons) if report.reasons else "none"
-    journal_bits = []
-    for journal in report.journals:
-        age = journal.get("age_seconds")
-        age_text = "n/a" if age is None else f"{age}s"
-        journal_bits.append(f"{journal['symbol']}:{journal.get('execution_reason')} age={age_text}")
-    journals = " | ".join(journal_bits) if journal_bits else "no journals"
-    return (
-        f"[MT5 Agent Watchdog {report.level.upper()}]\n"
-        f"Equity: {summary['equity']:.2f} | Balance: {summary['balance']:.2f} | Positions: {summary['open_positions']}\n"
-        f"Trading: acct={summary['account_trade_allowed']} terminal={summary['terminal_trade_allowed']} api_disabled={summary['tradeapi_disabled']}\n"
-        f"Reasons: {reasons}\n"
-        f"Journals: {journals}"
-    )
-
-
 def format_report(report: WatchdogReport) -> str:
     summary = report.summary
     reasons = ", ".join(report.reasons) if report.reasons else "none"
