@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-uv run python -m mt5_bot.agent_runner --agent-config config/autonomous_agent.yaml run-once
+call MT5_AGENT.bat paper-once
 pause

@@ -35,7 +35,23 @@ def parse_trade_config(command_line: str) -> str | None:
     return match.group(1).strip("\"'")
 
 
-def find_duplicate_trade_groups(rows: Sequence[ProcessRow], *, expected_processes_per_trade: int = 2) -> list[DuplicateTradeGroup]:
+def default_expected_processes_per_trade() -> int:
+    """Return the normal process count for one trade loop on this platform.
+
+    On this Windows/uv deployment a legitimate trade loop appears twice: the
+    venv python shim plus the uv-managed Python child. On POSIX, direct process
+    execution is normally one row.
+    """
+    return 2 if os.name == "nt" else 1
+
+
+def find_duplicate_trade_groups(
+    rows: Sequence[ProcessRow],
+    *,
+    expected_processes_per_trade: int | None = None,
+) -> list[DuplicateTradeGroup]:
+    if expected_processes_per_trade is None:
+        expected_processes_per_trade = default_expected_processes_per_trade()
     groups: dict[str, list[ProcessRow]] = {}
     current_pid = os.getpid()
     for row in rows:
@@ -67,10 +83,15 @@ def collect_process_rows() -> list[ProcessRow]:
     return _collect_posix_process_rows()
 
 
-def audit_duplicate_trades() -> dict[str, object]:
-    duplicates = find_duplicate_trade_groups(collect_process_rows())
+def audit_duplicate_trades(expected_processes_per_trade: int | None = None) -> dict[str, object]:
+    expected = default_expected_processes_per_trade() if expected_processes_per_trade is None else expected_processes_per_trade
+    duplicates = find_duplicate_trade_groups(
+        collect_process_rows(),
+        expected_processes_per_trade=expected,
+    )
     return {
         "ok": not duplicates,
+        "expected_processes_per_trade": expected,
         "duplicate_groups": [asdict(group) for group in duplicates],
     }
 
@@ -131,12 +152,21 @@ def _normalize_config(config: str) -> str:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="mt5_process_guard")
     parser.add_argument("--json", action="store_true")
+    parser.add_argument(
+        "--expected-processes-per-trade",
+        type=int,
+        default=None,
+        help="Override normal process rows per trade loop. Default is 2 on Windows/uv, 1 elsewhere.",
+    )
     args = parser.parse_args(argv)
-    report = audit_duplicate_trades()
+    report = audit_duplicate_trades(args.expected_processes_per_trade)
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     elif report["ok"]:
-        print("PROCESS_GUARD_OK no duplicate mt5_bot trade configs")
+        print(
+            "PROCESS_GUARD_OK no duplicate mt5_bot trade configs "
+            f"(expected_processes_per_trade={report['expected_processes_per_trade']})"
+        )
     else:
         print("PROCESS_GUARD_DUPLICATES")
         for group in report["duplicate_groups"]:

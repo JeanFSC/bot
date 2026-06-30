@@ -17,6 +17,7 @@ max_trades_per_day: 100
 cooldown_seconds: 15     # 15s de espera entre entrada y entrada
 profit_target_usd: 150.0 # cierra la posición al alcanzar $150 de profit flotante
 database_path: data/scalper.sqlite
+baseline_equity: 3000.0
 
 risk:
   mode: fixed_lot

@@ -1,4 +1,5 @@
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -42,3 +43,17 @@ def test_config_accepts_explicit_positive_baseline_equity(tmp_path):
     config = load_config(path)
 
     assert config.baseline_equity == 3000.0
+
+
+def test_all_bot_configs_load_with_explicit_baseline_equity():
+    config_dir = Path(__file__).resolve().parents[1] / "config"
+    configs = sorted(
+        path
+        for path in config_dir.glob("*.yaml")
+        if path.name != "autonomous_agent.yaml"
+    )
+
+    assert configs
+    for path in configs:
+        config = load_config(path)
+        assert config.baseline_equity > 0, path

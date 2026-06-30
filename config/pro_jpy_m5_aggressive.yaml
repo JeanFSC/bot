@@ -16,6 +16,7 @@ cooldown_seconds: 15
 use_partial_close: true
 partial_close_ratio: 0.35
 profit_target_usd: null
+baseline_equity: 3000.0
 database_path: data/pro_jpy_m5.sqlite
 risk:
   mode: percent_equity
