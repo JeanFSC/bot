@@ -264,7 +264,6 @@ class TradeExecutor:
                 )
                 close_result = self.gateway.order_send(close_req)
                 self._record_order_result(close_req, close_result, symbol_info)
-                # Fix #3: verify close succeeded before opening new position
                 close_retcode = getattr(close_result, "retcode", None)
                 if close_retcode not in {0, 10008, 10009}:
                     _log.warning(
@@ -281,7 +280,6 @@ class TradeExecutor:
                         position.ticket, self.config.symbol, float(position.volume),
                         float(getattr(position, "profit", 0.0)), close_retcode,
                     )
-                    # Fix #2: notify Telegram of the closed trade with P&L
                     try:
                         from mt5_bot import notifier
                         profit = float(getattr(position, "profit", 0.0))

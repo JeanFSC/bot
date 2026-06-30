@@ -598,7 +598,7 @@ def run_trade(
             # Positive compounding: for each +5% equity growth over baseline,
             # add +10% to risk, capped at 2.5x. This accelerates winners but
             # keeps a hard ceiling before ADX boost.
-            baseline_equity = max(float(getattr(config, "baseline_equity", 102000.0)), 1.0)
+            baseline_equity = max(float(getattr(config, "baseline_equity", 0.0)), 1.0)
             equity_growth_pct = max(0.0, (float(account.equity) - baseline_equity) / baseline_equity * 100.0)
             compound_factor = 1.0 + int(equity_growth_pct // 5.0) * 0.10
             compound_factor = min(compound_factor, 2.5)
