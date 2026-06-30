@@ -3,13 +3,22 @@
 import argparse
 import logging
 import logging.handlers
+import os
 import time
 from dataclasses import replace
-from datetime import datetime, time as datetime_time, timedelta, timezone
+from datetime import date, datetime, time as datetime_time, timedelta, timezone
 from pathlib import Path
 
 from mt5_bot.backtest import run_backtest
+from mt5_bot.autonomous_agent import (
+    AgentDecision,
+    EvolutionMemory,
+    adjusted_risk_pct,
+    classify_setup,
+    decide_trade,
+)
 from mt5_bot.config import load_config, load_config_from_env
+
 from mt5_bot.executor import TradeExecutor
 from mt5_bot.mt5_gateway import MT5Gateway
 from mt5_bot import notifier
@@ -31,6 +40,23 @@ from mt5_bot.strategy import (
 
 
 LOGGER = logging.getLogger("mt5_bot")
+
+
+def _should_stop_after_action(stop_after_action: bool, status: str) -> bool:
+    return bool(stop_after_action and status in {"dry_run", "sent"})
+
+
+def _new_daily_risk_state(
+    day: date,
+    account_equity: float,
+    persisted_start_equity: float | None,
+) -> DailyRiskState:
+    return DailyRiskState(
+        day=day,
+        start_equity=float(persisted_start_equity or account_equity),
+        current_equity=float(account_equity),
+        trades_count=0,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -200,8 +226,13 @@ def run_trade(
 
     gateway  = MT5Gateway()
     storage  = BotStorage(config.database_path)
+    agent_memory_path = os.getenv("MT5_AGENT_MEMORY_DB")
+    agent_memory = EvolutionMemory(agent_memory_path) if agent_memory_path else None
+    if agent_memory:
+        LOGGER.info("Autonomous agent memory enabled: %s", agent_memory_path)
     executor = TradeExecutor(gateway, storage, config)
     daily_state: DailyRiskState | None = None
+
     started_at = time.monotonic()
 
     trend_bars  = max(config.strategy.trend_ema * 3, 200)
@@ -271,9 +302,10 @@ def run_trade(
             if daily_state is None or daily_state.day != today:
                 day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
                 persisted_start_equity = storage.get_day_start_equity(day_start)
-                daily_state = DailyRiskState(
-                    day=today, start_equity=float(persisted_start_equity or account.equity),
-                    current_equity=float(account.equity), trades_count=0,
+                daily_state = _new_daily_risk_state(
+                    today,
+                    account_equity=float(account.equity),
+                    persisted_start_equity=persisted_start_equity,
                 )
             else:
                 daily_state = DailyRiskState(
@@ -631,6 +663,40 @@ def run_trade(
                 )
                 base_risk_pct = max_effective_risk_pct
 
+            if agent_memory is not None and entry_signal.type is not SignalType.NONE:
+                setup_key = classify_setup(config.symbol, entry_signal, datetime.now(timezone.utc).hour)
+                agent_decision = decide_trade(
+                    symbol=config.symbol,
+                    signal=entry_signal,
+                    memory=agent_memory,
+                    hour_utc=datetime.now(timezone.utc).hour,
+                    spread_pips=current_spread,
+                    max_spread_pips=config.max_spread_pips,
+                    min_confidence=float(os.getenv("MT5_AGENT_MIN_CONFIDENCE", "0.55")),
+                    max_consecutive_setup_losses=int(os.getenv("MT5_AGENT_MAX_SETUP_LOSSES", "2")),
+                )
+                if agent_decision is AgentDecision.BLOCK:
+                    LOGGER.warning("Autonomous agent blocked setup=%s", setup_key)
+                    entry_signal = Signal(
+                        SignalType.NONE, entry_signal.price, entry_signal.time,
+                        "agent_memory_block", entry_signal.fast_ema, entry_signal.slow_ema,
+                        entry_signal.rsi, entry_signal.atr, entry_signal.atr_pips,
+                        entry_signal.trend_bias, entry_signal.adx,
+                    )
+                elif agent_decision is AgentDecision.REDUCE_RISK:
+                    learned_risk = adjusted_risk_pct(
+                        agent_memory,
+                        config.symbol,
+                        setup_key,
+                        base_risk_pct,
+                        floor_pct=float(os.getenv("MT5_AGENT_MIN_RISK_PCT", "0.05")),
+                    )
+                    LOGGER.info(
+                        "Autonomous agent reduced risk: setup=%s risk_pct=%.3f -> %.3f",
+                        setup_key, base_risk_pct, learned_risk,
+                    )
+                    base_risk_pct = learned_risk
+
             exec_config_override = None
             if config.use_equity_curve_filter:
                 consecutive_losses = storage.get_consecutive_losses(
@@ -724,7 +790,7 @@ def run_trade(
                         atr_pips=entry_signal.atr_pips, adx=entry_signal.adx,
                     )
 
-            if stop_after_action and result.status in {"dry_run", "sent", "rejected"}:
+            if _should_stop_after_action(stop_after_action, result.status):
                 LOGGER.info("Stopped after first action: %s %s", result.status, result.reason)
                 return 0
 
@@ -759,6 +825,8 @@ def run_trade(
         raise
     finally:
         storage.close()
+        if agent_memory is not None:
+            agent_memory.close()
         gateway.shutdown()
 
 
@@ -778,7 +846,12 @@ def run_backtest_command(config_path: str, from_date: str, to_date: str) -> int:
 
 
 def _connect_and_validate(gateway, config) -> None:
-    gateway.initialize(config.account.terminal_path)
+    gateway.initialize(
+        config.account.terminal_path,
+        login=config.account.login,
+        password=config.account.password,
+        server=config.account.server,
+    )
     gateway.login(config.account.login, config.account.password, config.account.server)
     account  = gateway.account_info()
     terminal = gateway.terminal_info()

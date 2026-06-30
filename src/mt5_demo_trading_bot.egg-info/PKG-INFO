@@ -5,6 +5,7 @@ Summary: Demo-first MetaTrader 5 bot using M1 EMA crossover with tick-aware exec
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
 Requires-Dist: MetaTrader5>=5.0.45
+Requires-Dist: mcp>=1.0
 Requires-Dist: pandas>=2.2
 Requires-Dist: numpy>=2.0
 Requires-Dist: PyYAML>=6.0
@@ -121,6 +122,30 @@ El backtest descarga historico desde MT5, asi que tambien requiere `.env` y MT5 
 ```powershell
 python -m mt5_bot backtest --config config/demo.yaml --from 2026-04-01 --to 2026-04-30
 ```
+
+## MCP MetaTrader5 Completo Para Hermes
+
+Este repo incluye un servidor MCP local que expone la API publica completa de `MetaTrader5` mediante un dispatcher generico `mt5_call(name, args, kwargs)`, mas helpers para conexion, constantes y descubrimiento.
+
+Por seguridad, el MCP bloquea por defecto llamadas de trading o estado como `order_send`, `login`, `shutdown` y `symbol_select`. Para habilitar acceso completo, arranca el servidor con `MT5_MCP_ENABLE_TRADING=1`; mantenlo en `0` para lectura/analisis.
+
+Instala dependencias y registra el servidor en Hermes:
+
+```bash
+uv pip install -r requirements.txt
+hermes mcp add mt5 \
+  --command "C:/Users/JEAN/Desktop/MT5/bot/.venv/Scripts/python.exe" \
+  --env PYTHONPATH=C:/Users/JEAN/Desktop/MT5/bot/src MT5_MCP_ENABLE_TRADING=0 \
+  --args -m mt5_bot.mcp_server
+```
+
+Verifica y reinicia Hermes para que descubra herramientas `mcp_mt5_*`:
+
+```bash
+hermes mcp test mt5
+```
+
+Smoke test manual con MT5 abierto y `.env` configurado: llama `mt5_connect_from_env`, luego `mt5_call("account_info")` y `mt5_call("symbols_total")`. Antes de cualquier `order_send`, usa `order_check` y habilita `MT5_MCP_ENABLE_TRADING=1` solo si realmente quieres operar.
 
 ## Mejora Progresiva
 

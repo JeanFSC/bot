@@ -56,8 +56,24 @@ class MT5Gateway:
             time.sleep(delay * attempt)
         raise RuntimeError(f"MT5 {label} failed: {last_error}")
 
-    def initialize(self, terminal_path: str | None = None) -> None:
-        ok = self.mt5.initialize(path=terminal_path) if terminal_path else self.mt5.initialize()
+    def initialize(
+        self,
+        terminal_path: str | None = None,
+        login: int | None = None,
+        password: str | None = None,
+        server: str | None = None,
+    ) -> None:
+        kwargs: dict[str, Any] = {}
+        if terminal_path:
+            kwargs["path"] = terminal_path
+        if login is not None:
+            kwargs["login"] = int(login)
+        if password:
+            kwargs["password"] = password
+        if server:
+            kwargs["server"] = server
+
+        ok = self.mt5.initialize(**kwargs) if kwargs else self.mt5.initialize()
         if not ok:
             raise RuntimeError(f"MT5 initialize failed: {self.mt5.last_error()}")
 

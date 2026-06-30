@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from mt5_bot.strategy import SignalType, StrategyConfig, detect_signal
+from mt5_bot.strategy import SignalType, StrategyConfig, detect_signal, rsi
 
 
 def _rates(closes):
@@ -18,6 +18,15 @@ def _rates(closes):
             "real_volume": [100] * len(closes),
         }
     )
+
+
+def test_rsi_returns_extreme_value_in_all_gain_market():
+    values = pd.Series([float(i) for i in range(1, 25)])
+
+    last_rsi = rsi(values, 14).iloc[-1]
+
+    assert pd.notna(last_rsi)
+    assert last_rsi > 99.0
 
 
 def test_detect_signal_ignores_current_unclosed_bar():

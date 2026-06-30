@@ -367,6 +367,10 @@ class TradeExecutor:
         result = self.gateway.order_send(request)
         self._record_order_result(request, result, symbol_info)
         self.last_trade_monotonic = time.monotonic()
+        if not _is_successful_send(result):
+            retcode = getattr(result, "retcode", None)
+            _log.warning("Order send failed retcode=%s — treating as rejected", retcode)
+            return ExecutionResult("rejected", f"order_send_retcode_{retcode}", request, result)
         fill_price = getattr(result, "price", None)
         if fill_price is not None and float(fill_price) > 0:
             pip = pip_size(symbol_info)

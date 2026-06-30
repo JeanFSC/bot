@@ -10,15 +10,19 @@ __pycache__/
 data/*.sqlite
 data/*.sqlite-*
 data/*.sqlite.*
+data/*.jsonl
 data/forexfactory_calendar_cache.json
 
-# Runtime logs and local operator output
+# Runtime reports/backups/local operator output
+reports/
+backups/
 logs/
 *.log
 _auto_demo.log
 _debug.log
 _fix_log.txt
 _run_all.log
+.hermes/
 
 # Local scratch/audit artifacts; promote useful scripts to qa_*.py or tools/ before committing
 scratch/

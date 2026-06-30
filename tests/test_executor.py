@@ -140,6 +140,25 @@ def test_executor_auto_filling_retries_after_invalid_fill():
     assert [request["type_filling"] for request in gateway.checked_requests] == [2, 1]
 
 
+def test_executor_rejects_failed_order_send_retcode():
+    signal = Signal(type=SignalType.SELL, price=1.1000, time=None, reason="ema_cross_below", fast_ema=1.099, slow_ema=1.1, rsi=45, atr=0.0005)
+    gateway = _GatewayOrderSendRejected()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="EURUSD",
+        cooldown_seconds=0,
+        max_open_positions=1,
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.25, sl_pips=20, tp_pips=40),
+        execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=True),
+    )
+
+    result = TradeExecutor(gateway, storage, config).execute(signal)
+
+    assert result.status == "rejected"
+    assert result.reason == "order_send_retcode_10027"
+    assert gateway.sent_requests
+
+
 def test_loss_reentry_cooldown_blocks_fresh_entry_after_losing_exit():
     signal = Signal(type=SignalType.SELL, price=1.1000, time=None, reason="ema_cross_below", fast_ema=1.099, slow_ema=1.1, rsi=45, atr=0.0005)
     gateway = _GatewayWithInvalidFirstFill()
@@ -276,6 +295,16 @@ class _GatewayWithInvalidFirstFill:
         self.checked_requests.append(request)
         retcode = 10030 if len(self.checked_requests) == 1 else 10009
         return SimpleNamespace(retcode=retcode, comment="Invalid fill" if retcode == 10030 else "Done")
+
+
+class _GatewayOrderSendRejected(_GatewayWithInvalidFirstFill):
+    def __init__(self):
+        super().__init__()
+        self.sent_requests = []
+
+    def order_send(self, request):
+        self.sent_requests.append(request)
+        return SimpleNamespace(retcode=10027, comment="No money")
 
 
 class _GatewayForPartialClose(_GatewayWithInvalidFirstFill):
