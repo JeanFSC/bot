@@ -105,3 +105,23 @@ Changes added after that incident:
 
 This keeps the demo agent more active, but makes it less likely to repeat the
 USDCHF pattern: big lot, tiny stop, no active profit exit.
+
+## Winner Scaling Activation - 2026-07-01
+
+After commit `598d710` staged the executor support, winner scaling was enabled
+only for the active autonomous demo configs in `config/autonomous_agent.yaml`.
+The activation uses conservative add-on gates:
+
+- trigger RR: 0.45
+- current MFE ratio: 0.75
+- max MAE/MFE ratio: 0.35
+- add volume ratio: 0.50
+- max add-on risk: 0.10%
+- minimum ADX: 24
+- max spread/ATR ratio: 0.12
+
+Minimum MFE is matched to the active symbol profile: 2 pips for major FX pairs,
+4 pips for USDJPY, 5 pips for GBPJPY, 60 pips for XAUUSD, and 8 pips for
+XAGUSD. This keeps the feature focused on confirmed winners while preserving
+the existing demo-only, floor-equity, news, exposure, and duplicate-process
+guardrails.
