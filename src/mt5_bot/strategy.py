@@ -132,7 +132,7 @@ def adx(rates: pd.DataFrame, period: int) -> pd.Series:
     plus_di  = 100 * plus_dm.ewm(alpha=alpha, min_periods=period, adjust=False).mean() / atr_w
     minus_di = 100 * minus_dm.ewm(alpha=alpha, min_periods=period, adjust=False).mean() / atr_w
 
-    di_sum  = (plus_di + minus_di).replace(0, pd.NA)
+    di_sum  = (plus_di + minus_di).replace(0, float("nan"))
     dx      = 100 * (plus_di - minus_di).abs() / di_sum
     return dx.ewm(alpha=alpha, min_periods=period * 2, adjust=False).mean()
 

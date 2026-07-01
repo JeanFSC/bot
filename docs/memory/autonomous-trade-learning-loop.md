@@ -50,3 +50,40 @@ can both invoke the autonomous trade review. The review script now uses an
 atomic lock beside the state file and exits cleanly with `skipped=lock_active`
 when another review is already running, preventing duplicate reports or state
 file races.
+## 2026-07-01T05:45:02.065627+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_054502.md`
+
+- XAUUSD SELL ticket=9029248068 pnl=3.26 causes=profitable_exit action=record_only
+
+## 2026-07-01T11:02:00+00:00
+
+Jean asked to investigate additional markets so the autonomous demo agent has
+fewer dead windows with no trade opportunity. The review found that the active
+runner was spending up to 300 seconds on each symbol; adding markets without
+shortening that window would make missed M5 crossovers worse.
+
+Changes applied:
+
+- Added safe demo configs for `AUDUSD`, `USDJPY`, `NZDUSD`, and `XAGUSD`.
+- Reduced autonomous rotation from `max_seconds=300`, `poll_seconds=10` to
+  `max_seconds=20`, `poll_seconds=5`.
+- Active config list now covers 10 markets: USDCHF, AUDUSD, GBPJPY, USDJPY,
+  EURUSD, GBPUSD, NZDUSD, USDCAD, XAUUSD, XAGUSD.
+- Fixed an ADX zero-denominator dtype crash found while scanning XAGUSD.
+
+Validation:
+
+- `uv run pytest -q`: 99 passed.
+- `python -m mt5_bot.agent_runner --agent-config config/autonomous_agent.yaml preflight`: OK for 10 configs.
+- `uv run python -m mt5_bot.process_guard`: OK, no duplicate trade configs.
+- MT5 direct check: connected, trading allowed, positions=0, orders=0.
+- Watchdog relaunched at 2026-07-01 10:57 UTC and confirmed using
+  `--max-seconds 20 --poll-seconds 5`.
+- New SQLite journals were created for AUDUSD, USDJPY, NZDUSD, and XAGUSD.
+
+Risk notes:
+
+- USDCNH and USDSEK were not added because they are exotic/spread-risk markets.
+- No manual trade was opened, closed, or modified.
+

@@ -1,14 +1,17 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
-from mt5_bot.strategy import SignalType, StrategyConfig, detect_signal, rsi
+from mt5_bot.strategy import SignalType, StrategyConfig, adx, detect_signal, rsi
 
 
 def _rates(closes):
     return pd.DataFrame(
         {
-            "time": [datetime(2026, 1, 1, 0, i, tzinfo=timezone.utc) for i in range(len(closes))],
+            "time": [
+                datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(minutes=i)
+                for i in range(len(closes))
+            ],
             "open": closes,
             "high": [price + 0.0002 for price in closes],
             "low": [price - 0.0002 for price in closes],
@@ -53,3 +56,11 @@ def test_detect_signal_blocks_buy_when_rsi_is_overbought():
 
     assert signal.type is SignalType.NONE
     assert signal.reason == "rsi_buy_filter"
+
+
+def test_adx_handles_zero_di_without_object_dtype_crash():
+    candles = _rates([1.1000] * 80)
+
+    values = adx(candles, 14)
+
+    assert len(values) == len(candles)
