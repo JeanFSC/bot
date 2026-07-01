@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -57,40 +58,49 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--report-dir", default=str(REPORT_DIR))
     parser.add_argument("--memory", default=str(MEMORY_PATH))
     parser.add_argument("--limit", type=int, default=25)
+    parser.add_argument("--lock-stale-minutes", type=float, default=45.0)
     args = parser.parse_args(argv)
 
     state_path = Path(args.state)
-    state = _load_state(state_path)
-    reviewed_ids = set(state.get("reviewed_source_ids", []))
+    lock_path = state_path.with_suffix(state_path.suffix + ".lock")
+    if not _acquire_lock(lock_path, stale_minutes=args.lock_stale_minutes):
+        print(f"TRADE_REVIEW skipped=lock_active lock={lock_path}")
+        return 0
 
-    agent_config = load_agent_config(ROOT / args.agent_config)
-    new_reviews: list[ReviewedTrade] = []
-    synced_postmortems = 0
-    for cfg_path in agent_config.configs:
-        bot_cfg = load_config(ROOT / cfg_path)
-        db_path = ROOT / bot_cfg.database_path
-        if not db_path.exists():
-            continue
-        synced_postmortems += sync_postmortems(db_path)
-        for review in _review_db(db_path, reviewed_ids, limit=args.limit):
-            new_reviews.append(review)
-            reviewed_ids.add(review.source_id)
+    try:
+        state = _load_state(state_path)
+        reviewed_ids = set(state.get("reviewed_source_ids", []))
 
-    if new_reviews:
-        new_reviews.sort(key=lambda item: item.created_at)
-        report_path = _write_report(Path(args.report_dir), new_reviews, synced_postmortems)
-        _append_memory(Path(args.memory), new_reviews, report_path)
-        state["reviewed_source_ids"] = sorted(reviewed_ids)
-        state["last_review_at"] = _now()
-        state["last_report"] = str(report_path.relative_to(ROOT))
-        _save_state(state_path, state)
-        print(f"TRADE_REVIEW new={len(new_reviews)} postmortems={synced_postmortems} report={report_path}")
-    else:
-        state["last_review_at"] = _now()
-        state["reviewed_source_ids"] = sorted(reviewed_ids)
-        _save_state(state_path, state)
-        print(f"TRADE_REVIEW new=0 postmortems={synced_postmortems}")
-    return 0
+        agent_config = load_agent_config(ROOT / args.agent_config)
+        new_reviews: list[ReviewedTrade] = []
+        synced_postmortems = 0
+        for cfg_path in agent_config.configs:
+            bot_cfg = load_config(ROOT / cfg_path)
+            db_path = ROOT / bot_cfg.database_path
+            if not db_path.exists():
+                continue
+            synced_postmortems += sync_postmortems(db_path)
+            for review in _review_db(db_path, reviewed_ids, limit=args.limit):
+                new_reviews.append(review)
+                reviewed_ids.add(review.source_id)
+
+        if new_reviews:
+            new_reviews.sort(key=lambda item: item.created_at)
+            report_path = _write_report(Path(args.report_dir), new_reviews, synced_postmortems)
+            _append_memory(Path(args.memory), new_reviews, report_path)
+            state["reviewed_source_ids"] = sorted(reviewed_ids)
+            state["last_review_at"] = _now()
+            state["last_report"] = str(report_path.relative_to(ROOT))
+            _save_state(state_path, state)
+            print(f"TRADE_REVIEW new={len(new_reviews)} postmortems={synced_postmortems} report={report_path}")
+        else:
+            state["last_review_at"] = _now()
+            state["reviewed_source_ids"] = sorted(reviewed_ids)
+            _save_state(state_path, state)
+            print(f"TRADE_REVIEW new=0 postmortems={synced_postmortems}")
+        return 0
+    finally:
+        _release_lock(lock_path)
 
 
 def _review_db(db_path: Path, reviewed_ids: set[str], *, limit: int) -> list[ReviewedTrade]:
@@ -384,6 +394,39 @@ def _load_state(path: Path) -> dict[str, Any]:
 def _save_state(path: Path, state: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def _acquire_lock(path: Path, *, stale_minutes: float) -> bool:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        if not _lock_is_stale(path, stale_minutes=stale_minutes):
+            return False
+        path.unlink(missing_ok=True)
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            return False
+    with os.fdopen(fd, "w", encoding="utf-8") as handle:
+        json.dump({"pid": os.getpid(), "created_at": _now()}, handle)
+        handle.write("\n")
+    return True
+
+
+def _lock_is_stale(path: Path, *, stale_minutes: float) -> bool:
+    try:
+        age_seconds = datetime.now(timezone.utc).timestamp() - path.stat().st_mtime
+    except OSError:
+        return True
+    return age_seconds > max(1.0, stale_minutes * 60.0)
+
+
+def _release_lock(path: Path) -> None:
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 def _json(value: str | None) -> dict[str, Any]:

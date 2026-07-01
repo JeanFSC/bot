@@ -37,3 +37,16 @@ Implementation follow-up:
 - Windows Task Scheduler job `MT5AgentTradeReview15Min` runs the review script
   every 15 minutes while the PC/session is available:
   `uv run python scripts\autonomous_trade_review.py --limit 50`.
+
+## 2026-07-01T04:12:00+00:00
+
+Deep system review found no active MT5/trading blocker: watchdog, runner, trade
+process, preflight, process guard, and MT5 permissions were healthy. Historical
+MT5 authorization/IPC errors around 20:10-20:15 were not active in the current
+log tail.
+
+One real orchestration risk was fixed: OpenClaw cron and Windows Task Scheduler
+can both invoke the autonomous trade review. The review script now uses an
+atomic lock beside the state file and exits cleanly with `skipped=lock_active`
+when another review is already running, preventing duplicate reports or state
+file races.
