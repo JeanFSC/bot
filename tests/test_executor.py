@@ -142,7 +142,7 @@ def test_executor_auto_filling_retries_after_invalid_fill():
 
 def test_reverse_cooldown_does_not_block_before_any_reverse_close():
     signal = Signal(type=SignalType.SELL, price=1.1000, time=None, reason="ema_cross_below", fast_ema=1.099, slow_ema=1.1, rsi=45, atr=0.0005)
-    gateway = _GatewayWithInvalidFirstFill()
+    gateway = _GatewayWithSignedProfit()
     storage = _StorageSpy()
     config = SimpleNamespace(
         symbol="EURUSD",
@@ -257,7 +257,7 @@ def test_execute_applies_minimum_effective_sl_floor():
         atr=0.0002,
         atr_pips=2.0,
     )
-    gateway = _GatewayWithInvalidFirstFill()
+    gateway = _GatewayWithSignedProfit()
     storage = _StorageSpy()
     config = SimpleNamespace(
         symbol="EURUSD",
@@ -265,7 +265,7 @@ def test_execute_applies_minimum_effective_sl_floor():
         reverse_cooldown_seconds=0,
         max_open_positions=1,
         min_effective_sl_pips=8.0,
-        risk_firewall_enabled=False,
+        risk_firewall_enabled=True,
         risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=12, tp_pips=24),
         strategy=SimpleNamespace(use_atr_sl_tp=True, atr_sl_multiplier=1.5, atr_tp_multiplier=3.0),
         execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=False),
@@ -276,6 +276,8 @@ def test_execute_applies_minimum_effective_sl_floor():
     assert result.status == "dry_run"
     assert result.request["sl"] == 1.0992
     assert result.request["tp"] == 1.1016
+    assert result.metadata["projected_loss"] == 8.0
+    assert result.metadata["projected_profit"] == 16.0
 
 
 def test_profit_lock_closes_after_mfe_retrace():
@@ -389,6 +391,15 @@ class _GatewayWithInvalidFirstFill:
         self.checked_requests.append(request)
         retcode = 10030 if len(self.checked_requests) == 1 else 10009
         return SimpleNamespace(retcode=retcode, comment="Invalid fill" if retcode == 10030 else "Done")
+
+
+class _GatewayWithSignedProfit(_GatewayWithInvalidFirstFill):
+    def order_calc_profit(self, order_type, symbol, volume, price_open, price_close):
+        pip = 0.0001
+        signed_pips = (float(price_close) - float(price_open)) / pip
+        if int(order_type) == 1:
+            signed_pips *= -1
+        return round(signed_pips * 10.0 * float(volume), 2)
 
 
 class _GatewayOrderSendRejected(_GatewayWithInvalidFirstFill):

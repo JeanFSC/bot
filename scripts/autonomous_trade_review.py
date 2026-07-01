@@ -37,6 +37,9 @@ class ReviewedTrade:
     tp: float | None
     sl_pips: float | None
     tp_pips: float | None
+    projected_loss: float | None
+    projected_gain: float | None
+    projected_cash_rr: float | None
     mfe_pips: float | None
     mae_pips: float | None
     mfe_profit: float | None
@@ -126,6 +129,8 @@ def _review_trade(con: sqlite3.Connection, db_path: Path, source_id: str, row: s
     entry_deal = _find_entry_deal(con, position_id, row["symbol"], magic)
     entry_order_id = _int(entry_deal["order_id"]) if entry_deal is not None else None
     send_order = _find_send_order(con, entry_order_id, row["symbol"])
+    journal = _find_execution_journal(con, send_order, row["symbol"], magic)
+    journal_context = _json(journal["context_json"]) if journal is not None else {}
     metrics = _find_position_metrics(con, position_id)
 
     entry_deal_type = _int(entry_deal["deal_type"]) if entry_deal is not None else None
@@ -150,6 +155,9 @@ def _review_trade(con: sqlite3.Connection, db_path: Path, source_id: str, row: s
         comment=comment,
         sl_pips=sl_pips,
         tp_pips=tp_pips,
+        projected_loss=_num_or_none(journal_context.get("projected_loss_usd")),
+        projected_gain=_num_or_none(journal_context.get("projected_gain_usd")),
+        projected_cash_rr=_num_or_none(journal_context.get("projected_cash_rr")),
         mfe_pips=mfe_pips,
         mfe_profit=mfe_profit,
     )
@@ -269,6 +277,25 @@ def _find_send_order(con: sqlite3.Connection, order_id: int | None, symbol: str)
     return None
 
 
+def _find_execution_journal(con: sqlite3.Connection, send_order, symbol: str, magic: int):
+    if send_order is None:
+        return None
+    created_at = send_order["created_at"]
+    return con.execute(
+        """
+        SELECT *
+        FROM trade_journal
+        WHERE symbol = ?
+          AND magic = ?
+          AND execution_status = 'sent'
+          AND created_at BETWEEN datetime(?, '-2 minutes') AND datetime(?, '+2 minutes')
+        ORDER BY ABS(julianday(created_at) - julianday(?)) ASC
+        LIMIT 1
+        """,
+        (symbol, magic, created_at, created_at, created_at),
+    ).fetchone()
+
+
 def _find_position_metrics(con: sqlite3.Connection, position_id: int | None):
     if position_id is None:
         return None
@@ -326,6 +353,8 @@ def _trade_lines(review: ReviewedTrade) -> list[str]:
         f"- Entry/exit: `{_fmt(review.entry_price)}` -> `{review.exit_price:.5f}`",
         f"- SL/TP: `{_fmt(review.sl)}` / `{_fmt(review.tp)}`",
         f"- SL/TP distance: `{_fmt(review.sl_pips)} pips` / `{_fmt(review.tp_pips)} pips`",
+        f"- Projected SL/TP cash: `-{_fmt(review.projected_loss)}` / `+{_fmt(review.projected_gain)}`",
+        f"- Projected cash R:R: `{_fmt(review.projected_cash_rr)}`",
         f"- MFE/MAE: `{_fmt(review.mfe_pips)} pips` / `{_fmt(review.mae_pips)} pips`",
         f"- MFE/MAE profit: `{_fmt(review.mfe_profit)}` / `{_fmt(review.mae_profit)}`",
         f"- Broker comment: `{review.comment}`",

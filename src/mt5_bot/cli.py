@@ -839,6 +839,7 @@ def run_trade(
                 rr = None
                 if float(config.risk.sl_pips or 0) > 0:
                     rr = float(config.risk.tp_pips) / float(config.risk.sl_pips)
+                execution_projection = result.metadata or {}
                 storage.record_trade_journal(
                     symbol=config.symbol,
                     magic=config.execution.magic,
@@ -877,6 +878,10 @@ def run_trade(
                         "correlation_risk_factor": _corr_risk_factor,
                         "portfolio_risk_factor": _portfolio_overlap_risk_factor,
                         "requested_price": (result.request or {}).get("price") if result.request else None,
+                        "projected_loss_usd": execution_projection.get("projected_loss"),
+                        "projected_gain_usd": execution_projection.get("projected_profit"),
+                        "projected_allowed_loss_usd": execution_projection.get("allowed_loss"),
+                        "projected_cash_rr": execution_projection.get("cash_rr"),
                         "filled_price": getattr(result.result, "price", None) if result.result is not None else None,
                         "retcode": getattr(result.result, "retcode", None) if result.result is not None else None,
                         "slippage_pips": _slippage_pips(result, entry_signal, symbol_info),

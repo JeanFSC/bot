@@ -24,6 +24,7 @@ class ExecutionResult:
     reason: str
     request: Optional[dict[str, Any]] = None
     result: Any = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -355,8 +356,9 @@ class TradeExecutor:
 
         firewall_result = self._apply_risk_firewall(base_request, risk_to_use, float(account.equity), symbol_info)
         if firewall_result.status != "ok":
-            return ExecutionResult("rejected", firewall_result.reason, firewall_result.request, firewall_result.result)
+            return ExecutionResult("rejected", firewall_result.reason, firewall_result.request, firewall_result.result, firewall_result.metadata)
         guarded_request = firewall_result.request or base_request
+        projection = firewall_result.metadata or (firewall_result.result if isinstance(firewall_result.result, dict) else {})
 
         request, check = self._first_valid_order_check(guarded_request)
         if request is None or check is None:
@@ -366,17 +368,22 @@ class TradeExecutor:
 
         if not self.config.execution.trade_enabled:
             _log.info(
-                "DRY-RUN order: %s vol=%.2f price=%s sl=%s tp=%s trend=%s rsi=%.1f",
+                "DRY-RUN order: %s vol=%.2f price=%s sl=%s tp=%s projected_loss=%.2f projected_gain=%.2f trend=%s rsi=%.1f",
                 request.get("type"), request.get("volume"), request.get("price"),
                 request.get("sl"), request.get("tp"),
+                float(projection.get("projected_loss", 0.0) or 0.0),
+                float(projection.get("projected_profit", 0.0) or 0.0),
                 signal.trend_bias, signal.rsi or 0,
             )
-            return ExecutionResult("dry_run", "trade_enabled_false", request, check)
+            return ExecutionResult("dry_run", "trade_enabled_false", request, check, projection)
 
         _log.info(
-            "OPENING position: symbol=%s side=%s volume=%.2f price=%s sl=%s tp=%s magic=%s",
+            "OPENING position: symbol=%s side=%s volume=%.2f price=%s sl=%s tp=%s projected_loss=%.2f projected_gain=%.2f magic=%s",
             self.config.symbol, signal.type.value, float(request.get("volume", 0.0)),
-            request.get("price"), request.get("sl"), request.get("tp"), self.config.execution.magic,
+            request.get("price"), request.get("sl"), request.get("tp"),
+            float(projection.get("projected_loss", 0.0) or 0.0),
+            float(projection.get("projected_profit", 0.0) or 0.0),
+            self.config.execution.magic,
         )
         result = self.gateway.order_send(request)
         self._record_order_result(request, result, symbol_info)
@@ -384,7 +391,7 @@ class TradeExecutor:
         if not _is_successful_send(result):
             retcode = getattr(result, "retcode", None)
             _log.warning("Order send failed retcode=%s — treating as rejected", retcode)
-            return ExecutionResult("rejected", f"order_send_retcode_{retcode}", request, result)
+            return ExecutionResult("rejected", f"order_send_retcode_{retcode}", request, result, projection)
         fill_price = getattr(result, "price", None)
         if fill_price is not None and float(fill_price) > 0:
             pip = pip_size(symbol_info)
@@ -394,7 +401,7 @@ class TradeExecutor:
             _log.info("Order fill metrics: requested=%s filled=%s slippage=%.2f pips", request.get("price"), fill_price, slippage)
         elif fill_price is not None:
             _log.debug("Order result returned non-actionable fill price=%s; slippage will be left null", fill_price)
-        return ExecutionResult("sent", f"order_send_retcode_{getattr(result, 'retcode', '?')}", request, result)
+        return ExecutionResult("sent", f"order_send_retcode_{getattr(result, 'retcode', '?')}", request, result, projection)
 
     def _recent_loss_cooldown_reason(self) -> str | None:
         cooldown = int(getattr(self.config, "reverse_cooldown_seconds", 0) or 0)
@@ -898,12 +905,20 @@ class TradeExecutor:
             return ExecutionResult("rejected", "risk_firewall_calc_failed", guarded, exc)
 
         projected_loss = max(0.0, -projected)
+        projected_profit = self._projected_profit_to_tp(calc, guarded, order_type, price)
+        cash_rr = (projected_profit / projected_loss) if projected_loss > 0 else None
         if projected_loss <= allowed_loss:
             _log.info(
-                "Risk firewall OK: symbol=%s volume=%.2f projected_loss=%.2f allowed=%.2f",
-                self.config.symbol, float(guarded["volume"]), projected_loss, allowed_loss,
+                "Risk firewall OK: symbol=%s volume=%.2f projected_loss=%.2f projected_gain=%.2f allowed=%.2f cash_rr=%s",
+                self.config.symbol, float(guarded["volume"]), projected_loss, projected_profit, allowed_loss,
+                f"{cash_rr:.2f}" if cash_rr is not None else "n/a",
             )
-            return ExecutionResult("ok", "risk_firewall_ok", guarded, {"projected_loss": projected_loss, "allowed_loss": allowed_loss})
+            return ExecutionResult("ok", "risk_firewall_ok", guarded, {
+                "projected_loss": projected_loss,
+                "projected_profit": projected_profit,
+                "allowed_loss": allowed_loss,
+                "cash_rr": cash_rr,
+            })
 
         # Auto-reduce volume using broker-calculated loss per lot.
         current_volume = float(guarded["volume"])
@@ -931,10 +946,28 @@ class TradeExecutor:
         if reduced_loss > allowed_loss:
             return ExecutionResult("rejected", "risk_firewall_reduced_still_too_risky", guarded, {"projected_loss": reduced_loss, "allowed_loss": allowed_loss})
         _log.warning(
-            "Risk firewall reduced volume: symbol=%s original=%.2f reduced=%.2f projected_loss=%.2f allowed=%.2f",
-            self.config.symbol, original_volume, reduced, reduced_loss, allowed_loss,
+            "Risk firewall reduced volume: symbol=%s original=%.2f reduced=%.2f projected_loss=%.2f projected_gain=%.2f allowed=%.2f",
+            self.config.symbol, original_volume, reduced, reduced_loss,
+            self._projected_profit_to_tp(calc, guarded, order_type, price), allowed_loss,
         )
-        return ExecutionResult("ok", "risk_firewall_reduced_volume", guarded, {"projected_loss": reduced_loss, "allowed_loss": allowed_loss})
+        reduced_profit = self._projected_profit_to_tp(calc, guarded, order_type, price)
+        return ExecutionResult("ok", "risk_firewall_reduced_volume", guarded, {
+            "projected_loss": reduced_loss,
+            "projected_profit": reduced_profit,
+            "allowed_loss": allowed_loss,
+            "cash_rr": (reduced_profit / reduced_loss) if reduced_loss > 0 else None,
+        })
+
+    def _projected_profit_to_tp(self, calc, request: dict[str, Any], order_type: int, price: float) -> float:
+        tp = float(request.get("tp", 0.0) or 0.0)
+        volume = float(request.get("volume", 0.0) or 0.0)
+        if tp <= 0 or price <= 0 or volume <= 0:
+            return 0.0
+        try:
+            return max(0.0, float(calc(order_type, self.config.symbol, volume, price, tp)))
+        except Exception as exc:
+            _log.warning("Risk firewall projected TP profit failed: %s", exc)
+            return 0.0
 
     def _first_valid_order_check(self, base_request: dict[str, Any]):
         constants = self.gateway.constants()
