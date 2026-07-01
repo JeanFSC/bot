@@ -304,6 +304,42 @@ def test_profit_lock_waits_until_trigger_reached():
     assert gateway.sent_requests == []
 
 
+def test_winner_scaling_adds_size_after_confirmed_mfe():
+    gateway = _GatewayForWinnerScaling()
+    storage = _StorageSpy(position_metrics={9382346538: {"mfe_pips": 22.0, "mae_pips": -2.0}})
+    config = _winner_scaling_config()
+
+    results = TradeExecutor(gateway, storage, config).manage_winner_scaling(
+        atr_pips=10.0,
+        adx=31.0,
+        spread_pips=0.2,
+    )
+
+    assert len(results) == 1
+    assert results[0].status == "winner_scale"
+    assert gateway.sent_requests[0]["symbol"] == "EURUSD"
+    assert gateway.sent_requests[0]["type"] == 0
+    assert gateway.sent_requests[0]["volume"] == 0.05
+    assert gateway.sent_requests[0]["sl"] == 1.0990
+    assert gateway.sent_requests[0]["tp"] == 1.1040
+    assert ("winner_scale_in", "ticket_9382346538", "EURUSD", 260430) in storage.runtime_events
+
+
+def test_winner_scaling_does_not_repeat_same_ticket():
+    gateway = _GatewayForWinnerScaling()
+    storage = _StorageSpy(position_metrics={9382346538: {"mfe_pips": 22.0, "mae_pips": -2.0}})
+    storage.record_runtime_event("winner_scale_in", "ticket_9382346538", symbol="EURUSD", magic=260430)
+
+    results = TradeExecutor(gateway, storage, _winner_scaling_config()).manage_winner_scaling(
+        atr_pips=10.0,
+        adx=31.0,
+        spread_pips=0.2,
+    )
+
+    assert results == []
+    assert gateway.sent_requests == []
+
+
 def _profit_lock_config():
     return SimpleNamespace(
         symbol="EURUSD",
@@ -318,16 +354,36 @@ def _profit_lock_config():
     )
 
 
+def _winner_scaling_config():
+    return SimpleNamespace(
+        symbol="EURUSD",
+        winner_scaling_enabled=True,
+        winner_scaling_trigger_rr=0.45,
+        winner_scaling_min_mfe_pips=4.0,
+        winner_scaling_min_current_mfe_ratio=0.75,
+        winner_scaling_max_mae_mfe_ratio=0.35,
+        winner_scaling_add_volume_ratio=0.50,
+        winner_scaling_max_addon_risk_pct=0.20,
+        winner_scaling_min_adx=24.0,
+        winner_scaling_max_spread_atr_ratio=0.12,
+        max_order_volume=0.0,
+        strategy=SimpleNamespace(atr_tp_multiplier=3.0),
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=8, tp_pips=16),
+        execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=True),
+    )
+
+
 class _StorageSpy:
     def __init__(self, latest_losing_exit=None, position_metrics=None):
         self.latest_losing_exit = latest_losing_exit
         self.position_metrics = position_metrics or {}
         self.pruned = []
+        self.runtime_events = set()
 
     def record_order_request(self, request, check):
         pass
 
-    def record_order_result(self, request, result):
+    def record_order_result(self, request, result, symbol_info=None):
         pass
 
     def get_latest_losing_exit(self, symbol, magic):
@@ -339,6 +395,12 @@ class _StorageSpy:
 
     def get_position_metrics(self, ticket):
         return self.position_metrics.get(int(ticket))
+
+    def runtime_event_exists(self, event_type, reason, *, symbol=None, magic=None):
+        return (event_type, reason, symbol, magic) in self.runtime_events
+
+    def record_runtime_event(self, event_type, reason, *, symbol=None, magic=None, level="info", context=None):
+        self.runtime_events.add((event_type, reason, symbol, magic))
 
 
 class _GatewayWithInvalidFirstFill:
@@ -485,6 +547,37 @@ class _GatewayForProfitLock(_GatewayWithInvalidFirstFill):
 
     def symbol_info_tick(self, symbol):
         return SimpleNamespace(bid=self.current_bid, ask=self.current_ask)
+
+    def order_check(self, request):
+        self.checked_requests.append(request)
+        return SimpleNamespace(retcode=10009, comment="Done")
+
+    def order_send(self, request):
+        self.sent_requests.append(request)
+        return SimpleNamespace(retcode=10009, comment="Request executed")
+
+
+class _GatewayForWinnerScaling(_GatewayWithSignedProfit):
+    def __init__(self):
+        super().__init__()
+        self.sent_requests = []
+
+    def positions_get(self, symbol):
+        return [SimpleNamespace(
+            ticket=9382346538,
+            magic=260430,
+            type=0,
+            price_open=1.1000,
+            volume=0.10,
+            sl=1.0990,
+            tp=1.1040,
+        )]
+
+    def symbol_info_tick(self, symbol):
+        return SimpleNamespace(bid=1.1020, ask=1.1021)
+
+    def account_info(self):
+        return SimpleNamespace(equity=10_000)
 
     def order_check(self, request):
         self.checked_requests.append(request)

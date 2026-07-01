@@ -747,6 +747,184 @@ class TradeExecutor:
 
         return results
 
+    def manage_winner_scaling(
+        self,
+        atr_pips: Optional[float] = None,
+        adx: Optional[float] = None,
+        spread_pips: Optional[float] = None,
+    ) -> list[ExecutionResult]:
+        """Add controlled size only after an open position proves strength.
+
+        This is intentionally not a larger initial bet. It is an optional
+        add-on gate for winners that already moved in favor with limited MAE.
+        """
+        if not bool(getattr(self.config, "winner_scaling_enabled", False)):
+            return []
+        if not atr_pips or atr_pips <= 0:
+            return []
+        min_adx = float(getattr(self.config, "winner_scaling_min_adx", 24.0) or 0.0)
+        if adx is not None and float(adx) < min_adx:
+            return []
+        max_spread_atr = float(getattr(self.config, "winner_scaling_max_spread_atr_ratio", 0.12) or 0.0)
+        if spread_pips is not None and max_spread_atr > 0 and (float(spread_pips) / float(atr_pips)) > max_spread_atr:
+            return []
+
+        results: list[ExecutionResult] = []
+        try:
+            positions = self.gateway.positions_get(symbol=self.config.symbol) or []
+            own_positions = [p for p in positions if int(p.magic) == self.config.execution.magic]
+            if not own_positions:
+                return results
+
+            tick = self.gateway.symbol_info_tick(self.config.symbol)
+            symbol_info = self.gateway.symbol_info(self.config.symbol)
+            account = self.gateway.account_info()
+            pip = pip_size(symbol_info)
+            constants = self.gateway.constants()
+            metrics_getter = getattr(self.storage, "get_position_metrics", None)
+            event_exists = getattr(self.storage, "runtime_event_exists", None)
+            event_recorder = getattr(self.storage, "record_runtime_event", None)
+
+            trigger_rr = float(getattr(self.config, "winner_scaling_trigger_rr", 0.45) or 0.45)
+            min_mfe_pips = float(getattr(self.config, "winner_scaling_min_mfe_pips", 0.0) or 0.0)
+            min_current_ratio = float(getattr(self.config, "winner_scaling_min_current_mfe_ratio", 0.75) or 0.75)
+            max_mae_ratio = float(getattr(self.config, "winner_scaling_max_mae_mfe_ratio", 0.35) or 0.35)
+            add_ratio = float(getattr(self.config, "winner_scaling_add_volume_ratio", 0.50) or 0.50)
+            max_addon_risk_pct = float(getattr(self.config, "winner_scaling_max_addon_risk_pct", 0.10) or 0.10)
+            allowed_addon_loss = float(getattr(account, "equity", 0.0) or 0.0) * (max_addon_risk_pct / 100.0)
+
+            for position in own_positions:
+                ticket = int(position.ticket)
+                event_reason = f"ticket_{ticket}"
+                if event_exists is not None and event_exists(
+                    "winner_scale_in",
+                    event_reason,
+                    symbol=self.config.symbol,
+                    magic=self.config.execution.magic,
+                ):
+                    continue
+
+                if metrics_getter is None:
+                    continue
+                metrics = metrics_getter(ticket)
+                if not metrics:
+                    continue
+
+                is_buy = int(position.type) == MT5_BUY_POSITION
+                entry_price = float(position.price_open)
+                cur_price = float(tick.bid) if is_buy else float(tick.ask)
+                current_pips = (
+                    (cur_price - entry_price) / pip if is_buy
+                    else (entry_price - cur_price) / pip
+                )
+                if current_pips <= 0:
+                    continue
+
+                current_tp = float(getattr(position, "tp", 0.0) or 0.0)
+                if current_tp > 0:
+                    tp_distance_pips = (
+                        (current_tp - entry_price) / pip if is_buy
+                        else (entry_price - current_tp) / pip
+                    )
+                else:
+                    tp_distance_pips = float(atr_pips) * float(getattr(self.config.strategy, "atr_tp_multiplier", 3.0))
+                if tp_distance_pips <= 0:
+                    continue
+
+                mfe_pips = max(current_pips, float(metrics.get("mfe_pips", current_pips) or current_pips))
+                mae_pips = min(current_pips, float(metrics.get("mae_pips", current_pips) or current_pips))
+                trigger_pips = max(min_mfe_pips, tp_distance_pips * trigger_rr)
+                if mfe_pips < trigger_pips or current_pips < (mfe_pips * min_current_ratio):
+                    continue
+                if mfe_pips > 0 and abs(min(0.0, mae_pips)) / mfe_pips > max_mae_ratio:
+                    continue
+
+                add_volume = normalize_volume(float(position.volume) * add_ratio, symbol_info)
+                max_order_volume = float(getattr(self.config, "max_order_volume", 0.0) or 0.0)
+                if max_order_volume > 0:
+                    add_volume = min(add_volume, normalize_volume(max_order_volume, symbol_info))
+                if add_volume <= 0:
+                    continue
+
+                order_type = constants["ORDER_TYPE_BUY"] if is_buy else constants["ORDER_TYPE_SELL"]
+                price = float(tick.ask) if is_buy else float(tick.bid)
+                current_sl = float(getattr(position, "sl", 0.0) or 0.0)
+                if current_sl <= 0:
+                    results.append(ExecutionResult("rejected", "winner_scale_no_sl"))
+                    continue
+                projected = self.gateway.order_calc_profit(order_type, self.config.symbol, add_volume, price, current_sl)
+                projected_loss = max(0.0, -float(projected))
+                if projected_loss <= 0 or projected_loss > allowed_addon_loss:
+                    results.append(ExecutionResult(
+                        "rejected",
+                        "winner_scale_addon_risk",
+                        metadata={"projected_loss": projected_loss, "allowed_loss": allowed_addon_loss},
+                    ))
+                    continue
+
+                filling_names = filling_mode_names(self.config.execution, constants)
+                if not filling_names:
+                    results.append(ExecutionResult("rejected", "winner_scale_no_filling_mode"))
+                    continue
+                base_req = {
+                    "action": constants["TRADE_ACTION_DEAL"],
+                    "symbol": self.config.symbol,
+                    "volume": add_volume,
+                    "type": order_type,
+                    "price": round(price, int(symbol_info.digits)),
+                    "sl": current_sl,
+                    "tp": current_tp,
+                    "deviation": self.config.execution.deviation,
+                    "magic": self.config.execution.magic,
+                    "comment": safe_order_comment("scale", filling_names[0]),
+                    "type_time": constants["ORDER_TIME_GTC"],
+                    "type_filling": constants[f"ORDER_FILLING_{filling_names[0]}"],
+                }
+                scale_req, scale_chk = self._first_valid_order_check(base_req)
+                if scale_req is None or scale_chk is None:
+                    results.append(ExecutionResult("rejected", "winner_scale_invalid_fill", base_req))
+                    continue
+                if not _is_successful_check(scale_chk):
+                    results.append(ExecutionResult(
+                        "rejected", f"winner_scale_check_retcode_{getattr(scale_chk, 'retcode', '?')}", scale_req, scale_chk,
+                    ))
+                    continue
+
+                metadata = {
+                    "ticket": ticket,
+                    "current_pips": current_pips,
+                    "mfe_pips": mfe_pips,
+                    "mae_pips": mae_pips,
+                    "trigger_pips": trigger_pips,
+                    "adx": adx,
+                    "spread_pips": spread_pips,
+                    "atr_pips": atr_pips,
+                    "projected_loss": projected_loss,
+                    "allowed_loss": allowed_addon_loss,
+                }
+                _log.info(
+                    "Winner scale-in: ticket=%s add_volume=%.2f current=%.1f mfe=%.1f mae=%.1f projected_loss=%.2f allowed=%.2f",
+                    ticket, add_volume, current_pips, mfe_pips, mae_pips, projected_loss, allowed_addon_loss,
+                )
+                if self.config.execution.trade_enabled:
+                    send_result = self.gateway.order_send(scale_req)
+                    self._record_order_result(scale_req, send_result, symbol_info)
+                    if event_recorder is not None:
+                        event_recorder(
+                            "winner_scale_in",
+                            event_reason,
+                            symbol=self.config.symbol,
+                            magic=self.config.execution.magic,
+                            context=metadata,
+                        )
+                    results.append(ExecutionResult("winner_scale", f"retcode_{getattr(send_result, 'retcode', '?')}", scale_req, send_result, metadata))
+                else:
+                    results.append(ExecutionResult("dry_run", "winner_scale_would_add", scale_req, scale_chk, metadata))
+        except Exception as exc:
+            _log.warning("manage_winner_scaling error: %s", exc)
+
+        return results
+
     def record_position_metrics(self) -> list[ExecutionResult]:
         """Persist MFE/MAE-style telemetry for currently open positions."""
         results: list[ExecutionResult] = []

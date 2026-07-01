@@ -310,3 +310,39 @@ Report: `reports\autonomous_trade_reviews\review_20260701_160002.md`
 - EURUSD SELL ticket=9043963496 pnl=1.53 causes=profitable_exit action=record_only
 - EURUSD SELL ticket=9044049629 pnl=0.66 causes=profitable_exit action=record_only
 
+## 2026-07-01T17:25:00+00:00
+
+Winner scaling update staged externally while the live agent kept running.
+Jean asked to implement this after the current operation finishes and relaunch
+only in a clean MT5 window.
+
+Implementation prepared:
+
+- Added optional winner scaling fields to `BotConfig`.
+- Added `TradeExecutor.manage_winner_scaling`.
+- Winner scaling is disabled by default and was not enabled in active configs
+  while `USDJPY` was live.
+- Gate design:
+  - only after favorable MFE progress;
+  - current profit must remain near MFE, not a deep retrace;
+  - MAE must be small relative to MFE;
+  - ADX must meet a configurable floor;
+  - spread/ATR must stay clean;
+  - add-on volume is a fraction of current volume;
+  - add-on projected loss to current SL must fit a separate risk cap;
+  - one add-on per position ticket, tracked through `runtime_events`;
+  - every add-on passes `order_check` before any send.
+
+Validation:
+
+- Focused tests: 21 passed.
+- Full suite: 105 passed.
+- Agent preflight: OK for 10 configs.
+- `process_guard`: OK.
+- MT5 still had one live `USDJPY` BUY position, so no relaunch was performed.
+
+Activation rule:
+
+- When MT5 positions=0 and orders=0, enable the feature in selected active
+  configs, run tests/preflight/process guard, then relaunch watchdog/runner.
+

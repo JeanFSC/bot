@@ -206,6 +206,28 @@ class BotStorage:
         )
         self.connection.commit()
 
+    def runtime_event_exists(
+        self,
+        event_type: str,
+        reason: str,
+        *,
+        symbol: str | None = None,
+        magic: int | None = None,
+    ) -> bool:
+        clauses = ["event_type = ?", "reason = ?"]
+        params: list[Any] = [event_type, reason]
+        if symbol is not None:
+            clauses.append("symbol = ?")
+            params.append(symbol)
+        if magic is not None:
+            clauses.append("magic = ?")
+            params.append(magic)
+        row = self.connection.execute(
+            f"SELECT 1 FROM runtime_events WHERE {' AND '.join(clauses)} LIMIT 1",
+            params,
+        ).fetchone()
+        return row is not None
+
     def record_signal(self, symbol: str, signal: Signal) -> None:
         self.connection.execute(
             """

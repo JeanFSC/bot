@@ -484,6 +484,10 @@ def run_trade(
                 LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
 
             if signal.atr_pips:
+                for ws in executor.manage_winner_scaling(signal.atr_pips, signal.adx, current_spread):
+                    LOGGER.info("WinnerScale status=%s reason=%s", ws.status, ws.reason)
+
+            if signal.atr_pips:
                 for pl in executor.manage_profit_lock(signal.atr_pips):
                     LOGGER.info("ProfitLock status=%s reason=%s", pl.status, pl.reason)
                     if pl.status == "profit_lock" and pl.request:
@@ -1169,6 +1173,8 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
             })
             sig = detect_signal(signal_rates, sc)
             if sig.atr_pips and sig.atr_pips > 0:
+                for ws in executor.manage_winner_scaling(sig.atr_pips, sig.adx, current_spread):
+                    LOGGER.info("WinnerScale (idle) status=%s reason=%s", ws.status, ws.reason)
                 for pl in executor.manage_profit_lock(sig.atr_pips):
                     LOGGER.info("ProfitLock (idle) status=%s reason=%s", pl.status, pl.reason)
                 for tr in executor.manage_trailing_stops(sig.atr_pips):

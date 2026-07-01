@@ -45,6 +45,43 @@ def test_config_accepts_explicit_positive_baseline_equity(tmp_path):
     assert config.baseline_equity == 3000.0
 
 
+def test_config_loads_winner_scaling_fields(tmp_path):
+    path = tmp_path / "bot.yaml"
+    path.write_text(
+        textwrap.dedent(
+            """
+            symbol: EURUSD
+            timeframe: M5
+            trend_timeframe: H1
+            demo_only: true
+            baseline_equity: 3000.0
+            winner_scaling_enabled: true
+            winner_scaling_trigger_rr: 0.5
+            winner_scaling_add_volume_ratio: 0.4
+            winner_scaling_max_addon_risk_pct: 0.15
+            risk:
+              mode: fixed_lot
+              fixed_lot: 0.01
+              risk_pct: 0.05
+              sl_pips: 10
+              tp_pips: 20
+            strategy: {}
+            execution:
+              magic: 260430
+              trade_enabled: false
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    config = load_config(path)
+
+    assert config.winner_scaling_enabled is True
+    assert config.winner_scaling_trigger_rr == 0.5
+    assert config.winner_scaling_add_volume_ratio == 0.4
+    assert config.winner_scaling_max_addon_risk_pct == 0.15
+
+
 def test_all_bot_configs_load_with_explicit_baseline_equity():
     config_dir = Path(__file__).resolve().parents[1] / "config"
     configs = sorted(
