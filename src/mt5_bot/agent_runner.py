@@ -34,6 +34,7 @@ class AgentRunnerConfig:
     max_parallel_bots: int = 1
     max_seconds: int = 0
     poll_seconds: int | None = None
+    prioritize_live_positions: bool = True
     allow_demo_orders: bool = False
     reduced_risk_pct: float = 0.10
     target_equity: float | None = None
@@ -56,6 +57,7 @@ def load_agent_config(path: str | Path) -> AgentRunnerConfig:
         max_parallel_bots=int(raw.get("max_parallel_bots", 1)),
         max_seconds=int(raw.get("max_seconds", 0)),
         poll_seconds=int(raw["poll_seconds"]) if raw.get("poll_seconds") is not None else None,
+        prioritize_live_positions=bool(raw.get("prioritize_live_positions", True)),
         allow_demo_orders=bool(raw.get("allow_demo_orders", False)),
         reduced_risk_pct=float(raw.get("reduced_risk_pct", 0.10)),
         target_equity=float(raw["target_equity"]) if raw.get("target_equity") is not None else None,
@@ -170,6 +172,51 @@ def _run_single_config(config: AgentRunnerConfig, cfg: Path) -> int:
     return completed.returncode
 
 
+def _active_position_keys() -> set[tuple[str, int]]:
+    """Return currently open MT5 positions as (symbol, magic) keys."""
+    try:
+        from mt5_bot.mt5_gateway import MT5Gateway
+
+        gateway = MT5Gateway()
+        try:
+            gateway.initialize()
+            positions = gateway.positions_get() or []
+            return {
+                (str(getattr(position, "symbol")), int(getattr(position, "magic")))
+                for position in positions
+            }
+        finally:
+            gateway.shutdown()
+    except Exception as exc:
+        print(f"WARN: live position priority unavailable: {exc}")
+        return set()
+
+
+def _configs_prioritizing_live_positions(config: AgentRunnerConfig) -> list[Path]:
+    if not config.prioritize_live_positions:
+        return list(config.configs)
+
+    active = _active_position_keys()
+    if not active:
+        return list(config.configs)
+
+    indexed = list(enumerate(config.configs))
+
+    def sort_key(item: tuple[int, Path]) -> tuple[int, int]:
+        index, cfg_path = item
+        try:
+            loaded = load_config(cfg_path)
+            is_live = (loaded.symbol, int(loaded.execution.magic)) in active
+        except Exception:
+            is_live = False
+        return (0 if is_live else 1, index)
+
+    ordered = [cfg_path for _, cfg_path in sorted(indexed, key=sort_key)]
+    if ordered != list(config.configs):
+        print(f"LIVE_POSITION_PRIORITY active={len(active)} order={[str(path) for path in ordered]}")
+    return ordered
+
+
 def run_once(config: AgentRunnerConfig) -> int:
     if config.mode is AgentMode.DEMO and not config.allow_demo_orders:
         print("BLOCKED: mode=demo requires allow_demo_orders=true")
@@ -203,7 +250,7 @@ def run_continuous(config: AgentRunnerConfig) -> int:
         iteration += 1
         print(f"\n### CONTINUOUS CYCLE #{iteration} ### {datetime.datetime.now(datetime.timezone.utc)} ###")
 
-        for cfg in config.configs:
+        for cfg in _configs_prioritizing_live_positions(config):
             print(f"Processing {cfg}...")
             rc = _run_single_config(config, cfg)
             if rc != 0:

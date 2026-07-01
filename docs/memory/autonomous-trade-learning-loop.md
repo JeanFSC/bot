@@ -156,3 +156,27 @@ Validation:
 - MT5 direct check showed one open EURUSD SELL position, no pending orders; no
   restart was performed.
 
+## 2026-07-01T15:55:00+00:00
+
+Jean clarified an operating rule for the expanded multi-market agent:
+increasing the number of possible open trades must not make the agent neglect
+live positions.
+
+Rule:
+
+- Live positions have priority over searching for fresh entries.
+- Broker SL/TP remains the first hard protection layer.
+- Agent-side dynamic management (telemetry, time stop, profit-lock, trailing,
+  partial close) must be checked as soon as practical for symbols with open
+  positions.
+- Do not restart the watchdog just to activate this while a position is open;
+  stage and validate the change, then activate on a clean window unless Jean
+  explicitly approves the operational risk.
+
+Implementation staged:
+
+- Added live-position-first config ordering to `agent_runner`.
+- Added explicit `prioritize_live_positions: true` to the active autonomous
+  config.
+- Added tests for the live-position prioritization behavior.
+

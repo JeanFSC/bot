@@ -7,6 +7,7 @@ memory_db: data/autonomous_agent_memory.sqlite
 max_parallel_bots: 1
 max_seconds: 20
 poll_seconds: 5
+prioritize_live_positions: true
 
 # Cuenta demo: equity aprox. 3000 USD
 # Kill switch: si equity baja a este nivel, se detiene automaticamente.
