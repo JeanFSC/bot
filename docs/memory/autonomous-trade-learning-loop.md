@@ -244,6 +244,33 @@ Decision:
 - Re-scan in a different liquidity window before any config activation.
 - Maintain current 10-market rotation and live-position priority.
 
+## 2026-07-01T16:25:00+00:00
+
+Jean clarified the operating boundary for all future requests around this MT5
+agent:
+
+- The autonomous agent must keep running without interruption by default.
+- Any analysis, investigation, market scan, report, code review, or planning
+  Jean asks for is external to the running agent unless Jean explicitly asks to
+  change the live runtime.
+- Do not stop or restart the agent for normal investigation work.
+- Only stop/relaunch the watchdog/runner to activate an implemented update,
+  and only after confirming there are no live positions and no pending orders.
+- If an update is prepared while a position is live, stage, test, and commit it,
+  then wait for a clean MT5 window before relaunching.
+- Never manually open, close, or modify trades while doing these external tasks
+  unless Jean gives explicit current-conversation approval.
+
+Current confirmation at the time of this note:
+
+- Watchdog active.
+- Runner active.
+- Trade loop active.
+- `process_guard`: OK.
+- MT5 connected with trading allowed.
+- Open positions: 0.
+- Pending orders: 0.
+
 ## 2026-07-01T16:00:02.395619+00:00
 
 Report: `reports\autonomous_trade_reviews\review_20260701_160002.md`
