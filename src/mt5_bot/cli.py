@@ -483,6 +483,16 @@ def run_trade(
             for ts in executor.manage_time_stops():
                 LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
 
+            if signal.atr_pips:
+                for pl in executor.manage_profit_lock(signal.atr_pips):
+                    LOGGER.info("ProfitLock status=%s reason=%s", pl.status, pl.reason)
+                    if pl.status == "profit_lock" and pl.request:
+                        notifier.trade_closed(
+                            config.symbol, profit=0.0, magic=config.execution.magic,
+                            reason="profit_lock_retrace",
+                            volume=pl.request.get("volume"), partial=False,
+                        )
+
             # Partial close at TP1 (every tick, before entry check)
             if signal.atr_pips:
                 for pc in executor.manage_partial_close(signal.atr_pips):
@@ -706,6 +716,9 @@ def run_trade(
                     and entry_signal.atr_pips > 0
                 ):
                     effective_sl_pips = float(entry_signal.atr_pips) * float(getattr(strategy_config, "atr_sl_multiplier", 1.5))
+                min_effective_sl_pips = float(getattr(config, "min_effective_sl_pips", 0.0) or 0.0)
+                if min_effective_sl_pips > 0 and effective_sl_pips < min_effective_sl_pips:
+                    effective_sl_pips = min_effective_sl_pips
                 max_spread_ratio = float(getattr(config, "max_spread_to_sl_ratio", 0.0) or 0.0)
                 if max_spread_ratio > 0 and effective_sl_pips > 0 and (current_spread / effective_sl_pips) > max_spread_ratio:
                     LOGGER.warning(
@@ -1151,6 +1164,8 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
             })
             sig = detect_signal(signal_rates, sc)
             if sig.atr_pips and sig.atr_pips > 0:
+                for pl in executor.manage_profit_lock(sig.atr_pips):
+                    LOGGER.info("ProfitLock (idle) status=%s reason=%s", pl.status, pl.reason)
                 for tr in executor.manage_trailing_stops(sig.atr_pips):
                     LOGGER.info("TrailingStop (idle) status=%s reason=%s", tr.status, tr.reason)
                 if config.use_partial_close:

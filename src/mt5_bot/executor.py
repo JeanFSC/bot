@@ -326,6 +326,21 @@ class TradeExecutor:
             _log.info("ATR-based SL/TP: atr=%.1f pips → sl=%.1f tp=%.1f pips",
                       signal.atr_pips, sl_pips, tp_pips)
 
+        min_effective_sl = float(getattr(self.config, "min_effective_sl_pips", 0.0) or 0.0)
+        if min_effective_sl > 0 and float(risk_to_use.sl_pips) < min_effective_sl:
+            old_sl = float(risk_to_use.sl_pips)
+            old_tp = float(risk_to_use.tp_pips)
+            rr = old_tp / old_sl if old_sl > 0 else 2.0
+            risk_to_use = _replace(
+                risk_to_use,
+                sl_pips=min_effective_sl,
+                tp_pips=max(old_tp, min_effective_sl * max(rr, 1.5)),
+            )
+            _log.warning(
+                "Minimum SL floor applied: symbol=%s old_sl=%.1f new_sl=%.1f old_tp=%.1f new_tp=%.1f",
+                self.config.symbol, old_sl, risk_to_use.sl_pips, old_tp, risk_to_use.tp_pips,
+            )
+
         # ── 6. Build and check new order ──────────────────────────────────────
         base_request = build_market_order_request(
             signal=signal,
@@ -627,6 +642,103 @@ class TradeExecutor:
         return results
 
     # ── Position telemetry + time stop ───────────────────────────────────────
+
+    def manage_profit_lock(self, atr_pips: Optional[float] = None) -> list[ExecutionResult]:
+        """Close profitable positions when the move fades before TP."""
+        if not bool(getattr(self.config, "profit_lock_enabled", False)):
+            return []
+
+        results: list[ExecutionResult] = []
+        try:
+            positions = self.gateway.positions_get(symbol=self.config.symbol) or []
+            own_positions = [p for p in positions if int(p.magic) == self.config.execution.magic]
+            if not own_positions:
+                return results
+
+            tick = self.gateway.symbol_info_tick(self.config.symbol)
+            symbol_info = self.gateway.symbol_info(self.config.symbol)
+            pip = pip_size(symbol_info)
+            constants = self.gateway.constants()
+            metrics_getter = getattr(self.storage, "get_position_metrics", None)
+
+            trigger_rr = float(getattr(self.config, "profit_lock_trigger_rr", 0.45) or 0.45)
+            min_trigger_pips = float(getattr(self.config, "profit_lock_min_pips", 0.0) or 0.0)
+            retrace_rr = float(getattr(self.config, "profit_lock_retrace_rr", 0.35) or 0.35)
+            buffer_pips = float(getattr(self.config, "profit_lock_buffer_pips", 0.5) or 0.5)
+
+            for position in own_positions:
+                ticket = int(position.ticket)
+                is_buy = int(position.type) == MT5_BUY_POSITION
+                entry_price = float(position.price_open)
+                cur_price = float(tick.bid) if is_buy else float(tick.ask)
+                current_pips = (
+                    (cur_price - entry_price) / pip if is_buy
+                    else (entry_price - cur_price) / pip
+                )
+                if current_pips <= buffer_pips:
+                    continue
+
+                current_tp = float(getattr(position, "tp", 0.0) or 0.0)
+                if current_tp > 0:
+                    tp_distance_pips = (
+                        (current_tp - entry_price) / pip if is_buy
+                        else (entry_price - current_tp) / pip
+                    )
+                elif atr_pips and atr_pips > 0:
+                    tp_distance_pips = atr_pips * float(getattr(self.config.strategy, "atr_tp_multiplier", 3.0))
+                else:
+                    tp_distance_pips = float(getattr(self.config.risk, "tp_pips", 0.0) or 0.0)
+                if tp_distance_pips <= 0:
+                    continue
+
+                mfe_pips = current_pips
+                if metrics_getter is not None:
+                    metrics = metrics_getter(ticket)
+                    if metrics:
+                        mfe_pips = max(current_pips, float(metrics.get("mfe_pips", current_pips) or current_pips))
+
+                trigger_pips = max(min_trigger_pips, tp_distance_pips * trigger_rr)
+                if mfe_pips < trigger_pips:
+                    continue
+
+                giveback_pips = mfe_pips - current_pips
+                giveback_threshold = max(buffer_pips, mfe_pips * retrace_rr)
+                if giveback_pips < giveback_threshold:
+                    continue
+
+                close_base = build_close_position_request(
+                    position=position,
+                    symbol=self.config.symbol,
+                    bid=float(tick.bid), ask=float(tick.ask),
+                    execution=self.config.execution,
+                    mt5_constants=constants,
+                )
+                close_req, close_chk = self._first_valid_order_check(close_base)
+                if close_req is None or close_chk is None:
+                    results.append(ExecutionResult("rejected", "profit_lock_invalid_fill", close_base, None))
+                    continue
+                if not _is_successful_check(close_chk):
+                    results.append(ExecutionResult(
+                        "rejected", f"profit_lock_check_retcode_{getattr(close_chk, 'retcode', '?')}", close_req, close_chk,
+                    ))
+                    continue
+
+                _log.info(
+                    "Profit lock closing: ticket=%s mfe=%.1f current=%.1f giveback=%.1f trigger=%.1f threshold=%.1f",
+                    ticket, mfe_pips, current_pips, giveback_pips, trigger_pips, giveback_threshold,
+                )
+                if self.config.execution.trade_enabled:
+                    send_result = self.gateway.order_send(close_req)
+                    self._record_order_result(close_req, send_result, symbol_info)
+                    results.append(ExecutionResult(
+                        "profit_lock", f"retcode_{getattr(send_result, 'retcode', '?')}", close_req, send_result,
+                    ))
+                else:
+                    results.append(ExecutionResult("dry_run", "profit_lock_would_close", close_req, close_chk))
+        except Exception as exc:
+            _log.warning("manage_profit_lock error: %s", exc)
+
+        return results
 
     def record_position_metrics(self) -> list[ExecutionResult]:
         """Persist MFE/MAE-style telemetry for currently open positions."""

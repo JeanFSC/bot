@@ -81,3 +81,27 @@ first full rotation.
 - portfolio exposure guard.
 - no manual forced orders.
 
+## Profit Protection Follow-Up
+
+Jean challenged the first larger USDCHF demo order because it moved toward TP
+but later closed by SL. Broker history showed it did not touch TP, but the
+incident exposed two real weaknesses:
+
+- the ATR-derived stop could become too small for a larger demo lot;
+- open-position management was mostly trailing/partial close, not a direct
+  "take profit before the move fades" exit.
+
+Changes added after that incident:
+
+- `min_effective_sl_pips` prevents microscopic SL distances when risk is
+  increased. If ATR produces a smaller SL, the order uses the configured floor
+  and resizes volume from that wider SL.
+- `profit_lock_enabled` closes a profitable open position when it has already
+  reached enough MFE and then gives back too much of that MFE before TP.
+- Active configs now enable profit lock and minimum SL floors:
+  - forex majors: 8 pips minimum SL;
+  - GBPJPY: 12 pips minimum SL;
+  - XAUUSD: 180 pips minimum SL.
+
+This keeps the demo agent more active, but makes it less likely to repeat the
+USDCHF pattern: big lot, tiny stop, no active profit exit.

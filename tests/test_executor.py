@@ -245,9 +245,81 @@ def test_trailing_breakeven_uses_spread_buffer():
     assert gateway.modified[0][1] == 4707.9
 
 
+def test_execute_applies_minimum_effective_sl_floor():
+    signal = Signal(
+        type=SignalType.BUY,
+        price=1.1000,
+        time=None,
+        reason="ema_cross_above",
+        fast_ema=1.1,
+        slow_ema=1.099,
+        rsi=55,
+        atr=0.0002,
+        atr_pips=2.0,
+    )
+    gateway = _GatewayWithInvalidFirstFill()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="EURUSD",
+        cooldown_seconds=0,
+        reverse_cooldown_seconds=0,
+        max_open_positions=1,
+        min_effective_sl_pips=8.0,
+        risk_firewall_enabled=False,
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=12, tp_pips=24),
+        strategy=SimpleNamespace(use_atr_sl_tp=True, atr_sl_multiplier=1.5, atr_tp_multiplier=3.0),
+        execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=False),
+    )
+
+    result = TradeExecutor(gateway, storage, config).execute(signal)
+
+    assert result.status == "dry_run"
+    assert result.request["sl"] == 1.0992
+    assert result.request["tp"] == 1.1016
+
+
+def test_profit_lock_closes_after_mfe_retrace():
+    gateway = _GatewayForProfitLock(current_bid=1.1006, current_ask=1.1007)
+    storage = _StorageSpy(position_metrics={9366528834: {"mfe_pips": 10.0}})
+    config = _profit_lock_config()
+
+    result = TradeExecutor(gateway, storage, config).manage_profit_lock(atr_pips=2.0)[0]
+
+    assert result.status == "profit_lock"
+    assert result.request["position"] == 9366528834
+    assert result.request["type"] == 1
+    assert gateway.sent_requests
+
+
+def test_profit_lock_waits_until_trigger_reached():
+    gateway = _GatewayForProfitLock(current_bid=1.1002, current_ask=1.1003)
+    storage = _StorageSpy(position_metrics={9366528834: {"mfe_pips": 3.0}})
+    config = _profit_lock_config()
+
+    results = TradeExecutor(gateway, storage, config).manage_profit_lock(atr_pips=2.0)
+
+    assert results == []
+    assert gateway.sent_requests == []
+
+
+def _profit_lock_config():
+    return SimpleNamespace(
+        symbol="EURUSD",
+        profit_lock_enabled=True,
+        profit_lock_trigger_rr=0.25,
+        profit_lock_min_pips=2.0,
+        profit_lock_retrace_rr=0.35,
+        profit_lock_buffer_pips=0.5,
+        strategy=SimpleNamespace(atr_tp_multiplier=3.0),
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=8, tp_pips=16),
+        execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=True),
+    )
+
+
 class _StorageSpy:
-    def __init__(self, latest_losing_exit=None):
+    def __init__(self, latest_losing_exit=None, position_metrics=None):
         self.latest_losing_exit = latest_losing_exit
+        self.position_metrics = position_metrics or {}
         self.pruned = []
 
     def record_order_request(self, request, check):
@@ -262,6 +334,9 @@ class _StorageSpy:
     def prune_position_metrics(self, symbol, magic, open_tickets):
         self.pruned.append((symbol, magic, open_tickets))
         return 0
+
+    def get_position_metrics(self, ticket):
+        return self.position_metrics.get(int(ticket))
 
 
 class _GatewayWithInvalidFirstFill:
@@ -376,4 +451,34 @@ class _GatewayForTrailingStop(_GatewayForPartialClose):
 
     def order_modify(self, ticket, sl, tp):
         self.modified.append((ticket, sl, tp))
+        return SimpleNamespace(retcode=10009, comment="Request executed")
+
+
+class _GatewayForProfitLock(_GatewayWithInvalidFirstFill):
+    def __init__(self, current_bid, current_ask):
+        super().__init__()
+        self.current_bid = current_bid
+        self.current_ask = current_ask
+        self.sent_requests = []
+
+    def positions_get(self, symbol):
+        return [SimpleNamespace(
+            ticket=9366528834,
+            magic=260430,
+            type=0,
+            price_open=1.1000,
+            volume=0.10,
+            sl=1.0992,
+            tp=1.1016,
+        )]
+
+    def symbol_info_tick(self, symbol):
+        return SimpleNamespace(bid=self.current_bid, ask=self.current_ask)
+
+    def order_check(self, request):
+        self.checked_requests.append(request)
+        return SimpleNamespace(retcode=10009, comment="Done")
+
+    def order_send(self, request):
+        self.sent_requests.append(request)
         return SimpleNamespace(retcode=10009, comment="Request executed")

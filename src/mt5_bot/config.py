@@ -95,6 +95,12 @@ class BotConfig:
     max_effective_risk_pct: float = 1.0
     max_spread_to_sl_ratio: float = 0.25
     min_sl_atr_ratio: float = 0.50
+    min_effective_sl_pips: float = 0.0
+    profit_lock_enabled: bool = False
+    profit_lock_trigger_rr: float = 0.45
+    profit_lock_min_pips: float = 0.0
+    profit_lock_retrace_rr: float = 0.35
+    profit_lock_buffer_pips: float = 0.5
     max_position_minutes: int = 0
     time_stop_min_profit_pips: float = 0.0
     profit_target_usd: Optional[float] = None
@@ -184,6 +190,12 @@ def load_config(path: str | Path) -> BotConfig:
         max_effective_risk_pct=float(raw.get("max_effective_risk_pct", 1.0)),
         max_spread_to_sl_ratio=float(raw.get("max_spread_to_sl_ratio", 0.25)),
         min_sl_atr_ratio=float(raw.get("min_sl_atr_ratio", 0.50)),
+        min_effective_sl_pips=float(raw.get("min_effective_sl_pips", 0.0)),
+        profit_lock_enabled=bool(raw.get("profit_lock_enabled", False)),
+        profit_lock_trigger_rr=float(raw.get("profit_lock_trigger_rr", 0.45)),
+        profit_lock_min_pips=float(raw.get("profit_lock_min_pips", 0.0)),
+        profit_lock_retrace_rr=float(raw.get("profit_lock_retrace_rr", 0.35)),
+        profit_lock_buffer_pips=float(raw.get("profit_lock_buffer_pips", 0.5)),
         max_position_minutes=int(raw.get("max_position_minutes", 0)),
         time_stop_min_profit_pips=float(raw.get("time_stop_min_profit_pips", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
@@ -267,6 +279,16 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("max_spread_to_sl_ratio must be >= 0")
     if config.min_sl_atr_ratio < 0:
         raise ValueError("min_sl_atr_ratio must be >= 0")
+    if config.min_effective_sl_pips < 0:
+        raise ValueError("min_effective_sl_pips must be >= 0")
+    if not (0.0 < config.profit_lock_trigger_rr <= 1.0):
+        raise ValueError("profit_lock_trigger_rr must be > 0 and <= 1")
+    if config.profit_lock_min_pips < 0:
+        raise ValueError("profit_lock_min_pips must be >= 0")
+    if not (0.0 < config.profit_lock_retrace_rr <= 1.0):
+        raise ValueError("profit_lock_retrace_rr must be > 0 and <= 1")
+    if config.profit_lock_buffer_pips < 0:
+        raise ValueError("profit_lock_buffer_pips must be >= 0")
     if config.max_same_direction_theme_positions < 0:
         raise ValueError("max_same_direction_theme_positions must be >= 0")
     if not (0.0 < config.partial_close_ratio < 1.0):

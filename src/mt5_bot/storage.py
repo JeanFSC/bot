@@ -387,6 +387,21 @@ class BotStorage:
         )
         self.connection.commit()
 
+    def get_position_metrics(self, ticket: int) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            """
+            SELECT ticket, symbol, magic, opened_at, updated_at, side, volume,
+                   entry_price, current_price, current_profit, current_pips,
+                   mfe_pips, mae_pips, mfe_profit, mae_profit
+            FROM position_metrics
+            WHERE ticket = ?
+            """,
+            (int(ticket),),
+        ).fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
     def prune_position_metrics(self, symbol: str, magic: int, open_tickets: set[int]) -> int:
         """Remove stale telemetry rows for positions no longer open in MT5."""
         cursor = self.connection.execute(
