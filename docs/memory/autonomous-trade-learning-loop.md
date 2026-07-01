@@ -87,3 +87,40 @@ Risk notes:
 - USDCNH and USDSEK were not added because they are exotic/spread-risk markets.
 - No manual trade was opened, closed, or modified.
 
+## 2026-07-01T12:00:02.300423+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_120002.md`
+
+- EURUSD SELL ticket=9036796874 pnl=1.70 causes=profitable_exit action=record_only
+- EURUSD SELL ticket=9036894446 pnl=0.88 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9036937977 pnl=0.44 causes=profitable_exit action=record_only
+
+## 2026-07-01T12:15:02.268306+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_121502.md`
+
+- USDCAD BUY ticket=9037036946 pnl=0.35 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9037174791 pnl=0.24 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9037294105 pnl=0.37 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9037400286 pnl=0.29 causes=profitable_exit action=record_only
+
+## 2026-07-01T12:30:02.287115+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_123002.md`
+
+- USDCAD BUY ticket=9037444981 pnl=0.14 causes=profitable_exit action=record_only
+
+## 2026-07-01T13:45:02.292806+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_134502.md`
+
+- NZDUSD BUY ticket=9040485569 pnl=2.70 causes=profitable_exit action=record_only
+
+## 2026-07-01T14:00:02.299184+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_140002.md`
+
+- NZDUSD BUY ticket=9040801804 pnl=3.72 causes=profitable_exit action=record_only
+- GBPJPY BUY ticket=9040914441 pnl=0.18 causes=profitable_exit action=record_only
+- NZDUSD BUY ticket=9040970397 pnl=3.70 causes=profitable_exit action=record_only
+

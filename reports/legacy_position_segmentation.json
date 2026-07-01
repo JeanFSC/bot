@@ -1,15 +1,1 @@
-[
-  {
-    "ticket": 8693514402,
-    "symbol": "USDCHF",
-    "type": 0,
-    "volume": 13.56,
-    "price_open": 0.78583,
-    "sl": 0.78544,
-    "tp": 0.7866,
-    "profit": 17.26,
-    "magic": 260446,
-    "legacy": false,
-    "legacy_reason": null
-  }
-]
+[]

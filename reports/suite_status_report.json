@@ -1,28 +1,17 @@
 {
-  "generated_at": "2026-05-19T20:34:43.216494+00:00",
+  "generated_at": "2026-07-01T12:31:17.714359+00:00",
   "since": "2026-05-15T00:00:00+00:00",
-  "status": "OK",
+  "status": "DOWN",
   "reasons": [
-    "live_trade_loops=0 dry_run_loops=0"
+    "no suite processes running"
   ],
-  "processes": [
-    {
-      "ProcessId": 4948,
-      "Name": "cmd.exe",
-      "CommandLine": "\"C:\\WINDOWS\\system32\\cmd.exe\" /c START_REDUCED_FORWARD_TEST.bat "
-    },
-    {
-      "ProcessId": 2608,
-      "Name": "cmd.exe",
-      "CommandLine": "\"C:\\WINDOWS\\system32\\cmd.exe\" /c START_REDUCED_FORWARD_TEST.bat "
-    }
-  ],
+  "processes": [],
   "mt5": {
     "available": true,
     "account": {
-      "login": 106490890,
+      "login": 108944800,
       "trade_mode": 0,
-      "leverage": 100,
+      "leverage": 50,
       "limit_orders": 200,
       "margin_so_mode": 0,
       "trade_allowed": true,
@@ -30,12 +19,12 @@
       "margin_mode": 2,
       "currency_digits": 2,
       "fifo_close": false,
-      "balance": 89621.06,
+      "balance": 3000.13,
       "credit": 0.0,
       "profit": 0.0,
-      "equity": 89621.06,
+      "equity": 3000.13,
       "margin": 0.0,
-      "margin_free": 89621.06,
+      "margin_free": 3000.13,
       "margin_level": 0.0,
       "margin_so_call": 50.0,
       "margin_so_so": 30.0,
@@ -60,12 +49,12 @@
       "ftp_enabled": false,
       "notifications_enabled": false,
       "mqid": true,
-      "build": 5836,
+      "build": 5964,
       "maxbars": 100000,
       "codepage": 1252,
-      "ping_last": 183980,
+      "ping_last": 170269,
       "community_balance": 0.0,
-      "retransmission": 0.6138180433955082,
+      "retransmission": 0.03006162633398467,
       "company": "MetaQuotes Ltd.",
       "name": "MetaTrader 5",
       "language": "Spanish",
@@ -75,213 +64,115 @@
     },
     "positions": [],
     "by_magic": {
-      "260436": {
-        "label": "XAUUSD",
-        "closed": 2,
-        "wins": 2,
-        "losses": 0,
-        "pnl": 10582.050000000001,
-        "gross_win": 10582.050000000001,
-        "gross_loss": 0.0,
-        "avg_win": 5291.025000000001,
-        "avg_loss": 0.0,
-        "expectancy": 5291.025000000001
-      },
-      "260433": {
-        "label": "EURUSD",
-        "closed": 3,
-        "wins": 0,
-        "losses": 3,
-        "pnl": -1936.6299999999999,
-        "gross_win": 0.0,
-        "gross_loss": -1936.6299999999999,
-        "avg_win": 0.0,
-        "avg_loss": -645.5433333333333,
-        "expectancy": -645.5433333333333
-      },
-      "260443": {
-        "label": "GBPJPY",
-        "closed": 9,
-        "wins": 7,
-        "losses": 2,
-        "pnl": 5.640000000000001,
-        "gross_win": 8.1,
-        "gross_loss": -2.46,
-        "avg_win": 1.157142857142857,
-        "avg_loss": -1.23,
-        "expectancy": 0.6266666666666667
-      },
       "260446": {
         "label": "USDCHF",
-        "closed": 7,
-        "wins": 6,
-        "losses": 1,
-        "pnl": 1563.62,
-        "gross_win": 2345.1,
-        "gross_loss": -781.48,
-        "avg_win": 390.84999999999997,
-        "avg_loss": -781.48,
-        "expectancy": 223.3742857142857
-      },
-      "260434": {
-        "label": "GBPUSD",
-        "closed": 8,
-        "wins": 6,
-        "losses": 2,
-        "pnl": -433.79999999999995,
-        "gross_win": 902.5699999999999,
-        "gross_loss": -1336.37,
-        "avg_win": 150.4283333333333,
-        "avg_loss": -668.185,
-        "expectancy": -54.224999999999994
-      },
-      "260435": {
-        "label": "USDJPY",
         "closed": 3,
         "wins": 2,
         "losses": 1,
-        "pnl": -3.3699999999999997,
-        "gross_win": 0.94,
-        "gross_loss": -4.31,
-        "avg_win": 0.47,
-        "avg_loss": -4.31,
-        "expectancy": -1.1233333333333333
+        "pnl": -7.5,
+        "gross_win": 1.8199999999999998,
+        "gross_loss": -9.32,
+        "avg_win": 0.9099999999999999,
+        "avg_loss": -9.32,
+        "expectancy": -2.5
       },
-      "260442": {
-        "label": "NZDUSD",
-        "closed": 3,
-        "wins": 2,
-        "losses": 1,
-        "pnl": -395.03999999999996,
-        "gross_win": 281.76,
-        "gross_loss": -676.8,
-        "avg_win": 140.88,
-        "avg_loss": -676.8,
-        "expectancy": -131.67999999999998
-      },
-      "260440": {
-        "label": "XAUUSD_M5",
+      "260436": {
+        "label": "XAUUSD",
         "closed": 1,
-        "wins": 0,
-        "losses": 1,
-        "pnl": -603.84,
-        "gross_win": 0.0,
-        "gross_loss": -603.84,
-        "avg_win": 0.0,
-        "avg_loss": -603.84,
-        "expectancy": -603.84
+        "wins": 1,
+        "losses": 0,
+        "pnl": 3.26,
+        "gross_win": 3.26,
+        "gross_loss": 0.0,
+        "avg_win": 3.26,
+        "avg_loss": 0.0,
+        "expectancy": 3.26
       },
       "260441": {
         "label": "USDCAD",
-        "closed": 1,
-        "wins": 0,
-        "losses": 1,
-        "pnl": -482.42,
-        "gross_win": 0.0,
-        "gross_loss": -482.42,
-        "avg_win": 0.0,
-        "avg_loss": -482.42,
-        "expectancy": -482.42
-      },
-      "260445": {
-        "label": "USDJPY_ASIA",
-        "closed": 1,
-        "wins": 0,
-        "losses": 1,
-        "pnl": -3.66,
-        "gross_win": 0.0,
-        "gross_loss": -3.66,
-        "avg_win": 0.0,
-        "avg_loss": -3.66,
-        "expectancy": -3.66
+        "closed": 6,
+        "wins": 6,
+        "losses": 0,
+        "pnl": 1.83,
+        "gross_win": 1.83,
+        "gross_loss": 0.0,
+        "avg_win": 0.305,
+        "avg_loss": 0.0,
+        "expectancy": 0.305
       }
     }
   },
   "critical_logs": [],
   "dbs": [
     {
-      "db": "pro.sqlite",
-      "size": 31121408,
-      "mtime": "2026-05-19T11:52:07.848015",
-      "trade_journal_rows": 6306,
-      "latest_journal": "2026-05-19T16:52:07.846841+00:00"
+      "db": "pro_audusd_m5.sqlite",
+      "size": 253952,
+      "mtime": "2026-07-01T07:28:34.087220",
+      "trade_journal_rows": 76,
+      "latest_journal": "2026-07-01T12:28:34.086478+00:00"
     },
     {
-      "db": "pro_aud.sqlite",
-      "size": 12132352,
-      "mtime": "2026-05-19T11:53:56.668279",
-      "trade_journal_rows": 1561,
-      "latest_journal": "2026-05-19T16:53:56.667498+00:00"
+      "db": "pro_eurusd_m5.sqlite",
+      "size": 1331200,
+      "mtime": "2026-07-01T07:29:51.257771",
+      "trade_journal_rows": 448,
+      "latest_journal": "2026-07-01T12:29:51.256712+00:00"
     },
     {
-      "db": "pro_gbp.sqlite",
-      "size": 33628160,
-      "mtime": "2026-05-19T11:53:53.724488",
-      "trade_journal_rows": 7427,
-      "latest_journal": "2026-05-19T16:53:53.723000+00:00"
+      "db": "pro_gbp_m5.sqlite",
+      "size": 1327104,
+      "mtime": "2026-07-01T07:30:17.218951",
+      "trade_journal_rows": 460,
+      "latest_journal": "2026-07-01T12:30:17.218313+00:00"
     },
     {
       "db": "pro_gbpjpy.sqlite",
-      "size": 19468288,
-      "mtime": "2026-05-19T15:33:49.917057",
-      "trade_journal_rows": 10176,
-      "latest_journal": "2026-05-19T20:33:49.916155+00:00"
+      "size": 2818048,
+      "mtime": "2026-07-01T07:28:59.816789",
+      "trade_journal_rows": 1309,
+      "latest_journal": "2026-07-01T12:28:59.816295+00:00"
     },
     {
       "db": "pro_gold.sqlite",
-      "size": 22573056,
-      "mtime": "2026-05-19T15:34:03.652725",
-      "trade_journal_rows": 9022,
-      "latest_journal": "2026-05-19T20:34:03.651945+00:00"
+      "size": 3092480,
+      "mtime": "2026-07-01T07:27:15.944441",
+      "trade_journal_rows": 1511,
+      "latest_journal": "2026-07-01T12:27:15.943130+00:00"
     },
     {
-      "db": "pro_gold_m5.sqlite",
-      "size": 3616768,
-      "mtime": "2026-05-19T11:52:07.387988",
-      "trade_journal_rows": 1441,
-      "latest_journal": "2026-05-19T16:52:07.386711+00:00"
+      "db": "pro_nzdusd_m5.sqlite",
+      "size": 258048,
+      "mtime": "2026-07-01T07:30:42.950718",
+      "trade_journal_rows": 80,
+      "latest_journal": "2026-07-01T12:30:42.949731+00:00"
     },
     {
-      "db": "pro_jpy.sqlite",
-      "size": 33374208,
-      "mtime": "2026-05-19T11:52:54.954754",
-      "trade_journal_rows": 9004,
-      "latest_journal": "2026-05-19T16:52:54.953045+00:00"
-    },
-    {
-      "db": "pro_jpy_asia.sqlite",
-      "size": 17891328,
-      "mtime": "2026-05-19T11:54:08.025517",
-      "trade_journal_rows": 8106,
-      "latest_journal": "2026-05-19T16:54:08.024844+00:00"
-    },
-    {
-      "db": "pro_nzdusd.sqlite",
-      "size": 17350656,
-      "mtime": "2026-05-19T11:53:54.038169",
-      "trade_journal_rows": 8087,
-      "latest_journal": "2026-05-19T16:53:54.037482+00:00"
-    },
-    {
-      "db": "pro_silver.sqlite",
-      "size": 20799488,
-      "mtime": "2026-05-19T11:54:18.919641",
-      "trade_journal_rows": 12385,
-      "latest_journal": "2026-05-19T16:54:18.918031+00:00"
+      "db": "pro_silver_m5_safe.sqlite",
+      "size": 237568,
+      "mtime": "2026-07-01T07:27:41.665954",
+      "trade_journal_rows": 72,
+      "latest_journal": "2026-07-01T12:27:41.665090+00:00"
     },
     {
       "db": "pro_usdcad.sqlite",
-      "size": 16678912,
-      "mtime": "2026-05-19T11:53:55.130549",
-      "trade_journal_rows": 7931,
-      "latest_journal": "2026-05-19T16:53:55.129825+00:00"
+      "size": 1425408,
+      "mtime": "2026-07-01T07:31:08.687085",
+      "trade_journal_rows": 615,
+      "latest_journal": "2026-07-01T12:31:08.685918+00:00"
     },
     {
       "db": "pro_usdchf.sqlite",
-      "size": 18276352,
-      "mtime": "2026-05-19T15:33:43.743213",
-      "trade_journal_rows": 9893,
-      "latest_journal": "2026-05-19T20:33:43.742115+00:00"
+      "size": 2383872,
+      "mtime": "2026-07-01T07:27:53.398597",
+      "trade_journal_rows": 1192,
+      "latest_journal": "2026-07-01T12:27:53.397469+00:00"
+    },
+    {
+      "db": "pro_usdjpy_m5_safe.sqlite",
+      "size": 253952,
+      "mtime": "2026-07-01T07:29:25.526263",
+      "trade_journal_rows": 80,
+      "latest_journal": "2026-07-01T12:29:25.524936+00:00"
     }
   ]
 }
