@@ -31,7 +31,7 @@ baseline_equity: 3000.0
 database_path: data/pro_usdchf.sqlite
 risk:
   mode: percent_equity
-  risk_pct: 0.05
+  risk_pct: 0.35
   fixed_lot: 0.01
   sl_pips: 12
   tp_pips: 24
@@ -41,15 +41,15 @@ strategy:
   trend_ema: 50
   use_trend_filter: true
   rsi_period: 14
-  rsi_buy_max: 65
-  rsi_sell_min: 35
+  rsi_buy_max: 72
+  rsi_sell_min: 28
   use_rsi_filter: true
   use_rsi_momentum: false
   atr_period: 14
   min_atr_pips: 1.5
   use_atr_filter: true
   adx_period: 14
-  adx_min_value: 22
+  adx_min_value: 18
   use_adx_filter: true
   atr_sl_multiplier: 1.5
   atr_tp_multiplier: 3.0
@@ -77,8 +77,8 @@ time_stop_min_profit_pips: 0.0
 risk_firewall_enabled: true
 risk_firewall_tolerance: 1.15
 max_order_volume: 0.0
-max_symbol_daily_loss_pct: 0.5
-max_symbol_weekly_loss_pct: 1.0
-max_effective_risk_pct: 0.05
+max_symbol_daily_loss_pct: 0.8
+max_symbol_weekly_loss_pct: 1.6
+max_effective_risk_pct: 0.35
 max_spread_to_sl_ratio: 0.2
 min_sl_atr_ratio: 0.6

@@ -29,7 +29,7 @@ baseline_equity: 3000.0  # Ajustado a cuenta demo
 database_path: data/pro_gold.sqlite
 risk:
   mode: percent_equity
-  risk_pct: 0.05  # REDUCIDO: antes 0.25, ahora 0.05%
+  risk_pct: 0.20
   fixed_lot: 0.01
   sl_pips: 30
   tp_pips: 60
@@ -47,7 +47,7 @@ strategy:
   min_atr_pips: 80.0
   use_atr_filter: true
   adx_period: 14
-  adx_min_value: 24
+  adx_min_value: 20
   use_adx_filter: true
   atr_sl_multiplier: 1.5
   atr_tp_multiplier: 3.0
@@ -75,8 +75,8 @@ time_stop_min_profit_pips: 0.0
 risk_firewall_enabled: true
 risk_firewall_tolerance: 1.15
 max_order_volume: 0.05  # Reducido drásticamente
-max_symbol_daily_loss_pct: 0.4
-max_symbol_weekly_loss_pct: 0.8
-max_effective_risk_pct: 0.05  # Reducido
+max_symbol_daily_loss_pct: 0.5
+max_symbol_weekly_loss_pct: 1.0
+max_effective_risk_pct: 0.20
 max_spread_to_sl_ratio: 0.15
 min_sl_atr_ratio: 0.6

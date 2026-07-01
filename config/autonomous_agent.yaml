@@ -5,21 +5,24 @@
 mode: demo
 memory_db: data/autonomous_agent_memory.sqlite
 max_parallel_bots: 1
-max_seconds: 900
-poll_seconds: 15
+max_seconds: 300
+poll_seconds: 10
 
 # Cuenta demo: equity aprox. 3000 USD
 # Kill switch: si equity baja a este nivel, se detiene automaticamente.
 floor_equity: 2900.0
 
-# Solo set reducido, uno a la vez por seguridad.
+# Perfil demo activo: mas mercados y rotacion mas rapida.
 configs:
   - config/pro_usdchf.yaml
-  - config/pro_gold.yaml
   - config/pro_gbpjpy.yaml
+  - config/pro_eurusd_m5_aggressive.yaml
+  - config/pro_gbp_m5_aggressive.yaml
+  - config/pro_usdcad.yaml
+  - config/pro_gold.yaml
 
 # HABILITADO para demo real con monitoreo.
 allow_demo_orders: true
 
-# Riesgo base bajo para aprender sin quemar la cuenta.
-reduced_risk_pct: 0.05
+# Riesgo demo activo. Cada config mantiene sus propios caps y firewalls.
+reduced_risk_pct: 0.35
