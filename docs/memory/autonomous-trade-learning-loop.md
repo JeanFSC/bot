@@ -369,3 +369,70 @@ External activation monitor:
   watchdog/runner, commits locally, reports to Jean, and disables/removes the
   activation job when possible.
 
+## 2026-07-01T19:00:02.486921+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_190002.md`
+
+- USDJPY BUY ticket=9046911639 pnl=0.51 causes=profitable_exit action=record_only
+
+## 2026-07-01T19:30:02.526899+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_193002.md`
+
+- GBPUSD BUY ticket=9047432988 pnl=1.15 causes=profitable_exit action=record_only
+
+## 2026-07-01T19:45:02.511621+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_194502.md`
+
+- GBPUSD BUY ticket=9047477972 pnl=0.90 causes=profitable_exit action=record_only
+- GBPUSD BUY ticket=9047526885 pnl=0.56 causes=profitable_exit action=record_only
+- GBPUSD BUY ticket=9047578403 pnl=0.29 causes=profitable_exit action=record_only
+- GBPUSD BUY ticket=9047627211 pnl=0.22 causes=profitable_exit action=record_only
+
+## 2026-07-01T20:00:02.521519+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_200002.md`
+
+- AUDUSD SELL ticket=9047843757 pnl=0.66 causes=profitable_exit action=record_only
+- USDJPY BUY ticket=9047850210 pnl=0.08 causes=profitable_exit action=record_only
+
+## 2026-07-01T20:15:02.518108+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_201502.md`
+
+- AUDUSD SELL ticket=9047931323 pnl=0.54 causes=profitable_exit action=record_only
+- AUDUSD SELL ticket=9047943095 pnl=0.35 causes=profitable_exit action=record_only
+- AUDUSD SELL ticket=9047955539 pnl=0.39 causes=profitable_exit action=record_only
+- USDJPY BUY ticket=9047960011 pnl=0.09 causes=profitable_exit action=record_only
+- AUDUSD SELL ticket=9047965623 pnl=0.37 causes=profitable_exit action=record_only
+
+## 2026-07-01T21:00:02.544934+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_210002.md`
+
+- AUDUSD SELL ticket=9048124259 pnl=0.33 causes=profitable_exit action=record_only
+
+## 2026-07-01T21:30:02.573110+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_213002.md`
+
+- NZDUSD SELL ticket=9048227131 pnl=1.35 causes=profitable_exit action=record_only
+- NZDUSD SELL ticket=9048227408 pnl=1.52 causes=profitable_exit action=record_only
+
+## 2026-07-01T22:14:00+00:00
+
+Cron resilience update after rate-limit failures:
+
+- The one-shot activation monitor `MT5 activate winner scaling when clean`
+  completed its purpose earlier and was disabled to avoid repeated rate-limit
+  runs after winner scaling was already live.
+- Active overnight learning cron remains enabled:
+  `c39f515f-5ce9-48be-9ea5-7b35fc43dbbf`
+  (`MT5 autonomous overnight learning loop`).
+- Added fallback chain to the active overnight cron payload:
+  primary `gpt-5.5`, then `gpt-5.3-codex`, then `gpt-5.2`, then
+  `gpt-5.4-mini`.
+- Cron still must obey the runtime boundary: no manual trade operations and no
+  relaunch unless MT5 positions=0 and pending orders=0.
+
