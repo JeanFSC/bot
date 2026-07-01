@@ -215,6 +215,35 @@ Next gate before activation:
   low risk, unique magic numbers, preflight, tests, process guard, and no push
   unless Jean requests it.
 
+## 2026-07-01T16:20:00+00:00
+
+Second market incorporation scan per Jean's request. Expanded review across
+liquid non-active FX crosses plus metals/indices/energy. Checks included MT5
+trade mode, tick availability, M5/H1 history, min lot, margin, spread/ATR,
+current ADX, current signal, and a lightweight recent M5 execution simulation:
+EMA 5/13 crossover, H1 trend alignment, RSI, ATR, ADX, ATR SL/TP, 24-bar time
+stop, approximate spread cost.
+
+Outcome:
+
+- No new symbol passed activation gates for immediate inclusion.
+- `EURAUD`, `EURCAD`, and `EURGBP` passed the first microstructure screen but
+  failed the recent execution simulation.
+- `AUDJPY` and `GBPCHF` were closest on recent simulation, but failed live
+  activation quality (`AUDJPY` weak current ADX / spread edge, `GBPCHF`
+  spread/ATR above threshold).
+- `CADCHF` and `GBPCAD` previously showed live triggers, but repeated checks
+  kept them rejected due spread/ATR cost and poor simulation quality.
+- Indices/energy/metals outside XAU/XAG remained unsuitable for this profile
+  due trade mode, stale data, coarse lot, margin, or spread/ATR economics.
+
+Decision:
+
+- Do not add new markets now.
+- Keep watchlist: `AUDJPY`, `GBPCHF`, `EURGBP`, `EURJPY`.
+- Re-scan in a different liquidity window before any config activation.
+- Maintain current 10-market rotation and live-position priority.
+
 ## 2026-07-01T16:00:02.395619+00:00
 
 Report: `reports\autonomous_trade_reviews\review_20260701_160002.md`
