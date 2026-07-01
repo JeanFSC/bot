@@ -271,6 +271,38 @@ Current confirmation at the time of this note:
 - Open positions: 0.
 - Pending orders: 0.
 
+## 2026-07-01T17:15:00+00:00
+
+Jean clarified the next learning focus: winning trades must be reviewed with
+the same seriousness as losing trades. The review should answer why the trade
+won, how it won, whether it could have won more, and whether higher size would
+have been justified.
+
+Evidence from closed positions available at this scan:
+
+- Closed positions reviewed: 8.
+- Winners: 7.
+- Losers: 1.
+- Net realized PnL: +12.66 USD.
+- Winners realized about +21.98 USD, while reconstructed full-volume MFE was
+  about +54.26 USD. This means there was meaningful upside left on the table,
+  mostly from partial exits/profit-lock behavior.
+- Main winners with notable unused MFE: `NZDUSD`, `EURUSD`, `XAUUSD`, and
+  `USDCAD`.
+- The one loss, `USDCHF` BUY, looked strong by static math (bullish trend,
+  RSI 61.88, ADX 45.03) but still hit SL. This is evidence against treating
+  "certainty" as a static entry feeling.
+
+Operating lesson:
+
+- Do not implement unlimited or emotion-based size increases.
+- Prefer evidence-based scaling: only add size or allow higher risk after the
+  position proves itself with favorable movement, low MAE, healthy ADX,
+  clean spread/ATR, no correlation crowding, and intact account risk caps.
+- Future improvement candidate: a confidence/add-on module that can scale
+  winners after confirmation, not before confirmation, with aggregate open
+  risk limits.
+
 ## 2026-07-01T16:00:02.395619+00:00
 
 Report: `reports\autonomous_trade_reviews\review_20260701_160002.md`
