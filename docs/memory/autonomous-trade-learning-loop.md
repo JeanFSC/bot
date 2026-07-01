@@ -180,3 +180,45 @@ Implementation staged:
   config.
 - Added tests for the live-position prioritization behavior.
 
+## 2026-07-01T16:05:00+00:00
+
+Jean asked to keep investigating additional markets for the autonomous agent.
+Initial MT5 broker screen used live symbol info, M5/H1 bars, current spread,
+ATR, ADX, trade mode, min lot, and margin calculation. No live/demo orders
+were opened or modified.
+
+Initial shortlist:
+
+- `EURGBP`: low spread, low margin, strong ADX; no current crossover.
+- `EURCAD`: low spread/ATR ratio, low margin, acceptable ADX; no current
+  crossover.
+- `EURAUD`: very low spread/ATR ratio, low margin, acceptable ADX; no current
+  crossover.
+- `CHFJPY`: low spread/ATR ratio, low margin, acceptable ADX; no current
+  crossover.
+- `EURJPY`: watchlist; low cost but ADX was weak at scan time.
+
+Rejected for now:
+
+- `CADCHF` and `GBPCAD` had current EMA triggers, but spread/ATR cost was too
+  high for clean activation.
+- `US30`, `US30M`, and `UK100` were not full trade-mode candidates for this
+  agent profile.
+- `XPDUSD` and `XPTUSD` required too much margin for the ~3k demo account.
+- `WTI`, `GERN`, `HGER`, `XAUEUR`, and `XAGEUR` had poor spread/ATR economics
+  for this M5 bot profile at scan time.
+
+Next gate before activation:
+
+- Re-scan shortlisted symbols across another session.
+- If spreads and ADX stay acceptable, add them as controlled demo configs with
+  low risk, unique magic numbers, preflight, tests, process guard, and no push
+  unless Jean requests it.
+
+## 2026-07-01T16:00:02.395619+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260701_160002.md`
+
+- EURUSD SELL ticket=9043963496 pnl=1.53 causes=profitable_exit action=record_only
+- EURUSD SELL ticket=9044049629 pnl=0.66 causes=profitable_exit action=record_only
+
