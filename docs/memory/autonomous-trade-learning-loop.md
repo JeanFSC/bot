@@ -346,3 +346,26 @@ Activation rule:
 - When MT5 positions=0 and orders=0, enable the feature in selected active
   configs, run tests/preflight/process guard, then relaunch watchdog/runner.
 
+## 2026-07-01T17:29:59+00:00
+
+Jean confirmed the staged winner-scaling lesson should be activated when the
+current operation finishes.
+
+Runtime boundary preserved:
+
+- MT5 still had one live `USDJPY` BUY position when checked.
+- No trade was opened, closed, or modified manually.
+- No watchdog/runner relaunch was performed.
+
+External activation monitor:
+
+- OpenClaw cron job: `a2af3140-c107-4045-bfaa-46559f206a74`
+  (`MT5 activate winner scaling when clean`).
+- Runs every 5 minutes.
+- If any position or pending order exists, it exits silently and leaves the
+  live agent untouched.
+- If MT5 is clean, it enables conservative winner scaling in active configs,
+  runs tests/preflight/process guard, re-checks MT5 is still clean, relaunches
+  watchdog/runner, commits locally, reports to Jean, and disables/removes the
+  activation job when possible.
+
