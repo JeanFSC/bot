@@ -436,3 +436,18 @@ Cron resilience update after rate-limit failures:
 - Cron still must obey the runtime boundary: no manual trade operations and no
   relaunch unless MT5 positions=0 and pending orders=0.
 
+## 2026-07-01T22:28:00+00:00
+
+Cron account fallback update:
+
+- Jean clarified there are two distinct Codex/OpenAI OAuth accounts and asked
+  the cron to try the second account when the first is token-limited.
+- Set the OpenAI auth profile order override for the main agent:
+  primary profile first, second OpenAI OAuth profile second.
+- Updated the active overnight learning cron to use fully-qualified model
+  fallbacks:
+  `openai/gpt-5.5` -> `openai/gpt-5.3-codex` -> `codex/gpt-5.5` ->
+  `codex/gpt-5.2` -> `codex/gpt-5.4-mini` -> `openai/gpt-5.4-mini`.
+- Verified the cron remains enabled and the one-shot activation cron remains
+  disabled after completing winner-scaling activation.
+
