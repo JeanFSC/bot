@@ -8,6 +8,10 @@ Report: `reports\autonomous_trade_reviews\review_20260701_035255.md`
 - USDCHF SELL ticket=9017931906 pnl=1.42 causes=closed_by_tp action=record_only
 - USDCHF BUY ticket=9027605545 pnl=-9.32 causes=closed_by_sl,stop_too_tight action=review_sl_floor_or_position_sizing
 
+## 2026-07-01T04:06:00+00:00
+
+Jean clarified the loop rule: after each useful lesson, apply the improvement to the agent and relaunch it when there are no open positions or pending orders. If a position is open, leave the update staged and report that it is waiting for a clean runtime window. Review reports must include projected loss and projected gain when available from the journal.
+
 ## 2026-07-01T04:00:00+00:00
 
 Jean formalized the operating loop: after every closed demo trade, review why
