@@ -124,3 +124,35 @@ Report: `reports\autonomous_trade_reviews\review_20260701_140002.md`
 - GBPJPY BUY ticket=9040914441 pnl=0.18 causes=profitable_exit action=record_only
 - NZDUSD BUY ticket=9040970397 pnl=3.70 causes=profitable_exit action=record_only
 
+## 2026-07-01T15:45:00+00:00
+
+Jean clarified the desired operating model: exposure should expand only when
+the market provides valid gates, and contract when conditions are poor. The
+previous active profile could rotate through 10 markets but was still capped
+to 3 simultaneous portfolio positions.
+
+Change staged/applied to the active 10 demo configs:
+
+- `max_portfolio_open_positions`: 3 -> 10.
+- `max_same_currency_positions`: 2 -> 6.
+- `max_same_direction_theme_positions`: 1 -> 3.
+- `max_total_margin_pct`: 85 -> 35.
+
+Interpretation:
+
+- Current practical simultaneous cap is 10, because the active agent has 10
+  markets and V1 allows one position per symbol/magic.
+- Bad markets still result in zero entries because the signal, spread, news,
+  ADX/ATR, SL/spread, loss caps, setup memory, and equity guards still apply.
+- Reaching 15 simultaneous positions would require either more safe markets or
+  pyramiding/multiple entries per symbol, which needs a separate aggregate open
+  risk cap before enabling.
+
+Validation:
+
+- `uv run pytest -q`: 99 passed.
+- Agent preflight: OK for 10 configs.
+- `uv run python -m mt5_bot.process_guard`: OK.
+- MT5 direct check showed one open EURUSD SELL position, no pending orders; no
+  restart was performed.
+
