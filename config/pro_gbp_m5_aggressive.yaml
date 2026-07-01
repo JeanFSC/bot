@@ -53,6 +53,9 @@ strategy:
   session_start_hour: 7
   session_end_hour: 20
   use_session_filter: true
+  session2_start_hour: 0
+  session2_end_hour: 7
+  use_session2: true
   use_trailing_stop: true
   breakeven_atr_multiplier: 0.7
   trailing_atr_multiplier: 1.2
