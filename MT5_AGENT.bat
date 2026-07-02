@@ -22,6 +22,7 @@ if /I "%COMMAND%"=="supervisor-bg" goto supervisor_bg
 if /I "%COMMAND%"=="supervisor-demo-bg" goto supervisor_demo_bg
 if /I "%COMMAND%"=="heat-once" goto heat_once
 if /I "%COMMAND%"=="heat-bg" goto heat_bg
+if /I "%COMMAND%"=="control-room" goto control_room
 if /I "%COMMAND%"=="replay-30d" goto replay_30d
 if /I "%COMMAND%"=="process-guard" goto process_guard
 if /I "%COMMAND%"=="paper-once" goto paper_once
@@ -71,6 +72,10 @@ exit /b %ERRORLEVEL%
 uv run python -u -m mt5_bot.portfolio_heat run-continuous --agent-config config/autonomous_agent.yaml --interval-seconds 15 --report-path data\portfolio_heat.jsonl >> logs\portfolio_heat.out.log 2>> logs\portfolio_heat.err.log
 exit /b %ERRORLEVEL%
 
+:control_room
+uv run python -m mt5_bot.control_room
+exit /b %ERRORLEVEL%
+
 :replay_30d
 uv run python -m mt5_bot.replay --agent-config config/autonomous_agent.yaml --days 30 --out-dir reports --name replay_30d
 exit /b %ERRORLEVEL%
@@ -101,6 +106,7 @@ echo   supervisor-bg   Run live-position supervisor continuously in report-only 
 echo   supervisor-demo-bg Run live-position supervisor with demo action permission.
 echo   heat-once       Run portfolio heat report once in report-only mode.
 echo   heat-bg         Run portfolio heat monitor continuously in report-only mode.
+echo   control-room    Print one multi-agent operational snapshot.
 echo   replay-30d      Generate 30-day replay report.
 echo   process-guard   Audit duplicate mt5_bot trade processes.
 echo   paper-once      Run active agent once without demo order permission.

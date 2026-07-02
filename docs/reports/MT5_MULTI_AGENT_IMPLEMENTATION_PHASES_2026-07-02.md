@@ -275,6 +275,8 @@ Exit gate:
 
 ### Phase 6 - Control Room
 
+Status: implemented as read-only snapshot.
+
 Deliverables:
 
 - Local dashboard/report artifact.
@@ -285,6 +287,23 @@ Exit gate:
 
 - Jean can ask "como va el agente" and get a single reliable operational
   snapshot.
+
+Current evidence:
+
+- Module: `src/mt5_bot/control_room.py`.
+- Launcher: `MT5_AGENT.bat control-room`.
+- Reads latest supervisor, portfolio heat, watchdog, and process_guard state.
+- Does not connect to MT5 directly and has no trade-action path.
+- Tests included in full suite.
+- Live command output validated:
+  - `CONTROL_ROOM OK`;
+  - process_guard OK;
+  - positions `3/3`;
+  - unknown positions `0`;
+  - unprotected positions `0`;
+  - risk to SL `11.20 USD`;
+  - heat decision `allow_new_entries`;
+  - supervisor managed positions `3`.
 
 ## Current Recommendation
 
