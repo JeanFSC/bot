@@ -480,6 +480,9 @@ def run_trade(
             # Open-position management/telemetry every tick, before new entries.
             for pm in executor.record_position_metrics():
                 LOGGER.debug("PositionMetrics status=%s reason=%s", pm.status, pm.reason)
+            if signal.atr_pips:
+                for ee in executor.manage_no_favorable_excursion(signal.atr_pips):
+                    LOGGER.info("EarlyExit status=%s reason=%s", ee.status, ee.reason)
             for ts in executor.manage_time_stops():
                 LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
 
@@ -1173,6 +1176,8 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
             })
             sig = detect_signal(signal_rates, sc)
             if sig.atr_pips and sig.atr_pips > 0:
+                for ee in executor.manage_no_favorable_excursion(sig.atr_pips):
+                    LOGGER.info("EarlyExit (idle) status=%s reason=%s", ee.status, ee.reason)
                 for ws in executor.manage_winner_scaling(sig.atr_pips, sig.adx, current_spread):
                     LOGGER.info("WinnerScale (idle) status=%s reason=%s", ws.status, ws.reason)
                 for pl in executor.manage_profit_lock(sig.atr_pips):

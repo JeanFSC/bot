@@ -482,3 +482,33 @@ Report: `reports\autonomous_trade_reviews\review_20260702_011502.md`
 
 - NZDUSD SELL ticket=9050160919 pnl=-8.58 causes=normal_or_unclassified_loss action=record_only
 
+## 2026-07-02T01:35:00Z - Individual trade lessons applied
+
+Applied the additional trade review lessons from
+`docs/reports/MT5_ADDITIONAL_TRADE_REVIEW_2026-07-02.md`:
+
+- Added `early_exit_enabled` config fields and executor support for a
+  no-favorable-excursion exit. M5 positions that fail to produce enough MFE
+  after the grace window, while MAE has consumed meaningful SL distance, can be
+  closed before the full time stop.
+- Fixed profit-lock behavior so a position that reached the MFE trigger can
+  still be closed after a full retrace below the positive buffer. Previously,
+  `current_pips <= buffer_pips` could skip protection after a winner had
+  already given back the move.
+- Enabled early exit on all 10 active autonomous configs.
+- Hardened XAUUSD after the SL loss: lower risk/effective-risk cap, stricter
+  ATR/ADX/spread-to-SL gates, hard `0.01` max order volume, and winner scaling
+  disabled for gold until better evidence exists.
+
+Validation:
+
+- `108 passed`
+- MT5 preflight OK for all 10 active configs.
+- `PROCESS_GUARD_OK no duplicate mt5_bot trade configs`
+
+Runtime rule:
+
+- The watchdog was not manually restarted while MT5 had live positions. The
+  runner starts a fresh `mt5_bot trade` subprocess each symbol rotation, so the
+  child trade loops pick up the changed executor/config on their next launch.
+

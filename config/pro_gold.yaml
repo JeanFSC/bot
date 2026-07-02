@@ -29,7 +29,7 @@ baseline_equity: 3000.0  # Ajustado a cuenta demo
 database_path: data/pro_gold.sqlite
 risk:
   mode: percent_equity
-  risk_pct: 0.20
+  risk_pct: 0.12
   fixed_lot: 0.01
   sl_pips: 30
   tp_pips: 60
@@ -44,10 +44,10 @@ strategy:
   use_rsi_filter: true
   use_rsi_momentum: false
   atr_period: 14
-  min_atr_pips: 80.0
+  min_atr_pips: 100.0
   use_atr_filter: true
   adx_period: 14
-  adx_min_value: 20
+  adx_min_value: 24
   use_adx_filter: true
   atr_sl_multiplier: 1.5
   atr_tp_multiplier: 3.0
@@ -72,13 +72,18 @@ execution:
 max_trades_per_symbol_per_hour: 3
 max_position_minutes: 45
 time_stop_min_profit_pips: 0.0
+early_exit_enabled: true
+early_exit_min_minutes: 15
+early_exit_min_mfe_pips: 60.0
+early_exit_min_mfe_rr: 0.20
+early_exit_max_mae_rr: 0.35
 risk_firewall_enabled: true
 risk_firewall_tolerance: 1.15
-max_order_volume: 0.05  # Reducido drásticamente
+max_order_volume: 0.01  # Gold loss review: one minimum-lot SL can erase many FX wins.
 max_symbol_daily_loss_pct: 0.5
 max_symbol_weekly_loss_pct: 1.0
-max_effective_risk_pct: 0.20
-max_spread_to_sl_ratio: 0.15
+max_effective_risk_pct: 0.12
+max_spread_to_sl_ratio: 0.10
 min_sl_atr_ratio: 0.6
 min_effective_sl_pips: 180.0
 profit_lock_enabled: true
@@ -86,7 +91,7 @@ profit_lock_trigger_rr: 0.25
 profit_lock_min_pips: 60.0
 profit_lock_retrace_rr: 0.35
 profit_lock_buffer_pips: 10.0
-winner_scaling_enabled: true
+winner_scaling_enabled: false
 winner_scaling_trigger_rr: 0.45
 winner_scaling_min_mfe_pips: 60.0
 winner_scaling_min_current_mfe_ratio: 0.75

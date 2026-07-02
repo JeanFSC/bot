@@ -72,6 +72,11 @@ execution:
 max_trades_per_symbol_per_hour: 3
 max_position_minutes: 45
 time_stop_min_profit_pips: 0.0
+early_exit_enabled: true
+early_exit_min_minutes: 15
+early_exit_min_mfe_pips: 8.0
+early_exit_min_mfe_rr: 0.20
+early_exit_max_mae_rr: 0.40
 risk_firewall_enabled: true
 risk_firewall_tolerance: 1.15
 max_order_volume: 0.05

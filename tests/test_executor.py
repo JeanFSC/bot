@@ -1,5 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
+
+import pytest
 
 from mt5_bot.config import ExecutionConfig, RiskConfig
 from mt5_bot.executor import TradeExecutor, build_market_order_request, should_open_new_position, with_filling_mode
@@ -304,6 +306,18 @@ def test_profit_lock_waits_until_trigger_reached():
     assert gateway.sent_requests == []
 
 
+def test_profit_lock_closes_after_full_retrace_below_buffer():
+    gateway = _GatewayForProfitLock(current_bid=1.0997, current_ask=1.0998)
+    storage = _StorageSpy(position_metrics={9366528834: {"mfe_pips": 10.0}})
+    config = _profit_lock_config()
+
+    result = TradeExecutor(gateway, storage, config).manage_profit_lock(atr_pips=2.0)[0]
+
+    assert result.status == "profit_lock"
+    assert result.request["position"] == 9366528834
+    assert gateway.sent_requests
+
+
 def test_winner_scaling_adds_size_after_confirmed_mfe():
     gateway = _GatewayForWinnerScaling()
     storage = _StorageSpy(position_metrics={9382346538: {"mfe_pips": 22.0, "mae_pips": -2.0}})
@@ -340,6 +354,31 @@ def test_winner_scaling_does_not_repeat_same_ticket():
     assert gateway.sent_requests == []
 
 
+def test_no_favorable_excursion_closes_weak_loser_after_grace_period():
+    gateway = _GatewayForEarlyExit(current_bid=1.0994, current_ask=1.0995)
+    storage = _StorageSpy(position_metrics={9385213319: {"mfe_pips": 0.2, "mae_pips": -6.0}})
+    config = _early_exit_config()
+
+    result = TradeExecutor(gateway, storage, config).manage_no_favorable_excursion(atr_pips=4.0)[0]
+
+    assert result.status == "early_exit"
+    assert result.request["position"] == 9385213319
+    assert result.metadata["required_mfe_pips"] == pytest.approx(2.0)
+    assert result.metadata["adverse_ratio"] == pytest.approx(0.6)
+    assert gateway.sent_requests
+
+
+def test_no_favorable_excursion_waits_when_trade_has_enough_mfe():
+    gateway = _GatewayForEarlyExit(current_bid=1.0994, current_ask=1.0995)
+    storage = _StorageSpy(position_metrics={9385213319: {"mfe_pips": 2.4, "mae_pips": -6.0}})
+    config = _early_exit_config()
+
+    results = TradeExecutor(gateway, storage, config).manage_no_favorable_excursion(atr_pips=4.0)
+
+    assert results == []
+    assert gateway.sent_requests == []
+
+
 def _profit_lock_config():
     return SimpleNamespace(
         symbol="EURUSD",
@@ -369,6 +408,20 @@ def _winner_scaling_config():
         max_order_volume=0.0,
         strategy=SimpleNamespace(atr_tp_multiplier=3.0),
         risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=8, tp_pips=16),
+        execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=True),
+    )
+
+
+def _early_exit_config():
+    return SimpleNamespace(
+        symbol="EURUSD",
+        early_exit_enabled=True,
+        early_exit_min_minutes=12,
+        early_exit_min_mfe_pips=2.0,
+        early_exit_min_mfe_rr=0.20,
+        early_exit_max_mae_rr=0.40,
+        strategy=SimpleNamespace(atr_sl_multiplier=1.5),
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=10, tp_pips=20),
         execution=ExecutionConfig(magic=260430, deviation=10, filling_mode="AUTO", trade_enabled=True),
     )
 
@@ -586,3 +639,18 @@ class _GatewayForWinnerScaling(_GatewayWithSignedProfit):
     def order_send(self, request):
         self.sent_requests.append(request)
         return SimpleNamespace(retcode=10009, comment="Request executed")
+
+
+class _GatewayForEarlyExit(_GatewayForProfitLock):
+    def positions_get(self, symbol):
+        opened = int((datetime.now(timezone.utc) - timedelta(minutes=20)).timestamp())
+        return [SimpleNamespace(
+            ticket=9385213319,
+            magic=260430,
+            type=0,
+            time=opened,
+            price_open=1.1000,
+            volume=0.10,
+            sl=1.0990,
+            tp=1.1020,
+        )]

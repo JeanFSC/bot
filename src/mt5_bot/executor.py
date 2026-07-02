@@ -682,8 +682,6 @@ class TradeExecutor:
                     (cur_price - entry_price) / pip if is_buy
                     else (entry_price - cur_price) / pip
                 )
-                if current_pips <= buffer_pips:
-                    continue
 
                 current_tp = float(getattr(position, "tp", 0.0) or 0.0)
                 if current_tp > 0:
@@ -1027,6 +1025,128 @@ class TradeExecutor:
         return results
 
     # ── Internal helpers ──────────────────────────────────────────────────────
+
+    def manage_no_favorable_excursion(self, atr_pips: Optional[float] = None) -> list[ExecutionResult]:
+        """Exit positions that never prove themselves after an initial grace period."""
+        if not bool(getattr(self.config, "early_exit_enabled", False)):
+            return []
+        min_minutes = int(getattr(self.config, "early_exit_min_minutes", 0) or 0)
+        if min_minutes <= 0:
+            return []
+
+        results: list[ExecutionResult] = []
+        try:
+            positions = self.gateway.positions_get(symbol=self.config.symbol) or []
+            own_positions = [p for p in positions if int(p.magic) == self.config.execution.magic]
+            if not own_positions:
+                return results
+
+            tick = self.gateway.symbol_info_tick(self.config.symbol)
+            symbol_info = self.gateway.symbol_info(self.config.symbol)
+            pip = pip_size(symbol_info)
+            constants = self.gateway.constants()
+            metrics_getter = getattr(self.storage, "get_position_metrics", None)
+            if metrics_getter is None:
+                return results
+
+            min_mfe_pips = float(getattr(self.config, "early_exit_min_mfe_pips", 0.0) or 0.0)
+            min_mfe_rr = float(getattr(self.config, "early_exit_min_mfe_rr", 0.0) or 0.0)
+            max_mae_rr = float(getattr(self.config, "early_exit_max_mae_rr", 0.0) or 0.0)
+            now_ts = datetime.now(timezone.utc).timestamp()
+
+            for position in own_positions:
+                opened_ts = float(getattr(position, "time", 0) or 0)
+                if opened_ts <= 0:
+                    continue
+                age_minutes = (now_ts - opened_ts) / 60.0
+                if age_minutes < min_minutes:
+                    continue
+
+                ticket = int(position.ticket)
+                metrics = metrics_getter(ticket)
+                if not metrics:
+                    continue
+
+                is_buy = int(position.type) == MT5_BUY_POSITION
+                entry_price = float(position.price_open)
+                current_price = float(tick.bid) if is_buy else float(tick.ask)
+                current_pips = (
+                    (current_price - entry_price) / pip if is_buy
+                    else (entry_price - current_price) / pip
+                )
+                if current_pips >= 0:
+                    continue
+
+                mfe_pips = max(current_pips, float(metrics.get("mfe_pips", current_pips) or current_pips))
+                mae_pips = min(current_pips, float(metrics.get("mae_pips", current_pips) or current_pips))
+                sl_distance_pips = self._position_sl_distance_pips(position, is_buy, entry_price, pip, atr_pips)
+                if sl_distance_pips <= 0:
+                    continue
+
+                required_mfe = max(min_mfe_pips, sl_distance_pips * min_mfe_rr)
+                adverse_ratio = abs(min(0.0, mae_pips)) / sl_distance_pips
+                if mfe_pips >= required_mfe:
+                    continue
+                if max_mae_rr > 0 and adverse_ratio < max_mae_rr:
+                    continue
+
+                close_base = build_close_position_request(
+                    position=position,
+                    symbol=self.config.symbol,
+                    bid=float(tick.bid), ask=float(tick.ask),
+                    execution=self.config.execution,
+                    mt5_constants=constants,
+                )
+                close_req, close_chk = self._first_valid_order_check(close_base)
+                if close_req is None or close_chk is None:
+                    results.append(ExecutionResult("rejected", "early_exit_invalid_fill", close_base, None))
+                    continue
+                if not _is_successful_check(close_chk):
+                    results.append(ExecutionResult(
+                        "rejected", f"early_exit_check_retcode_{getattr(close_chk, 'retcode', '?')}", close_req, close_chk,
+                    ))
+                    continue
+
+                metadata = {
+                    "ticket": ticket,
+                    "age_minutes": age_minutes,
+                    "current_pips": current_pips,
+                    "mfe_pips": mfe_pips,
+                    "mae_pips": mae_pips,
+                    "required_mfe_pips": required_mfe,
+                    "adverse_ratio": adverse_ratio,
+                    "sl_distance_pips": sl_distance_pips,
+                }
+                _log.info(
+                    "Early exit no-favorable-excursion: ticket=%s age=%.1f current=%.1f mfe=%.1f required=%.1f mae_ratio=%.2f",
+                    ticket, age_minutes, current_pips, mfe_pips, required_mfe, adverse_ratio,
+                )
+                if self.config.execution.trade_enabled:
+                    send_result = self.gateway.order_send(close_req)
+                    self._record_order_result(close_req, send_result, symbol_info)
+                    results.append(ExecutionResult("early_exit", f"retcode_{getattr(send_result, 'retcode', '?')}", close_req, send_result, metadata))
+                else:
+                    results.append(ExecutionResult("dry_run", "early_exit_would_close", close_req, close_chk, metadata))
+        except Exception as exc:
+            _log.warning("manage_no_favorable_excursion error: %s", exc)
+        return results
+
+    def _position_sl_distance_pips(
+        self,
+        position,
+        is_buy: bool,
+        entry_price: float,
+        pip: float,
+        atr_pips: Optional[float] = None,
+    ) -> float:
+        current_sl = float(getattr(position, "sl", 0.0) or 0.0)
+        if current_sl > 0:
+            distance = (entry_price - current_sl) / pip if is_buy else (current_sl - entry_price) / pip
+            if distance > 0:
+                return float(distance)
+        if atr_pips and atr_pips > 0:
+            return float(atr_pips) * float(getattr(self.config.strategy, "atr_sl_multiplier", 1.5))
+        return float(getattr(self.config.risk, "sl_pips", 0.0) or 0.0)
 
     def _record_order_result(self, request: dict[str, Any], result, symbol_info=None) -> None:
         try:

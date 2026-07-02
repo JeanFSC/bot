@@ -59,6 +59,11 @@ def test_config_loads_winner_scaling_fields(tmp_path):
             winner_scaling_trigger_rr: 0.5
             winner_scaling_add_volume_ratio: 0.4
             winner_scaling_max_addon_risk_pct: 0.15
+            early_exit_enabled: true
+            early_exit_min_minutes: 12
+            early_exit_min_mfe_pips: 2.0
+            early_exit_min_mfe_rr: 0.2
+            early_exit_max_mae_rr: 0.4
             risk:
               mode: fixed_lot
               fixed_lot: 0.01
@@ -80,6 +85,11 @@ def test_config_loads_winner_scaling_fields(tmp_path):
     assert config.winner_scaling_trigger_rr == 0.5
     assert config.winner_scaling_add_volume_ratio == 0.4
     assert config.winner_scaling_max_addon_risk_pct == 0.15
+    assert config.early_exit_enabled is True
+    assert config.early_exit_min_minutes == 12
+    assert config.early_exit_min_mfe_pips == 2.0
+    assert config.early_exit_min_mfe_rr == 0.2
+    assert config.early_exit_max_mae_rr == 0.4
 
 
 def test_all_bot_configs_load_with_explicit_baseline_equity():

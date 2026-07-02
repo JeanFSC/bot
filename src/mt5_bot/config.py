@@ -110,6 +110,11 @@ class BotConfig:
     winner_scaling_max_addon_risk_pct: float = 0.10
     winner_scaling_min_adx: float = 24.0
     winner_scaling_max_spread_atr_ratio: float = 0.12
+    early_exit_enabled: bool = False
+    early_exit_min_minutes: int = 0
+    early_exit_min_mfe_pips: float = 0.0
+    early_exit_min_mfe_rr: float = 0.0
+    early_exit_max_mae_rr: float = 0.0
     max_position_minutes: int = 0
     time_stop_min_profit_pips: float = 0.0
     profit_target_usd: Optional[float] = None
@@ -214,6 +219,11 @@ def load_config(path: str | Path) -> BotConfig:
         winner_scaling_max_addon_risk_pct=float(raw.get("winner_scaling_max_addon_risk_pct", 0.10)),
         winner_scaling_min_adx=float(raw.get("winner_scaling_min_adx", 24.0)),
         winner_scaling_max_spread_atr_ratio=float(raw.get("winner_scaling_max_spread_atr_ratio", 0.12)),
+        early_exit_enabled=bool(raw.get("early_exit_enabled", False)),
+        early_exit_min_minutes=int(raw.get("early_exit_min_minutes", 0)),
+        early_exit_min_mfe_pips=float(raw.get("early_exit_min_mfe_pips", 0.0)),
+        early_exit_min_mfe_rr=float(raw.get("early_exit_min_mfe_rr", 0.0)),
+        early_exit_max_mae_rr=float(raw.get("early_exit_max_mae_rr", 0.0)),
         max_position_minutes=int(raw.get("max_position_minutes", 0)),
         time_stop_min_profit_pips=float(raw.get("time_stop_min_profit_pips", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
@@ -323,6 +333,14 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("winner_scaling_min_adx must be >= 0")
     if config.winner_scaling_max_spread_atr_ratio < 0:
         raise ValueError("winner_scaling_max_spread_atr_ratio must be >= 0")
+    if config.early_exit_min_minutes < 0:
+        raise ValueError("early_exit_min_minutes must be >= 0")
+    if config.early_exit_min_mfe_pips < 0:
+        raise ValueError("early_exit_min_mfe_pips must be >= 0")
+    if config.early_exit_min_mfe_rr < 0:
+        raise ValueError("early_exit_min_mfe_rr must be >= 0")
+    if config.early_exit_max_mae_rr < 0:
+        raise ValueError("early_exit_max_mae_rr must be >= 0")
     if config.max_same_direction_theme_positions < 0:
         raise ValueError("max_same_direction_theme_positions must be >= 0")
     if not (0.0 < config.partial_close_ratio < 1.0):
