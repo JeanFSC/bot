@@ -19,6 +19,9 @@ if /I "%COMMAND%"=="maintenance" goto maintenance
 if /I "%COMMAND%"=="maintenance-bg" goto maintenance_bg
 if /I "%COMMAND%"=="supervisor-once" goto supervisor_once
 if /I "%COMMAND%"=="supervisor-bg" goto supervisor_bg
+if /I "%COMMAND%"=="supervisor-demo-bg" goto supervisor_demo_bg
+if /I "%COMMAND%"=="heat-once" goto heat_once
+if /I "%COMMAND%"=="heat-bg" goto heat_bg
 if /I "%COMMAND%"=="replay-30d" goto replay_30d
 if /I "%COMMAND%"=="process-guard" goto process_guard
 if /I "%COMMAND%"=="paper-once" goto paper_once
@@ -56,6 +59,18 @@ exit /b %ERRORLEVEL%
 uv run python -u -m mt5_bot.live_position_supervisor run-continuous --agent-config config/autonomous_agent.yaml --interval-seconds 5 --report-path data\live_position_supervisor.jsonl >> logs\live_position_supervisor.out.log 2>> logs\live_position_supervisor.err.log
 exit /b %ERRORLEVEL%
 
+:supervisor_demo_bg
+uv run python -u -m mt5_bot.live_position_supervisor run-continuous --agent-config config/autonomous_agent.yaml --allow-demo-actions --interval-seconds 5 --report-path data\live_position_supervisor_actions.jsonl >> logs\live_position_supervisor_actions.out.log 2>> logs\live_position_supervisor_actions.err.log
+exit /b %ERRORLEVEL%
+
+:heat_once
+uv run python -m mt5_bot.portfolio_heat run-once --agent-config config/autonomous_agent.yaml
+exit /b %ERRORLEVEL%
+
+:heat_bg
+uv run python -u -m mt5_bot.portfolio_heat run-continuous --agent-config config/autonomous_agent.yaml --interval-seconds 15 --report-path data\portfolio_heat.jsonl >> logs\portfolio_heat.out.log 2>> logs\portfolio_heat.err.log
+exit /b %ERRORLEVEL%
+
 :replay_30d
 uv run python -m mt5_bot.replay --agent-config config/autonomous_agent.yaml --days 30 --out-dir reports --name replay_30d
 exit /b %ERRORLEVEL%
@@ -83,6 +98,9 @@ echo   maintenance     Run local report, backup, experiments snapshot, notify.
 echo   maintenance-bg  Same as maintenance, with logs redirected.
 echo   supervisor-once Run live-position supervisor once in report-only mode.
 echo   supervisor-bg   Run live-position supervisor continuously in report-only mode.
+echo   supervisor-demo-bg Run live-position supervisor with demo action permission.
+echo   heat-once       Run portfolio heat report once in report-only mode.
+echo   heat-bg         Run portfolio heat monitor continuously in report-only mode.
 echo   replay-30d      Generate 30-day replay report.
 echo   process-guard   Audit duplicate mt5_bot trade processes.
 echo   paper-once      Run active agent once without demo order permission.

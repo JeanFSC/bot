@@ -25,6 +25,14 @@ class DuplicateTradeGroup:
     command_lines: list[str]
 
 
+@dataclass(frozen=True)
+class DuplicateSingletonGroup:
+    process_name: str
+    process_count: int
+    pids: list[int]
+    command_lines: list[str]
+
+
 def parse_trade_config(command_line: str) -> str | None:
     text = command_line.strip()
     if "mt5_bot" not in text or " trade" not in text or "--config" not in text:
@@ -35,6 +43,27 @@ def parse_trade_config(command_line: str) -> str | None:
     return match.group(1).strip("\"'")
 
 
+SINGLETON_PROCESS_PATTERNS = {
+    "mt5_bot.live_position_supervisor run-continuous": "mt5_bot.live_position_supervisor",
+    "mt5_bot.portfolio_heat run-continuous": "mt5_bot.portfolio_heat",
+}
+
+
+def is_live_position_supervisor(command_line: str) -> bool:
+    text = command_line.strip()
+    return "mt5_bot.live_position_supervisor" in text and "run-continuous" in text
+
+
+def parse_singleton_process(command_line: str) -> str | None:
+    text = command_line.strip()
+    if "run-continuous" not in text:
+        return None
+    for name, marker in SINGLETON_PROCESS_PATTERNS.items():
+        if marker in text:
+            return name
+    return None
+
+
 def default_expected_processes_per_trade() -> int:
     """Return the normal process count for one trade loop on this platform.
 
@@ -43,6 +72,10 @@ def default_expected_processes_per_trade() -> int:
     execution is normally one row.
     """
     return 2 if os.name == "nt" else 1
+
+
+def default_expected_processes_per_singleton() -> int:
+    return 3 if os.name == "nt" else 1
 
 
 def find_duplicate_trade_groups(
@@ -77,22 +110,87 @@ def find_duplicate_trade_groups(
     return duplicates
 
 
+def find_duplicate_singleton_groups(
+    rows: Sequence[ProcessRow],
+    *,
+    expected_processes_per_singleton: int | None = None,
+) -> list[DuplicateSingletonGroup]:
+    if expected_processes_per_singleton is None:
+        expected_processes_per_singleton = default_expected_processes_per_singleton()
+    current_pid = os.getpid()
+    groups: dict[str, list[ProcessRow]] = {}
+    for row in rows:
+        if row.pid == current_pid:
+            continue
+        name = parse_singleton_process(row.command_line)
+        if name is None:
+            continue
+        groups.setdefault(name, []).append(row)
+
+    duplicates: list[DuplicateSingletonGroup] = []
+    for name, group_rows in sorted(groups.items()):
+        if len(group_rows) <= expected_processes_per_singleton:
+            continue
+        duplicates.append(
+            DuplicateSingletonGroup(
+                process_name=name,
+                process_count=len(group_rows),
+                pids=[row.pid for row in group_rows],
+                command_lines=[row.command_line for row in group_rows],
+            )
+        )
+    return duplicates
+
+
+def find_duplicate_supervisor_groups(
+    rows: Sequence[ProcessRow],
+    *,
+    expected_processes_per_singleton: int | None = None,
+) -> list[DuplicateSingletonGroup]:
+    return [
+        group for group in find_duplicate_singleton_groups(
+            rows,
+            expected_processes_per_singleton=expected_processes_per_singleton,
+        )
+        if group.process_name == "mt5_bot.live_position_supervisor run-continuous"
+    ]
+
+
 def collect_process_rows() -> list[ProcessRow]:
     if os.name == "nt":
         return _collect_windows_process_rows()
     return _collect_posix_process_rows()
 
 
-def audit_duplicate_trades(expected_processes_per_trade: int | None = None) -> dict[str, object]:
+def audit_duplicate_trades(
+    expected_processes_per_trade: int | None = None,
+    expected_processes_per_singleton: int | None = None,
+) -> dict[str, object]:
     expected = default_expected_processes_per_trade() if expected_processes_per_trade is None else expected_processes_per_trade
+    singleton_expected = (
+        default_expected_processes_per_singleton()
+        if expected_processes_per_singleton is None
+        else expected_processes_per_singleton
+    )
+    rows = collect_process_rows()
     duplicates = find_duplicate_trade_groups(
-        collect_process_rows(),
+        rows,
         expected_processes_per_trade=expected,
     )
+    duplicate_singletons = find_duplicate_singleton_groups(
+        rows,
+        expected_processes_per_singleton=singleton_expected,
+    )
     return {
-        "ok": not duplicates,
+        "ok": not duplicates and not duplicate_singletons,
         "expected_processes_per_trade": expected,
+        "expected_processes_per_singleton": singleton_expected,
         "duplicate_groups": [asdict(group) for group in duplicates],
+        "duplicate_supervisors": [
+            asdict(group) for group in duplicate_singletons
+            if group.process_name == "mt5_bot.live_position_supervisor run-continuous"
+        ],
+        "duplicate_singletons": [asdict(group) for group in duplicate_singletons],
     }
 
 
@@ -158,19 +256,28 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=None,
         help="Override normal process rows per trade loop. Default is 2 on Windows/uv, 1 elsewhere.",
     )
+    parser.add_argument(
+        "--expected-processes-per-singleton",
+        type=int,
+        default=None,
+        help="Override normal process rows for singleton services. Default is 3 on Windows/uv, 1 elsewhere.",
+    )
     args = parser.parse_args(argv)
-    report = audit_duplicate_trades(args.expected_processes_per_trade)
+    report = audit_duplicate_trades(args.expected_processes_per_trade, args.expected_processes_per_singleton)
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     elif report["ok"]:
         print(
-            "PROCESS_GUARD_OK no duplicate mt5_bot trade configs "
-            f"(expected_processes_per_trade={report['expected_processes_per_trade']})"
+            "PROCESS_GUARD_OK no duplicate mt5_bot trade configs or supervisors "
+            f"(expected_processes_per_trade={report['expected_processes_per_trade']} "
+            f"expected_processes_per_singleton={report['expected_processes_per_singleton']})"
         )
     else:
         print("PROCESS_GUARD_DUPLICATES")
         for group in report["duplicate_groups"]:
             print(f"- {group['config_path']}: count={group['process_count']} pids={group['pids']}")
+        for group in report["duplicate_singletons"]:
+            print(f"- {group['process_name']}: count={group['process_count']} pids={group['pids']}")
     return 0 if report["ok"] else 2
 
 

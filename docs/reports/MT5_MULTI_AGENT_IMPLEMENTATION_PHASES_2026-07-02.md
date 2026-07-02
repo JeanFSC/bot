@@ -58,8 +58,9 @@ Role:
 Current safety state:
 
 - Implemented and tested.
-- Launcher is report-only by default.
-- It does not pass `--allow-demo-actions` from `MT5_AGENT.bat` yet.
+- `supervisor-once` and `supervisor-bg` are report-only.
+- `supervisor-demo-bg` exists as the explicit action-enabled launcher, but was
+  not started in this phase.
 - Action-enabled supervisor should be activated only after another validation
   pass and clean-window decision.
 
@@ -140,7 +141,7 @@ Role:
 
 ### Phase 1 - Live Position Supervisor Foundation
 
-Status: started.
+Status: completed for report-only foundation after council review fixes.
 
 Deliverables:
 
@@ -157,7 +158,38 @@ Exit gate:
 - process_guard OK.
 - Report-only run sees live positions without opening/closing/modifying trades.
 
+Completion evidence:
+
+- External council review found three blockers before close: report-only still
+  touched MT5 trade-validation APIs, duplicate supervisor processes were not
+  guarded, and duplicate `(symbol, magic)` config ownership could silently
+  overwrite.
+- Fixes applied:
+  - report-only supervisor now records missing SL/TP alerts and MFE/MAE
+    telemetry only;
+  - action management paths require explicit `--allow-demo-actions`;
+  - duplicate `(symbol, magic)` owner configs fail fast;
+  - process guard now detects duplicate `live_position_supervisor`
+    continuous services.
+- Focused tests: `16 passed` for supervisor/process guard/portfolio heat.
+- Preflight: `AGENT_PREFLIGHT_OK configs=10`.
+- process_guard: OK, no duplicate trade configs and no duplicate supervisors.
+- Live report-only run against MT5 saw 3 owned positions, 0 unknown positions,
+  and emitted telemetry only:
+  - `USDJPY` ticket `9386448297`;
+  - `AUDUSD` ticket `9388530132`;
+  - `USDCAD` ticket `9388560542`.
+- Continuous report-only supervisor is running through `MT5_AGENT.bat
+  supervisor-bg`, writing `data/live_position_supervisor.jsonl` every 5
+  seconds.
+- It is not action-enabled. `supervisor-demo-bg` exists for later controlled
+  activation, but was not started.
+- Windows/uv singleton process chains show as 3 process rows; process_guard now
+  treats one 3-row chain as normal and flags duplicated singleton chains.
+
 ### Phase 2 - Supervisor Controlled Activation
+
+Status: not activated.
 
 Deliverables:
 
@@ -173,6 +205,8 @@ Exit gate:
 
 ### Phase 3 - Portfolio Heat Engine
 
+Status: report-only foundation implemented.
+
 Deliverables:
 
 - Cash risk-to-SL report for all open positions.
@@ -183,6 +217,31 @@ Exit gate:
 
 - Calculations match MT5 `order_calc_profit`.
 - No false high-risk/low-risk classification on test fixtures.
+
+Current evidence:
+
+- Module: `src/mt5_bot/portfolio_heat.py`.
+- Launcher:
+  - `MT5_AGENT.bat heat-once`;
+  - `MT5_AGENT.bat heat-bg`.
+- Tests cover risk-to-SL projection, unprotected-position blocking, and crowded
+  currency reduction.
+- Live MT5 report-only run:
+  - checked positions: 3;
+  - owned positions: 3;
+  - unknown positions: 0;
+  - equity range observed during validation: `3003.56` to `3006.27`;
+  - margin usage: about `8.79%`;
+  - floating PnL range observed: `-1.54` to `+1.17`;
+  - total risk to SL: `11.20 USD` / `0.37%`;
+  - total reward to TP: `22.38 USD`;
+  - decision: `allow_new_entries`;
+  - unprotected positions: 0.
+- Continuous report-only heat monitor is running through `MT5_AGENT.bat
+  heat-bg`, writing `data/portfolio_heat.jsonl` every 15 seconds.
+- Heat monitor has no order-send or order-modify path; it reads account and
+  positions and uses MT5 `order_calc_profit` for risk/reward projection.
+- Duplicate `(symbol, magic)` ownership now fails fast here too.
 
 ### Phase 4 - Entry Agent Integration
 

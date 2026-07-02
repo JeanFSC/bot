@@ -109,7 +109,10 @@ def _load_config_map(config_paths: Sequence[Path], *, allow_trade_actions: bool)
         config = load_config(path)
         if allow_trade_actions:
             config = replace(config, execution=replace(config.execution, trade_enabled=True))
-        result[(config.symbol, int(config.execution.magic))] = config
+        key = (config.symbol, int(config.execution.magic))
+        if key in result:
+            raise ValueError(f"Duplicate live-position owner config for symbol/magic: {key[0]} {key[1]}")
+        result[key] = config
     return result
 
 
@@ -119,10 +122,12 @@ def _manage_config_positions(gateway: MT5Gateway, config: BotConfig) -> list[Sup
     actions: list[SupervisorAction] = []
     try:
         _record_missing_sl_tp(gateway, storage, config, actions)
+        actions.extend(_wrap_results(config, executor.record_position_metrics()))
+        if not config.execution.trade_enabled:
+            return actions
+
         current_spread = _current_spread(gateway, config)
         signal = _management_signal(gateway, config)
-
-        actions.extend(_wrap_results(config, executor.record_position_metrics()))
         if signal.atr_pips and signal.atr_pips > 0:
             actions.extend(_wrap_results(config, executor.manage_no_favorable_excursion(signal.atr_pips)))
         actions.extend(_wrap_results(config, executor.manage_time_stops()))
