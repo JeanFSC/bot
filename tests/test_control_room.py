@@ -15,9 +15,14 @@ def test_build_snapshot_ok_from_report_files(monkeypatch, tmp_path):
     supervisor = tmp_path / "supervisor.jsonl"
     heat = tmp_path / "heat.jsonl"
     watchdog = tmp_path / "watchdog.jsonl"
-    supervisor.write_text(json.dumps({"managed_positions": 1, "unknown_positions": 0, "actions": []}) + "\n", encoding="utf-8")
+    now = datetime(2026, 7, 2, tzinfo=timezone.utc)
+    supervisor.write_text(
+        json.dumps({"created_at": now.isoformat(), "managed_positions": 1, "unknown_positions": 0, "actions": []}) + "\n",
+        encoding="utf-8",
+    )
     heat.write_text(
         json.dumps({
+            "created_at": now.isoformat(),
             "checked_positions": 1,
             "owned_positions": 1,
             "unknown_positions": 0,
@@ -30,14 +35,14 @@ def test_build_snapshot_ok_from_report_files(monkeypatch, tmp_path):
         }) + "\n",
         encoding="utf-8",
     )
-    watchdog.write_text(json.dumps({"level": "ok"}) + "\n", encoding="utf-8")
+    watchdog.write_text(json.dumps({"created_at": now.isoformat(), "level": "ok"}) + "\n", encoding="utf-8")
     monkeypatch.setattr("mt5_bot.control_room.audit_duplicate_trades", lambda: {"ok": True})
 
     snapshot = build_snapshot(
         supervisor_path=supervisor,
         heat_path=heat,
         watchdog_path=watchdog,
-        now=datetime(2026, 7, 2, tzinfo=timezone.utc),
+        now=now,
     )
 
     assert snapshot.level == "ok"
@@ -48,11 +53,42 @@ def test_build_snapshot_ok_from_report_files(monkeypatch, tmp_path):
 def test_build_snapshot_warns_on_unprotected_positions(monkeypatch, tmp_path):
     supervisor = tmp_path / "supervisor.jsonl"
     heat = tmp_path / "heat.jsonl"
-    supervisor.write_text(json.dumps({"managed_positions": 1, "unknown_positions": 0, "actions": []}) + "\n", encoding="utf-8")
-    heat.write_text(json.dumps({"unprotected_positions": 1, "decision": "allow_new_entries"}) + "\n", encoding="utf-8")
+    now = datetime(2026, 7, 2, tzinfo=timezone.utc)
+    supervisor.write_text(json.dumps({"created_at": now.isoformat(), "managed_positions": 1, "unknown_positions": 0, "actions": []}) + "\n", encoding="utf-8")
+    heat.write_text(json.dumps({"created_at": now.isoformat(), "unprotected_positions": 1, "decision": "allow_new_entries"}) + "\n", encoding="utf-8")
     monkeypatch.setattr("mt5_bot.control_room.audit_duplicate_trades", lambda: {"ok": True})
 
-    snapshot = build_snapshot(supervisor_path=supervisor, heat_path=heat, watchdog_path=tmp_path / "missing.jsonl")
+    watchdog = tmp_path / "watchdog.jsonl"
+    watchdog.write_text(json.dumps({"created_at": now.isoformat(), "level": "ok"}) + "\n", encoding="utf-8")
+
+    snapshot = build_snapshot(supervisor_path=supervisor, heat_path=heat, watchdog_path=watchdog, now=now)
 
     assert snapshot.level == "warn"
     assert "unprotected_positions_1" in snapshot.reasons
+
+
+def test_build_snapshot_warns_on_stale_sidecar_reports(monkeypatch, tmp_path):
+    supervisor = tmp_path / "supervisor.jsonl"
+    heat = tmp_path / "heat.jsonl"
+    watchdog = tmp_path / "watchdog.jsonl"
+    old = datetime(2026, 7, 2, 0, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 7, 2, 0, 2, tzinfo=timezone.utc)
+    supervisor.write_text(json.dumps({"created_at": old.isoformat(), "managed_positions": 0}) + "\n", encoding="utf-8")
+    heat.write_text(json.dumps({"created_at": old.isoformat(), "decision": "allow_new_entries"}) + "\n", encoding="utf-8")
+    watchdog.write_text(json.dumps({"created_at": old.isoformat(), "level": "ok"}) + "\n", encoding="utf-8")
+    monkeypatch.setattr("mt5_bot.control_room.audit_duplicate_trades", lambda: {"ok": True})
+
+    snapshot = build_snapshot(
+        supervisor_path=supervisor,
+        heat_path=heat,
+        watchdog_path=watchdog,
+        supervisor_stale_after_seconds=20,
+        heat_stale_after_seconds=60,
+        watchdog_stale_after_seconds=60,
+        now=now,
+    )
+
+    assert snapshot.level == "warn"
+    assert "supervisor_report_stale" in snapshot.reasons
+    assert "portfolio_heat_stale" in snapshot.reasons
+    assert "watchdog_report_stale" in snapshot.reasons

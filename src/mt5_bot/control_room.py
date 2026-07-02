@@ -26,6 +26,9 @@ def build_snapshot(
     supervisor_path: str | Path = "data/live_position_supervisor.jsonl",
     heat_path: str | Path = "data/portfolio_heat.jsonl",
     watchdog_path: str | Path = "data/watchdog_health.jsonl",
+    supervisor_stale_after_seconds: int = 20,
+    heat_stale_after_seconds: int = 60,
+    watchdog_stale_after_seconds: int = 1800,
     now: datetime | None = None,
 ) -> ControlRoomSnapshot:
     now = now or datetime.now(timezone.utc)
@@ -43,14 +46,31 @@ def build_snapshot(
         reasons.append("process_guard_not_ok")
     if supervisor is None:
         reasons.append("supervisor_report_missing")
+    else:
+        supervisor_age = report_age_seconds(supervisor, now)
+        supervisor["age_seconds"] = supervisor_age
+        if supervisor_age is None or supervisor_age > supervisor_stale_after_seconds:
+            reasons.append("supervisor_report_stale")
     if heat is None:
         reasons.append("portfolio_heat_missing")
+    else:
+        heat_age = report_age_seconds(heat, now)
+        heat["age_seconds"] = heat_age
+        if heat_age is None or heat_age > heat_stale_after_seconds:
+            reasons.append("portfolio_heat_stale")
     if heat and int(heat.get("unprotected_positions", 0) or 0) > 0:
         reasons.append(f"unprotected_positions_{heat.get('unprotected_positions')}")
     if heat and str(heat.get("decision")) == "block_new_entries_recommended":
         reasons.append("portfolio_heat_blocks_new_entries")
-    if watchdog and str(watchdog.get("level", "")).lower() == "critical":
-        reasons.append("watchdog_critical")
+    if watchdog is None:
+        reasons.append("watchdog_report_missing")
+    else:
+        watchdog_age = report_age_seconds(watchdog, now)
+        watchdog["age_seconds"] = watchdog_age
+        if watchdog_age is None or watchdog_age > watchdog_stale_after_seconds:
+            reasons.append("watchdog_report_stale")
+        if str(watchdog.get("level", "")).lower() == "critical":
+            reasons.append("watchdog_critical")
 
     level = "critical" if any(reason in {"process_guard_not_ok", "watchdog_critical"} for reason in reasons) else (
         "warn" if reasons else "ok"
@@ -84,6 +104,23 @@ def read_latest_jsonl(path: str | Path) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else {"payload": payload}
 
 
+def report_age_seconds(payload: dict[str, Any], now: datetime | None = None) -> float | None:
+    created_at = payload.get("created_at")
+    if not created_at:
+        return None
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    now = now.astimezone(timezone.utc)
+    try:
+        created = datetime.fromisoformat(str(created_at).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=timezone.utc)
+    return max(0.0, (now - created.astimezone(timezone.utc)).total_seconds())
+
+
 def snapshot_to_dict(snapshot: ControlRoomSnapshot) -> dict[str, Any]:
     return {
         "created_at": snapshot.created_at,
@@ -111,6 +148,12 @@ def render_summary(snapshot: ControlRoomSnapshot) -> str:
             f"unprotected={heat.get('unprotected_positions', 'n/a')}"
         ),
         (
+            "freshness="
+            f"supervisor_age={_age_text(supervisor.get('age_seconds'))} "
+            f"heat_age={_age_text(heat.get('age_seconds'))} "
+            f"watchdog_age={_age_text((snapshot.watchdog or {}).get('age_seconds'))}"
+        ),
+        (
             "equity="
             f"{heat.get('equity', 'n/a')} floating_pnl={heat.get('floating_pnl', 'n/a')} "
             f"risk_to_sl_usd={heat.get('risk_to_sl_usd', 'n/a')} "
@@ -125,6 +168,15 @@ def render_summary(snapshot: ControlRoomSnapshot) -> str:
         ),
     ]
     return "\n".join(lines)
+
+
+def _age_text(value: Any) -> str:
+    if value is None:
+        return "n/a"
+    try:
+        return f"{float(value):.0f}s"
+    except (TypeError, ValueError):
+        return "n/a"
 
 
 def main(argv: Sequence[str] | None = None) -> int:

@@ -344,6 +344,10 @@ Current evidence:
 - Launcher: `MT5_AGENT.bat control-room`.
 - Reads latest supervisor, portfolio heat, watchdog, and process_guard state.
 - Does not connect to MT5 directly and has no trade-action path.
+- Now checks freshness of sidecar reports:
+  - supervisor stale after 20 seconds;
+  - portfolio heat stale after 60 seconds;
+  - watchdog stale after 1800 seconds.
 - Tests included in full suite.
 - Live command output validated:
   - `CONTROL_ROOM OK`;
@@ -354,6 +358,11 @@ Current evidence:
   - risk to SL `11.20 USD`;
   - heat decision `allow_new_entries`;
   - supervisor managed positions `3`.
+- Latest validation after freshness hardening:
+  - focused tests: `20 passed`;
+  - live control-room output: `CONTROL_ROOM OK`, positions `0/0`,
+    supervisor age `0s`, heat age `10s`, watchdog age `688s`, heat decision
+    `allow_new_entries`.
 
 ## Current Recommendation
 

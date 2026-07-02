@@ -607,3 +607,21 @@ Multi-agent implementation continued after interruption.
   - control room: OK, positions `0/0`, heat `allow_new_entries`, equity
     `3011.5`.
 - No manual trade open/close/modify was performed.
+
+## 2026-07-02T04:14:00Z
+
+Control room hardening completed.
+
+- `src/mt5_bot/control_room.py` now checks freshness of sidecar reports instead
+  of only checking that files exist.
+- Stale thresholds:
+  - live supervisor: 20 seconds;
+  - portfolio heat: 60 seconds;
+  - watchdog: 1800 seconds.
+- Control-room summary now prints sidecar ages so Jean can see whether the
+  multi-agent layer is actually reporting live.
+- Validation:
+  - focused tests: `20 passed`;
+  - live control-room: OK, positions `0/0`, supervisor age `0s`, heat age
+    `10s`, watchdog age `688s`, heat decision `allow_new_entries`.
+- No manual trade open/close/modify was performed.
