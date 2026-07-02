@@ -527,3 +527,35 @@ Report: `reports\autonomous_trade_reviews\review_20260702_020002.md`
 - GBPUSD BUY ticket=9050800041 pnl=1.05 causes=profitable_exit action=record_only
 - GBPUSD BUY ticket=9050844729 pnl=1.52 causes=profitable_exit action=record_only
 
+## 2026-07-02T02:50:00Z - Multi-agent phase 1 started
+
+Jean confirmed by voice that the enterprise multi-agent improvements should be
+implemented in sections with depth, starting from the agent/process plan.
+
+Implemented phase 1 foundation:
+
+- Added `mt5_bot.live_position_supervisor`.
+- The supervisor maps open MT5 positions by `(symbol, magic)` to active configs.
+- It does not search for entries.
+- It can run the same deterministic live-position controls used by the trade
+  loop: position telemetry, missing SL/TP alert, early exit, time stop, winner
+  scaling, profit lock, partial close, and trailing stop.
+- Added `MT5_AGENT.bat supervisor-once` and `MT5_AGENT.bat supervisor-bg`.
+- These launcher commands are report-only by default and do not pass action
+  permission.
+
+Validation:
+
+- `110 passed`
+- `AGENT_PREFLIGHT_OK configs=10`
+- `PROCESS_GUARD_OK no duplicate mt5_bot trade configs`
+- Report-only supervisor run saw `USDJPY` ticket `9386448297` and emitted only
+  `position_metrics_9386448297`; it did not open, close, or modify trades.
+
+Activation state:
+
+- Supervisor is implemented and ready for staged activation.
+- It has not been started as an action-enabled background process because MT5
+  still has an open USDJPY position and the operating rule says new runtime
+  activation should wait for a clean or explicitly approved window.
+
