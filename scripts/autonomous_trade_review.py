@@ -45,6 +45,9 @@ class ReviewedTrade:
     mae_pips: float | None
     mfe_profit: float | None
     mae_profit: float | None
+    mfe_capture_ratio: float | None
+    winner_quality: str
+    scale_verdict: str
     comment: str
     causes: list[str]
     lessons: list[str]
@@ -158,6 +161,12 @@ def _review_trade(con: sqlite3.Connection, db_path: Path, source_id: str, row: s
     mae_pips = _num_or_none(metrics["mae_pips"] if metrics is not None else None)
     mfe_profit = _num_or_none(metrics["mfe_profit"] if metrics is not None else None)
     mae_profit = _num_or_none(metrics["mae_profit"] if metrics is not None else None)
+    mfe_capture_ratio, winner_quality, scale_verdict = _winner_diagnostics(
+        pnl=pnl,
+        mfe_pips=mfe_pips,
+        mae_pips=mae_pips,
+        mfe_profit=mfe_profit,
+    )
 
     causes, lessons, action = _classify(
         symbol=symbol,
@@ -171,6 +180,15 @@ def _review_trade(con: sqlite3.Connection, db_path: Path, source_id: str, row: s
         mfe_pips=mfe_pips,
         mfe_profit=mfe_profit,
     )
+    if winner_quality == "winner_left_money_on_table":
+        causes.append("low_mfe_capture")
+        lessons.append("review_runner_or_winner_scaling_for_clean_winner")
+        if action == "record_only":
+            action = "review_winner_runner_or_scale_logic"
+    if scale_verdict == "scale_candidate_clean_winner":
+        lessons.append("setup_can_be_candidate_for_controlled_addon_after_confirmation")
+    elif scale_verdict == "no_scale_survived_winner":
+        lessons.append("do_not_scale_survived_winner_with_high_mae")
 
     return ReviewedTrade(
         source_id=source_id,
@@ -196,6 +214,9 @@ def _review_trade(con: sqlite3.Connection, db_path: Path, source_id: str, row: s
         mae_pips=mae_pips,
         mfe_profit=mfe_profit,
         mae_profit=mae_profit,
+        mfe_capture_ratio=mfe_capture_ratio,
+        winner_quality=winner_quality,
+        scale_verdict=scale_verdict,
         comment=comment,
         causes=causes,
         lessons=lessons,
@@ -249,6 +270,34 @@ def _classify(
         lessons.append("inspect_costs_and_exit_reason")
 
     return sorted(set(causes)), sorted(set(lessons)), action
+
+
+def _winner_diagnostics(
+    *,
+    pnl: float,
+    mfe_pips: float | None,
+    mae_pips: float | None,
+    mfe_profit: float | None,
+) -> tuple[float | None, str, str]:
+    if pnl <= 0:
+        return None, "not_winner", "not_applicable"
+
+    capture_ratio = None
+    if mfe_profit is not None and mfe_profit > 0:
+        capture_ratio = max(0.0, min(1.0, pnl / mfe_profit))
+
+    if mfe_pips is None or mfe_pips <= 0:
+        return capture_ratio, "winner_without_mfe_data", "no_scale_missing_mfe"
+
+    adverse_ratio = abs(min(0.0, mae_pips or 0.0)) / mfe_pips
+    left_money = capture_ratio is not None and capture_ratio < 0.65
+    if adverse_ratio <= 0.35:
+        quality = "winner_left_money_on_table" if left_money else "clean_winner"
+        verdict = "scale_candidate_clean_winner"
+    else:
+        quality = "survived_winner"
+        verdict = "no_scale_survived_winner"
+    return capture_ratio, quality, verdict
 
 
 def _is_tight_stop(symbol: str, sl_pips: float) -> bool:
@@ -373,6 +422,9 @@ def _trade_lines(review: ReviewedTrade) -> list[str]:
         f"- Projected cash R:R: `{_fmt(review.projected_cash_rr)}`",
         f"- MFE/MAE: `{_fmt(review.mfe_pips)} pips` / `{_fmt(review.mae_pips)} pips`",
         f"- MFE/MAE profit: `{_fmt(review.mfe_profit)}` / `{_fmt(review.mae_profit)}`",
+        f"- MFE capture ratio: `{_fmt(review.mfe_capture_ratio)}`",
+        f"- Winner quality: `{review.winner_quality}`",
+        f"- Scale verdict: `{review.scale_verdict}`",
         f"- Broker comment: `{review.comment}`",
         f"- Causes: `{', '.join(review.causes)}`",
         f"- Lessons: `{', '.join(review.lessons)}`",

@@ -559,3 +559,10 @@ Activation state:
   still has an open USDJPY position and the operating rule says new runtime
   activation should wait for a clean or explicitly approved window.
 
+## 2026-07-02T03:14:00.911695+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_031400.md`
+
+- AUDUSD SELL ticket=9052018329 pnl=1.62 causes=profitable_exit,low_mfe_capture action=review_winner_runner_or_scale_logic
+- USDCAD BUY ticket=9052024633 pnl=0.41 causes=profitable_exit,low_mfe_capture action=review_winner_runner_or_scale_logic
+

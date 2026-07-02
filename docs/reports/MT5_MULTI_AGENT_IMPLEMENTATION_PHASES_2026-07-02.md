@@ -258,6 +258,8 @@ Exit gate:
 
 ### Phase 5 - Learning Agent Upgrade
 
+Status: implemented for structured winner diagnostics.
+
 Deliverables:
 
 - Structured post-trade review for:
@@ -272,6 +274,22 @@ Exit gate:
 
 - Lessons produce specific pending updates with tests.
 - Updates activate only through clean-window gate.
+
+Current evidence:
+
+- Script upgraded: `scripts/autonomous_trade_review.py`.
+- Winner diagnostics now include:
+  - MFE capture ratio;
+  - winner quality (`clean_winner`, `winner_left_money_on_table`,
+    `survived_winner`, etc.);
+  - scale verdict (`scale_candidate_clean_winner`,
+    `no_scale_survived_winner`, etc.).
+- Tests added for clean scale candidate vs survived winner.
+- Live review generated `reports/autonomous_trade_reviews/review_20260702_031400.md`.
+- Two new winners were classified as left-money-on-table scale candidates:
+  - `AUDUSD SELL` ticket `9052018329`, PnL `+1.62`, MFE capture `0.305`;
+  - `USDCAD BUY` ticket `9052024633`, PnL `+0.41`, MFE capture `0.277`.
+- Suggested action from both: `review_winner_runner_or_scale_logic`.
 
 ### Phase 6 - Control Room
 
