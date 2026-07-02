@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "data" / "autonomous_trade_review_state.json"
 REPORT_DIR = ROOT / "reports" / "autonomous_trade_reviews"
 MEMORY_PATH = ROOT / "docs" / "memory" / "autonomous-trade-learning-loop.md"
+UPDATE_QUEUE_DIR = ROOT / "reports" / "pending_update_proposals"
 
 
 @dataclass(frozen=True)
@@ -60,6 +61,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--state", default=str(STATE_PATH))
     parser.add_argument("--report-dir", default=str(REPORT_DIR))
     parser.add_argument("--memory", default=str(MEMORY_PATH))
+    parser.add_argument("--update-queue-dir", default=str(UPDATE_QUEUE_DIR))
     parser.add_argument("--limit", type=int, default=25)
     parser.add_argument("--lock-stale-minutes", type=float, default=45.0)
     args = parser.parse_args(argv)
@@ -90,12 +92,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         if new_reviews:
             new_reviews.sort(key=lambda item: item.created_at)
             report_path = _write_report(Path(args.report_dir), new_reviews, synced_postmortems)
+            proposal_path = _write_update_proposals(Path(args.update_queue_dir), new_reviews, report_path)
             _append_memory(Path(args.memory), new_reviews, report_path)
             state["reviewed_source_ids"] = sorted(reviewed_ids)
             state["last_review_at"] = _now()
             state["last_report"] = str(report_path.relative_to(ROOT))
+            state["last_update_proposals"] = str(proposal_path.relative_to(ROOT)) if proposal_path else None
             _save_state(state_path, state)
-            print(f"TRADE_REVIEW new={len(new_reviews)} postmortems={synced_postmortems} report={report_path}")
+            proposal_text = f" proposals={proposal_path}" if proposal_path else " proposals=0"
+            print(f"TRADE_REVIEW new={len(new_reviews)} postmortems={synced_postmortems} report={report_path}{proposal_text}")
         else:
             state["last_review_at"] = _now()
             state["reviewed_source_ids"] = sorted(reviewed_ids)
@@ -385,6 +390,58 @@ def _write_report(report_dir: Path, reviews: list[ReviewedTrade], synced_postmor
         lines.extend(_trade_lines(review))
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
+
+
+def _write_update_proposals(
+    queue_dir: Path,
+    reviews: list[ReviewedTrade],
+    report_path: Path,
+) -> Path | None:
+    actionable = [review for review in reviews if review.action != "record_only"]
+    if not actionable:
+        return None
+
+    queue_dir.mkdir(parents=True, exist_ok=True)
+    created_at = _now()
+    payload = {
+        "created_at": created_at,
+        "source_report": str(report_path.relative_to(ROOT)),
+        "status": "pending_review",
+        "activation_gate": "stage_and_test_only; activate runtime changes only in clean MT5 window with positions=0 and orders=0",
+        "proposals": [_update_proposal(review) for review in actionable],
+    }
+    path = queue_dir / f"proposal_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return path
+
+
+def _update_proposal(review: ReviewedTrade) -> dict[str, Any]:
+    return {
+        "ticket": review.ticket,
+        "symbol": review.symbol,
+        "magic": review.magic,
+        "side": review.side,
+        "pnl": round(review.pnl, 2),
+        "action": review.action,
+        "causes": review.causes,
+        "lessons": review.lessons,
+        "winner_quality": review.winner_quality,
+        "scale_verdict": review.scale_verdict,
+        "mfe_capture_ratio": review.mfe_capture_ratio,
+        "projected_cash_rr": review.projected_cash_rr,
+        "recommendation": _proposal_recommendation(review),
+        "risk_gate": "no live/demo runtime relaunch unless MT5 has zero positions and zero pending orders",
+    }
+
+
+def _proposal_recommendation(review: ReviewedTrade) -> str:
+    if review.action == "review_winner_runner_or_scale_logic":
+        return "Review winner scaling/profit-lock thresholds for this symbol; require clean MFE, low MAE, fresh portfolio heat, and addon risk cap before any config change."
+    if review.action == "review_sl_floor_or_position_sizing":
+        return "Review minimum SL floor and position sizing for this symbol; prefer lower size over tight stops when broker/ATR conditions are poor."
+    if review.action == "review_profit_lock_threshold":
+        return "Review profit-lock trigger and retrace buffer; protect positive MFE without forcing premature exits in normal noise."
+    return "Review manually; no automatic config change is approved by this proposal."
 
 
 def _append_memory(memory_path: Path, reviews: list[ReviewedTrade], report_path: Path) -> None:

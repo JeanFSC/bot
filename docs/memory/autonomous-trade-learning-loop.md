@@ -625,3 +625,50 @@ Control room hardening completed.
   - live control-room: OK, positions `0/0`, supervisor age `0s`, heat age
     `10s`, watchdog age `688s`, heat decision `allow_new_entries`.
 - No manual trade open/close/modify was performed.
+## 2026-07-02T05:15:01.933972+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_051501.md`
+
+- GBPUSD BUY ticket=9053484489 pnl=0.90 causes=profitable_exit action=record_only
+
+## 2026-07-02T05:30:01.938438+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_053001.md`
+
+- GBPUSD BUY ticket=9053490884 pnl=0.80 causes=profitable_exit action=record_only
+
+## 2026-07-02T13:15:00Z
+
+Jean asked to complete all remaining multi-agent phases and related work.
+
+Completed safe operational items:
+
+- Reactivated the read-only live-position supervisor sidecar.
+- Reactivated the read-only portfolio heat sidecar.
+- Restored control room from `WARN` to `OK`.
+- Added structured pending update proposals to
+  `scripts/autonomous_trade_review.py` for non-`record_only` lessons.
+- Updated tests for the pending proposal path.
+- Simplified the active overnight learning cron to use the proposal queue.
+  A smaller primary model was rejected by the cron model allowlist, so the job
+  remains on `openai/gpt-5.5` with a shorter deterministic prompt.
+  A forced validation run then finished `ok` and stayed silent.
+- Re-ran research-candidate validation and report-only research backtest.
+- Ran maintenance and created backup `backups\mt5_agent_20260702_131511.zip`.
+- Wrote completion report:
+  `docs\reports\MT5_MULTI_AGENT_COMPLETION_STATUS_2026-07-02_1315Z.md`.
+
+Validation:
+
+- Focused multi-agent/review tests: `34 passed`.
+- Full suite: `136 passed`.
+- Preflight: `AGENT_PREFLIGHT_OK configs=10`.
+- Process guard: `PROCESS_GUARD_OK no duplicate mt5_bot trade configs or supervisors`.
+- Control room: `CONTROL_ROOM OK`, positions `0/0`, unknown `0`,
+  unprotected `0`, heat decision `allow_new_entries`.
+
+Boundary:
+
+- `supervisor-demo-bg` remains blocked/not started because it passes
+  `--allow-demo-actions` and can modify demo trades.
+- No manual trade open/close/modify was performed.

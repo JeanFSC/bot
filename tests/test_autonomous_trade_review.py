@@ -67,3 +67,58 @@ def test_winner_diagnostics_rejects_survived_winner_scaling():
     assert capture == 0.8
     assert quality == "survived_winner"
     assert verdict == "no_scale_survived_winner"
+
+
+def test_update_proposals_written_for_actionable_reviews(tmp_path: Path):
+    review = autonomous_trade_review.ReviewedTrade(
+        source_id="data/pro.sqlite:123",
+        db_path=tmp_path / "pro.sqlite",
+        ticket=123,
+        position_id=123,
+        created_at="2026-07-02T00:00:00+00:00",
+        symbol="EURUSD",
+        magic=260533,
+        side="BUY",
+        pnl=1.23,
+        volume=0.01,
+        entry_price=1.1,
+        exit_price=1.101,
+        sl=1.099,
+        tp=1.103,
+        sl_pips=10.0,
+        tp_pips=30.0,
+        projected_loss=3.0,
+        projected_gain=9.0,
+        projected_cash_rr=3.0,
+        mfe_pips=20.0,
+        mae_pips=-2.0,
+        mfe_profit=4.0,
+        mae_profit=-0.4,
+        mfe_capture_ratio=0.31,
+        winner_quality="winner_left_money_on_table",
+        scale_verdict="scale_candidate_clean_winner",
+        comment="[tp]",
+        causes=["profitable_exit", "low_mfe_capture"],
+        lessons=["review_runner_or_winner_scaling_for_clean_winner"],
+        action="review_winner_runner_or_scale_logic",
+    )
+
+    path = autonomous_trade_review._write_update_proposals(
+        tmp_path,
+        [review],
+        autonomous_trade_review.ROOT / "reports" / "review.md",
+    )
+
+    assert path is not None
+    payload = path.read_text(encoding="utf-8")
+    assert "pending_review" in payload
+    assert "review_winner_runner_or_scale_logic" in payload
+    assert "zero positions and zero pending orders" in payload
+
+
+def test_update_proposals_skips_record_only(tmp_path: Path):
+    assert autonomous_trade_review._write_update_proposals(
+        tmp_path,
+        [],
+        autonomous_trade_review.ROOT / "reports" / "review.md",
+    ) is None
