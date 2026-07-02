@@ -512,3 +512,18 @@ Runtime rule:
   runner starts a fresh `mt5_bot trade` subprocess each symbol rotation, so the
   child trade loops pick up the changed executor/config on their next launch.
 
+## 2026-07-02T01:45:02.752971+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_014502.md`
+
+- GBPUSD BUY ticket=9050662910 pnl=0.72 causes=profitable_exit action=record_only
+
+## 2026-07-02T02:00:02.796122+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_020002.md`
+
+- GBPUSD BUY ticket=9050733524 pnl=0.26 causes=profitable_exit action=record_only
+- EURUSD SELL ticket=9050754991 pnl=-6.40 causes=closed_by_sl action=record_only
+- GBPUSD BUY ticket=9050800041 pnl=1.05 causes=profitable_exit action=record_only
+- GBPUSD BUY ticket=9050844729 pnl=1.52 causes=profitable_exit action=record_only
+
