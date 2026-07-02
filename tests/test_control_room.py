@@ -92,3 +92,29 @@ def test_build_snapshot_warns_on_stale_sidecar_reports(monkeypatch, tmp_path):
     assert "supervisor_report_stale" in snapshot.reasons
     assert "portfolio_heat_stale" in snapshot.reasons
     assert "watchdog_report_stale" in snapshot.reasons
+
+
+def test_build_snapshot_warns_when_action_supervisor_policy_blocks(monkeypatch, tmp_path):
+    supervisor = tmp_path / "supervisor.jsonl"
+    heat = tmp_path / "heat.jsonl"
+    watchdog = tmp_path / "watchdog.jsonl"
+    now = datetime(2026, 7, 2, tzinfo=timezone.utc)
+    supervisor.write_text(
+        json.dumps({
+            "created_at": now.isoformat(),
+            "managed_positions": 0,
+            "unknown_positions": 0,
+            "actions": [],
+            "action_mode": "demo_actions_enabled",
+            "action_policy": "portfolio_heat_stale",
+        }) + "\n",
+        encoding="utf-8",
+    )
+    heat.write_text(json.dumps({"created_at": now.isoformat(), "decision": "allow_new_entries"}) + "\n", encoding="utf-8")
+    watchdog.write_text(json.dumps({"created_at": now.isoformat(), "level": "ok"}) + "\n", encoding="utf-8")
+    monkeypatch.setattr("mt5_bot.control_room.audit_duplicate_trades", lambda: {"ok": True})
+
+    snapshot = build_snapshot(supervisor_path=supervisor, heat_path=heat, watchdog_path=watchdog, now=now)
+
+    assert snapshot.level == "warn"
+    assert "supervisor_action_policy_portfolio_heat_stale" in snapshot.reasons

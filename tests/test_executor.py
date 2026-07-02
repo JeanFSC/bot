@@ -225,6 +225,25 @@ def test_partial_close_retries_invalid_fill_before_send():
     assert result.status == "partial_close"
     assert [request["type_filling"] for request in gateway.checked_requests] == [2, 1]
     assert gateway.sent_requests[0]["type_filling"] == 1
+    assert ("partial_close", "ticket_8539285679", "XAUUSD", 260440) in storage.runtime_events
+
+
+def test_partial_close_does_not_repeat_same_ticket_from_runtime_event():
+    gateway = _GatewayForPartialClose()
+    storage = _StorageSpy()
+    storage.record_runtime_event("partial_close", "ticket_8539285679", symbol="XAUUSD", magic=260440)
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        use_partial_close=True,
+        partial_close_ratio=0.5,
+        strategy=SimpleNamespace(breakeven_atr_multiplier=0.8, use_trailing_stop=True),
+        execution=ExecutionConfig(magic=260440, deviation=20, filling_mode="AUTO", trade_enabled=True),
+    )
+
+    results = TradeExecutor(gateway, storage, config).manage_partial_close(atr_pips=100)
+
+    assert results == []
+    assert gateway.sent_requests == []
 
 
 def test_trailing_breakeven_uses_spread_buffer():
@@ -352,6 +371,21 @@ def test_winner_scaling_does_not_repeat_same_ticket():
 
     assert results == []
     assert gateway.sent_requests == []
+
+
+def test_winner_scaling_records_event_only_after_successful_send():
+    gateway = _GatewayOrderSendRejectedForWinnerScaling()
+    storage = _StorageSpy(position_metrics={9382346538: {"mfe_pips": 22.0, "mae_pips": -2.0}})
+
+    results = TradeExecutor(gateway, storage, _winner_scaling_config()).manage_winner_scaling(
+        atr_pips=10.0,
+        adx=31.0,
+        spread_pips=0.2,
+    )
+
+    assert results[0].status == "rejected"
+    assert results[0].reason == "winner_scale_send_retcode_10027"
+    assert ("winner_scale_in", "ticket_9382346538", "EURUSD", 260430) not in storage.runtime_events
 
 
 def test_no_favorable_excursion_closes_weak_loser_after_grace_period():
@@ -639,6 +673,12 @@ class _GatewayForWinnerScaling(_GatewayWithSignedProfit):
     def order_send(self, request):
         self.sent_requests.append(request)
         return SimpleNamespace(retcode=10009, comment="Request executed")
+
+
+class _GatewayOrderSendRejectedForWinnerScaling(_GatewayForWinnerScaling):
+    def order_send(self, request):
+        self.sent_requests.append(request)
+        return SimpleNamespace(retcode=10027, comment="No money")
 
 
 class _GatewayForEarlyExit(_GatewayForProfitLock):

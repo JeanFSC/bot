@@ -57,7 +57,7 @@ def test_run_once_manages_only_owned_open_position(monkeypatch):
     monkeypatch.setattr(
         supervisor,
         "_manage_config_positions",
-        lambda gateway, config: calls.append((config.symbol, config.execution.magic)) or [
+        lambda gateway, config, action_policy=None: calls.append((config.symbol, config.execution.magic)) or [
             supervisor.SupervisorAction(config.symbol, config.execution.magic, "telemetry", "position_metrics_1")
         ],
     )
@@ -69,6 +69,7 @@ def test_run_once_manages_only_owned_open_position(monkeypatch):
     assert report.managed_positions == 1
     assert report.unknown_positions == 1
     assert report.actions[0].reason == "position_metrics_1"
+    assert report.action_mode == "report_only"
 
 
 def test_report_only_management_does_not_call_trade_validation_or_actions(monkeypatch, tmp_path):
@@ -121,3 +122,80 @@ def test_report_only_management_does_not_call_trade_validation_or_actions(monkey
     actions = supervisor._manage_config_positions(FakeGateway(), cfg)
 
     assert [action.status for action in actions] == ["telemetry"]
+
+
+def test_action_policy_requires_fresh_portfolio_heat(tmp_path):
+    missing = supervisor._action_policy(
+        allow_trade_actions=True,
+        heat_report_path=tmp_path / "missing.jsonl",
+        max_age_seconds=60,
+    )
+
+    assert missing.can_manage_risk is False
+    assert missing.can_add_risk is False
+    assert missing.reason == "portfolio_heat_missing"
+
+
+def test_action_policy_blocks_add_risk_when_heat_reduces(tmp_path):
+    heat = tmp_path / "heat.jsonl"
+    heat.write_text(
+        '{"created_at":"2099-01-01T00:00:00+00:00","decision":"reduce_or_wait_recommended","unknown_positions":0,"unprotected_positions":0}\n',
+        encoding="utf-8",
+    )
+
+    policy = supervisor._action_policy(
+        allow_trade_actions=True,
+        heat_report_path=heat,
+        max_age_seconds=60,
+    )
+
+    assert policy.can_manage_risk is True
+    assert policy.can_add_risk is False
+    assert policy.reason == "portfolio_heat_reduce_or_wait"
+
+
+def test_action_enabled_management_blocks_when_policy_blocks(monkeypatch, tmp_path):
+    cfg = _config("EURUSD", 260001)
+    cfg = BotConfig(
+        **{
+            **cfg.__dict__,
+            "database_path": tmp_path / "blocked.sqlite",
+            "execution": ExecutionConfig(magic=260001, trade_enabled=True),
+            "profit_lock_enabled": True,
+        }
+    )
+
+    class FakeGateway:
+        def positions_get(self, symbol=None):
+            return [
+                SimpleNamespace(
+                    ticket=1,
+                    symbol="EURUSD",
+                    magic=260001,
+                    type=0,
+                    volume=0.01,
+                    price_open=1.1000,
+                    sl=1.0990,
+                    tp=1.1020,
+                    profit=0.0,
+                    time=1,
+                )
+            ]
+
+        def order_check(self, request):
+            raise AssertionError("blocked supervisor must not call order_check")
+
+        def order_send(self, request):
+            raise AssertionError("blocked supervisor must not call order_send")
+
+        def order_modify(self, ticket, sl, tp):
+            raise AssertionError("blocked supervisor must not call order_modify")
+
+    actions = supervisor._manage_config_positions(
+        FakeGateway(),
+        cfg,
+        action_policy=supervisor.ActionPolicy(False, False, "portfolio_heat_stale"),
+    )
+
+    assert any(action.status == "blocked" for action in actions)
+    assert any(action.reason == "supervisor_actions_blocked_portfolio_heat_stale" for action in actions)

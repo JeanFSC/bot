@@ -437,7 +437,9 @@ class TradeExecutor:
     def manage_partial_close(self, atr_pips: Optional[float] = None) -> list[ExecutionResult]:
         """Close partial_close_ratio of position when profit reaches breakeven_atr_mult * ATR.
 
-        Fires once per position (tracked via _partial_closed_tickets).
+        Fires once per position. The in-memory set covers one process lifetime;
+        runtime_events covers supervisors that restart or instantiate a fresh
+        executor every cycle.
         """
         if not self.config.use_partial_close:
             return []
@@ -458,10 +460,20 @@ class TradeExecutor:
             digits      = int(symbol_info.digits)
             constants   = self.gateway.constants()
             trigger_pips = atr_pips * self.config.strategy.breakeven_atr_multiplier
+            event_exists = getattr(self.storage, "runtime_event_exists", None)
+            event_recorder = getattr(self.storage, "record_runtime_event", None)
 
             for position in own_positions:
                 ticket = int(position.ticket)
                 if ticket in self._partial_closed_tickets:
+                    continue
+                event_reason = f"ticket_{ticket}"
+                if event_exists is not None and event_exists(
+                    "partial_close",
+                    event_reason,
+                    symbol=self.config.symbol,
+                    magic=self.config.execution.magic,
+                ):
                     continue
 
                 is_buy      = int(position.type) == MT5_BUY_POSITION
@@ -528,6 +540,14 @@ class TradeExecutor:
                         self._record_order_result(partial_req, send_result, symbol_info)
                         if _is_successful_send(send_result):
                             self._partial_closed_tickets.add(ticket)
+                            if event_recorder is not None:
+                                event_recorder(
+                                    "partial_close",
+                                    event_reason,
+                                    symbol=self.config.symbol,
+                                    magic=self.config.execution.magic,
+                                    context={"closed_volume": close_vol, "original_volume": volume},
+                                )
                             results.append(ExecutionResult(
                                 "partial_close",
                                 f"retcode_{getattr(send_result, 'retcode', '?')}",
@@ -907,7 +927,7 @@ class TradeExecutor:
                 if self.config.execution.trade_enabled:
                     send_result = self.gateway.order_send(scale_req)
                     self._record_order_result(scale_req, send_result, symbol_info)
-                    if event_recorder is not None:
+                    if _is_successful_send(send_result) and event_recorder is not None:
                         event_recorder(
                             "winner_scale_in",
                             event_reason,
@@ -915,7 +935,10 @@ class TradeExecutor:
                             magic=self.config.execution.magic,
                             context=metadata,
                         )
-                    results.append(ExecutionResult("winner_scale", f"retcode_{getattr(send_result, 'retcode', '?')}", scale_req, send_result, metadata))
+                    if _is_successful_send(send_result):
+                        results.append(ExecutionResult("winner_scale", f"retcode_{getattr(send_result, 'retcode', '?')}", scale_req, send_result, metadata))
+                    else:
+                        results.append(ExecutionResult("rejected", f"winner_scale_send_retcode_{getattr(send_result, 'retcode', '?')}", scale_req, send_result, metadata))
                 else:
                     results.append(ExecutionResult("dry_run", "winner_scale_would_add", scale_req, scale_chk, metadata))
         except Exception as exc:

@@ -61,7 +61,7 @@ uv run python -u -m mt5_bot.live_position_supervisor run-continuous --agent-conf
 exit /b %ERRORLEVEL%
 
 :supervisor_demo_bg
-uv run python -u -m mt5_bot.live_position_supervisor run-continuous --agent-config config/autonomous_agent.yaml --allow-demo-actions --interval-seconds 5 --report-path data\live_position_supervisor_actions.jsonl >> logs\live_position_supervisor_actions.out.log 2>> logs\live_position_supervisor_actions.err.log
+uv run python -u -m mt5_bot.live_position_supervisor run-continuous --agent-config config/autonomous_agent.yaml --allow-demo-actions --interval-seconds 5 --report-path data\live_position_supervisor.jsonl --heat-report-path data\portfolio_heat.jsonl --heat-max-age-seconds 60 >> logs\live_position_supervisor_actions.out.log 2>> logs\live_position_supervisor_actions.err.log
 exit /b %ERRORLEVEL%
 
 :heat_once

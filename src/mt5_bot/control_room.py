@@ -51,6 +51,10 @@ def build_snapshot(
         supervisor["age_seconds"] = supervisor_age
         if supervisor_age is None or supervisor_age > supervisor_stale_after_seconds:
             reasons.append("supervisor_report_stale")
+        if str(supervisor.get("action_mode", "")) == "demo_actions_enabled":
+            policy = str(supervisor.get("action_policy", "unknown"))
+            if policy != "portfolio_heat_allows_actions":
+                reasons.append(f"supervisor_action_policy_{policy}")
     if heat is None:
         reasons.append("portfolio_heat_missing")
     else:
@@ -164,7 +168,9 @@ def render_summary(snapshot: ControlRoomSnapshot) -> str:
             "supervisor="
             f"managed={supervisor.get('managed_positions', 'n/a')} "
             f"unknown={supervisor.get('unknown_positions', 'n/a')} "
-            f"actions={len(supervisor.get('actions', [])) if isinstance(supervisor.get('actions'), list) else 'n/a'}"
+            f"actions={len(supervisor.get('actions', [])) if isinstance(supervisor.get('actions'), list) else 'n/a'} "
+            f"mode={supervisor.get('action_mode', 'n/a')} "
+            f"policy={supervisor.get('action_policy', 'n/a')}"
         ),
     ]
     return "\n".join(lines)

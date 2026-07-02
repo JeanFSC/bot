@@ -672,3 +672,35 @@ Boundary:
 - `supervisor-demo-bg` remains blocked/not started because it passes
   `--allow-demo-actions` and can modify demo trades.
 - No manual trade open/close/modify was performed.
+
+## 2026-07-02T13:40:00Z
+
+Jean asked for a deep audit of the supervisor action scheme: how it should
+interact, what it should do, what to watch, and then implementation of the
+findings.
+
+Implemented safe action-schema fixes:
+
+- Added `ActionPolicy` to `src\mt5_bot\live_position_supervisor.py`.
+- Action-enabled supervisor now requires fresh portfolio heat before any
+  trade-management action.
+- Winner scale-in/add-on is allowed only when portfolio heat decision is
+  `allow_new_entries`.
+- Risk-management actions are blocked when heat is missing/stale or unknown
+  positions exist.
+- Supervisor reports include `action_mode` and `action_policy`.
+- `MT5_AGENT.bat supervisor-demo-bg` now writes to
+  `data\live_position_supervisor.jsonl` so control-room sees action-mode state.
+- Control-room now renders supervisor mode/policy and warns if an action
+  supervisor is blocked by policy.
+- Partial close now uses persistent `runtime_events` to avoid repeating a
+  one-shot partial close after supervisor restart/new cycle.
+- Winner scale-in now records its one-shot event only after successful send
+  retcode.
+- Wrote audit report:
+  `docs\reports\MT5_SUPERVISOR_ACTION_SCHEMA_AUDIT_2026-07-02.md`.
+
+Boundary:
+
+- `supervisor-demo-bg` was not started.
+- No manual trade open/close/modify/scale action was performed.
