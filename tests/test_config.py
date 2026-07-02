@@ -64,6 +64,11 @@ def test_config_loads_winner_scaling_fields(tmp_path):
             early_exit_min_mfe_pips: 2.0
             early_exit_min_mfe_rr: 0.2
             early_exit_max_mae_rr: 0.4
+            use_portfolio_heat_gate: true
+            portfolio_heat_report_path: data/custom_heat.jsonl
+            portfolio_heat_max_age_seconds: 45
+            portfolio_heat_required: true
+            portfolio_heat_reduce_risk_multiplier: 0.4
             risk:
               mode: fixed_lot
               fixed_lot: 0.01
@@ -90,6 +95,11 @@ def test_config_loads_winner_scaling_fields(tmp_path):
     assert config.early_exit_min_mfe_pips == 2.0
     assert config.early_exit_min_mfe_rr == 0.2
     assert config.early_exit_max_mae_rr == 0.4
+    assert config.use_portfolio_heat_gate is True
+    assert Path(config.portfolio_heat_report_path).as_posix() == "data/custom_heat.jsonl"
+    assert config.portfolio_heat_max_age_seconds == 45
+    assert config.portfolio_heat_required is True
+    assert config.portfolio_heat_reduce_risk_multiplier == 0.4
 
 
 def test_all_bot_configs_load_with_explicit_baseline_equity():

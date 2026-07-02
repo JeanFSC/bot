@@ -136,6 +136,11 @@ class BotConfig:
     max_portfolio_open_positions: int = 3
     max_same_currency_positions: int = 2
     max_same_direction_theme_positions: int = 1
+    use_portfolio_heat_gate: bool = False
+    portfolio_heat_report_path: Path = Path("data/portfolio_heat.jsonl")
+    portfolio_heat_max_age_seconds: int = 90
+    portfolio_heat_required: bool = True
+    portfolio_heat_reduce_risk_multiplier: float = 0.50
     account: Optional[AccountConfig] = None
     risk: RiskConfig = field(default_factory=RiskConfig)
     strategy: StrategySettings = field(default_factory=StrategySettings)
@@ -243,6 +248,11 @@ def load_config(path: str | Path) -> BotConfig:
         max_portfolio_open_positions=int(raw.get("max_portfolio_open_positions", 3)),
         max_same_currency_positions=int(raw.get("max_same_currency_positions", 2)),
         max_same_direction_theme_positions=int(raw.get("max_same_direction_theme_positions", 1)),
+        use_portfolio_heat_gate=bool(raw.get("use_portfolio_heat_gate", False)),
+        portfolio_heat_report_path=Path(raw.get("portfolio_heat_report_path", "data/portfolio_heat.jsonl")),
+        portfolio_heat_max_age_seconds=int(raw.get("portfolio_heat_max_age_seconds", 90)),
+        portfolio_heat_required=bool(raw.get("portfolio_heat_required", True)),
+        portfolio_heat_reduce_risk_multiplier=float(raw.get("portfolio_heat_reduce_risk_multiplier", 0.50)),
         account=account,
         risk=RiskConfig(**risk_raw),
         strategy=StrategySettings(**strategy_kwargs),
@@ -343,5 +353,9 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("early_exit_max_mae_rr must be >= 0")
     if config.max_same_direction_theme_positions < 0:
         raise ValueError("max_same_direction_theme_positions must be >= 0")
+    if config.portfolio_heat_max_age_seconds < 1:
+        raise ValueError("portfolio_heat_max_age_seconds must be >= 1")
+    if not (0.0 <= config.portfolio_heat_reduce_risk_multiplier <= 1.0):
+        raise ValueError("portfolio_heat_reduce_risk_multiplier must be between 0 and 1")
     if not (0.0 < config.partial_close_ratio < 1.0):
         raise ValueError("partial_close_ratio must be between 0 and 1 (exclusive)")

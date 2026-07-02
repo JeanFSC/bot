@@ -245,6 +245,8 @@ Current evidence:
 
 ### Phase 4 - Entry Agent Integration
 
+Status: implemented for portfolio-heat gating of new entries.
+
 Deliverables:
 
 - Entry Agent consumes Portfolio Risk Agent decision.
@@ -255,6 +257,36 @@ Exit gate:
 
 - New entry decisions include portfolio heat context in journal.
 - Existing live positions continue to be managed.
+
+Current evidence:
+
+- Module added: `src/mt5_bot/portfolio_heat_gate.py`.
+- Active configs now set:
+  - `use_portfolio_heat_gate: true`;
+  - `portfolio_heat_report_path: data/portfolio_heat.jsonl`;
+  - `portfolio_heat_required: true`;
+  - `portfolio_heat_max_age_seconds: 90`;
+  - `portfolio_heat_reduce_risk_multiplier: 0.50`.
+- Entry loop behavior:
+  - if latest heat report is missing, stale, malformed, or says
+    `block_new_entries_recommended`, new entries are blocked while live
+    management continues;
+  - if heat says `reduce_or_wait_recommended`, the candidate risk is multiplied
+    by `0.50`;
+  - if heat says `allow_new_entries`, normal entry gates continue.
+- Trade journal now stores `portfolio_heat_risk_factor` and
+  `portfolio_heat_reason`.
+- Focused and full tests passed after integration:
+  - focused multi-agent/risk tests: `31 passed`;
+  - full suite: `133 passed`;
+  - preflight: `AGENT_PREFLIGHT_OK configs=10`;
+  - process_guard: OK.
+- Live control-room check after implementation:
+  - `CONTROL_ROOM OK`;
+  - positions `0/0`;
+  - portfolio heat decision `allow_new_entries`;
+  - equity `3011.5`;
+  - no unknown or unprotected positions.
 
 ### Phase 5 - Learning Agent Upgrade
 

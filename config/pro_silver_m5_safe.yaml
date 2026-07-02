@@ -8,6 +8,11 @@ max_open_positions: 1
 max_daily_loss_pct: 1.5
 max_trades_per_day: 30
 use_global_risk_guard: true
+use_portfolio_heat_gate: true
+portfolio_heat_report_path: data/portfolio_heat.jsonl
+portfolio_heat_max_age_seconds: 90
+portfolio_heat_required: true
+portfolio_heat_reduce_risk_multiplier: 0.50
 max_total_margin_pct: 35.0
 max_portfolio_open_positions: 10
 max_same_currency_positions: 6

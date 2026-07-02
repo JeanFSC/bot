@@ -24,6 +24,7 @@ from mt5_bot.mt5_gateway import MT5Gateway
 from mt5_bot import notifier
 from mt5_bot.news_filter import is_high_impact_news_nearby
 from mt5_bot.portfolio_guard import portfolio_guard_decision, score_portfolio_overlap
+from mt5_bot.portfolio_heat_gate import portfolio_heat_gate_decision
 from mt5_bot.report import format_report, generate_report
 from mt5_bot.report_live import format_pnl_report, get_live_pnl
 from mt5_bot.risk import DailyRiskState, is_daily_loss_limit_hit, is_trade_count_limit_hit, pip_size, spread_pips
@@ -408,6 +409,59 @@ def run_trade(
                 except Exception as exc:
                     LOGGER.warning("Portfolio guard unavailable: %s", exc)
 
+            portfolio_heat_risk_factor = 1.0
+            portfolio_heat_reason = "disabled"
+            if getattr(config, "use_portfolio_heat_gate", False):
+                heat_gate = portfolio_heat_gate_decision(
+                    config.portfolio_heat_report_path,
+                    max_age_seconds=config.portfolio_heat_max_age_seconds,
+                    required=config.portfolio_heat_required,
+                    reduce_risk_multiplier=config.portfolio_heat_reduce_risk_multiplier,
+                )
+                portfolio_heat_risk_factor = heat_gate.risk_multiplier
+                portfolio_heat_reason = heat_gate.reason
+                if not heat_gate.allow_new_entry:
+                    LOGGER.warning(
+                        "Portfolio heat gate: new entries blocked reason=%s heat_decision=%s age=%s",
+                        heat_gate.reason,
+                        heat_gate.heat_decision,
+                        f"{heat_gate.report_age_seconds:.1f}s" if heat_gate.report_age_seconds is not None else "n/a",
+                    )
+                    storage.record_runtime_event(
+                        "pretrade_block",
+                        heat_gate.reason,
+                        symbol=config.symbol,
+                        magic=config.execution.magic,
+                        level="warning",
+                        context={
+                            "heat_decision": heat_gate.heat_decision,
+                            "report_age_seconds": heat_gate.report_age_seconds,
+                            "report_path": str(config.portfolio_heat_report_path),
+                            "required": config.portfolio_heat_required,
+                        },
+                    )
+                    _sleep_and_manage_trailing(executor, config, current_spread)
+                    continue
+                if heat_gate.risk_multiplier < 1.0:
+                    LOGGER.warning(
+                        "Portfolio heat gate: reducing new-entry risk factor=%.2f reason=%s heat_decision=%s",
+                        heat_gate.risk_multiplier,
+                        heat_gate.reason,
+                        heat_gate.heat_decision,
+                    )
+                    storage.record_runtime_event(
+                        "pretrade_reduce_risk",
+                        heat_gate.reason,
+                        symbol=config.symbol,
+                        magic=config.execution.magic,
+                        level="warning",
+                        context={
+                            "heat_decision": heat_gate.heat_decision,
+                            "report_age_seconds": heat_gate.report_age_seconds,
+                            "risk_multiplier": heat_gate.risk_multiplier,
+                        },
+                    )
+
             if strategy_config.use_session_filter:
                 hour_utc = datetime.now(timezone.utc).hour
                 in_session1 = strategy_config.session_start_hour <= hour_utc < strategy_config.session_end_hour
@@ -619,7 +673,7 @@ def run_trade(
             equity_growth_pct = max(0.0, (float(account.equity) - baseline_equity) / baseline_equity * 100.0)
             compound_factor = 1.0 + int(equity_growth_pct // 5.0) * 0.10
             compound_factor = min(compound_factor, 2.5)
-            base_risk_pct = config.risk.risk_pct * compound_factor * _portfolio_overlap_risk_factor
+            base_risk_pct = config.risk.risk_pct * compound_factor * _portfolio_overlap_risk_factor * portfolio_heat_risk_factor
             if compound_factor > 1.0:
                 LOGGER.info(
                     "Compounding boost: equity=%.2f baseline=%.2f growth=%.1f%% factor=%.2fx risk_pct=%.2f%%",
@@ -884,6 +938,8 @@ def run_trade(
                         "final_risk_pct": base_risk_pct,
                         "correlation_risk_factor": _corr_risk_factor,
                         "portfolio_risk_factor": _portfolio_overlap_risk_factor,
+                        "portfolio_heat_risk_factor": portfolio_heat_risk_factor,
+                        "portfolio_heat_reason": portfolio_heat_reason,
                         "requested_price": (result.request or {}).get("price") if result.request else None,
                         "projected_loss_usd": execution_projection.get("projected_loss"),
                         "projected_gain_usd": execution_projection.get("projected_profit"),

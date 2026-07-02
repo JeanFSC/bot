@@ -566,3 +566,44 @@ Report: `reports\autonomous_trade_reviews\review_20260702_031400.md`
 - AUDUSD SELL ticket=9052018329 pnl=1.62 causes=profitable_exit,low_mfe_capture action=review_winner_runner_or_scale_logic
 - USDCAD BUY ticket=9052024633 pnl=0.41 causes=profitable_exit,low_mfe_capture action=review_winner_runner_or_scale_logic
 
+## 2026-07-02T03:30:01.920045+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_033001.md`
+
+- AUDUSD SELL ticket=9052062418 pnl=0.96 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9052070921 pnl=0.24 causes=profitable_exit action=record_only
+- AUDUSD SELL ticket=9052100113 pnl=0.85 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9052115711 pnl=0.25 causes=profitable_exit action=record_only
+- AUDUSD SELL ticket=9052157147 pnl=0.86 causes=profitable_exit action=record_only
+- USDCAD BUY ticket=9052165837 pnl=0.41 causes=profitable_exit action=record_only
+- AUDUSD SELL ticket=9052223164 pnl=1.16 causes=profitable_exit action=record_only
+
+## 2026-07-02T04:00:01.953621+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_040001.md`
+
+- USDJPY BUY ticket=9052413751 pnl=-0.36 causes=stop_too_tight action=review_sl_floor_or_position_sizing
+
+## 2026-07-02T04:12:00Z
+
+Multi-agent implementation continued after interruption.
+
+- Implemented Phase 4 Entry Agent integration with Portfolio Heat Agent.
+- Added `src/mt5_bot/portfolio_heat_gate.py`.
+- Active configs now require a fresh `data/portfolio_heat.jsonl` report before
+  opening new entries.
+- If portfolio heat is missing/stale/malformed or says
+  `block_new_entries_recommended`, new entries are blocked while live-position
+  management continues.
+- If portfolio heat says `reduce_or_wait_recommended`, candidate risk is cut by
+  `portfolio_heat_reduce_risk_multiplier` (`0.50` on active configs).
+- Trade journal now records `portfolio_heat_risk_factor` and
+  `portfolio_heat_reason`.
+- Validation:
+  - focused tests: `31 passed`;
+  - full suite: `133 passed`;
+  - preflight: `AGENT_PREFLIGHT_OK configs=10`;
+  - process_guard: OK;
+  - control room: OK, positions `0/0`, heat `allow_new_entries`, equity
+    `3011.5`.
+- No manual trade open/close/modify was performed.
