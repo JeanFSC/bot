@@ -704,3 +704,31 @@ Boundary:
 
 - `supervisor-demo-bg` was not started.
 - No manual trade open/close/modify/scale action was performed.
+## 2026-07-02T14:30:02.156327+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_143002.md`
+
+- USDCAD SELL ticket=9067080694 pnl=1.46 causes=profitable_exit action=record_only
+- USDCAD SELL ticket=9067102857 pnl=1.55 causes=profitable_exit action=record_only
+
+## 2026-07-02T15:45:02.158395+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_154502.md`
+
+- GBPUSD BUY ticket=9069052903 pnl=-9.38 causes=closed_by_sl action=record_only
+- AUDUSD BUY ticket=9069094135 pnl=1.02 causes=profitable_exit action=record_only
+- AUDUSD BUY ticket=9069286886 pnl=1.74 causes=profitable_exit action=record_only
+
+## 2026-07-02T20:45:02.331344+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_204502.md`
+
+- AUDUSD BUY ticket=9074064378 pnl=0.70 causes=profitable_exit action=record_only
+- AUDUSD BUY ticket=9074073871 pnl=0.88 causes=profitable_exit action=record_only
+
+## 2026-07-02T23:45:02.445210+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260702_234502.md`
+
+- USDCAD SELL ticket=9074782639 pnl=-7.33 causes=closed_by_sl action=record_only
+
