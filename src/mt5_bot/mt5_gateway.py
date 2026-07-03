@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import datetime
+import os
+from pathlib import Path
+import random
+import tempfile
 from typing import Any, Callable, TypeVar
 import time
 
@@ -38,6 +43,85 @@ class MT5Gateway:
         text = str(error).lower()
         return "ipc" in text or "-10001" in text or "send failed" in text
 
+    @classmethod
+    def _is_transient_initialize_error(cls, error: Any) -> bool:
+        text = str(error).lower()
+        return (
+            cls._is_transient_ipc_error(error)
+            or "-6" in text
+            or "authorization failed" in text
+            or "terminal: authorization" in text
+        )
+
+    @staticmethod
+    def _initialize_lock_path() -> Path:
+        configured = os.getenv("MT5_INIT_LOCK_PATH")
+        if configured:
+            return Path(configured)
+        return Path(tempfile.gettempdir()) / "mt5_python_initialize.lock"
+
+    @staticmethod
+    def _initialize_attempts() -> int:
+        try:
+            return max(1, int(os.getenv("MT5_INIT_ATTEMPTS", "4")))
+        except ValueError:
+            return 4
+
+    @staticmethod
+    def _initialize_lock_timeout_seconds() -> float:
+        try:
+            return max(1.0, float(os.getenv("MT5_INIT_LOCK_TIMEOUT_SECONDS", "20")))
+        except ValueError:
+            return 20.0
+
+    @contextmanager
+    def _initialize_lock(self):
+        lock_path = self._initialize_lock_path()
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+b") as handle:
+            self._lock_file(handle)
+            try:
+                yield
+            finally:
+                self._unlock_file(handle)
+
+    def _lock_file(self, handle) -> None:
+        deadline = time.monotonic() + self._initialize_lock_timeout_seconds()
+        if os.name == "nt":
+            import msvcrt
+
+            while True:
+                try:
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    return
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        raise RuntimeError("MT5 initialize lock timeout") from exc
+                    time.sleep(0.1)
+        else:
+            import fcntl
+
+            while True:
+                try:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    return
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        raise RuntimeError("MT5 initialize lock timeout") from exc
+                    time.sleep(0.1)
+
+    def _unlock_file(self, handle) -> None:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
     def _call_read(self, label: str, func: Callable[[], T | None], attempts: int = 3, delay: float = 0.35) -> T:
         """Call a non-trading MT5 read API with a small retry for transient IPC hiccups.
 
@@ -73,9 +157,19 @@ class MT5Gateway:
         if server:
             kwargs["server"] = server
 
-        ok = self.mt5.initialize(**kwargs) if kwargs else self.mt5.initialize()
-        if not ok:
-            raise RuntimeError(f"MT5 initialize failed: {self.mt5.last_error()}")
+        attempts = self._initialize_attempts()
+        last_error: Any = None
+        for attempt in range(1, attempts + 1):
+            with self._initialize_lock():
+                ok = self.mt5.initialize(**kwargs) if kwargs else self.mt5.initialize()
+            if ok:
+                return
+            last_error = self._last_error()
+            if attempt >= attempts or not self._is_transient_initialize_error(last_error):
+                break
+            delay = min(4.0, 0.5 * (2 ** (attempt - 1))) + random.uniform(0.0, 0.25)
+            time.sleep(delay)
+        raise RuntimeError(f"MT5 initialize failed: {last_error}")
 
     def login(self, login: int, password: str, server: str) -> None:
         ok = self.mt5.login(login, password=password, server=server)

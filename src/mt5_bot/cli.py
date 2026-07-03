@@ -349,6 +349,24 @@ def run_trade(
             LOGGER.info("Balance=%.2f Equity=%.2f Spread=%.2f pips",
                         account.balance, account.equity, current_spread)
 
+            control_room_block, control_room_context = _control_room_entry_block_reason()
+            if control_room_block:
+                LOGGER.warning(
+                    "Control room gate: new entries blocked reason=%s reasons=%s",
+                    control_room_block,
+                    ",".join(control_room_context.get("reasons", [])) or "n/a",
+                )
+                storage.record_runtime_event(
+                    "pretrade_block",
+                    control_room_block,
+                    symbol=config.symbol,
+                    magic=config.execution.magic,
+                    level="critical" if control_room_context.get("level") == "critical" else "warning",
+                    context=control_room_context,
+                )
+                _sleep_and_manage_trailing(executor, config, current_spread)
+                continue
+
             if is_daily_loss_limit_hit(daily_state, config.max_daily_loss_pct):
                 LOGGER.warning("Daily loss limit hit. New entries blocked.")
                 storage.record_runtime_event(
@@ -1080,6 +1098,32 @@ def _runtime_trading_block_reason(account, terminal) -> str | None:
     if bool(getattr(terminal, "tradeapi_disabled", False)):
         return "tradeapi_disabled_true"
     return None
+
+
+def _control_room_entry_block_reason() -> tuple[str | None, dict]:
+    try:
+        snapshot = _build_control_room_snapshot()
+    except Exception as exc:
+        return "control_room_unavailable", {
+            "level": "critical",
+            "reasons": ["control_room_unavailable"],
+            "error_type": type(exc).__name__,
+            "error": str(exc),
+        }
+    context = {
+        "created_at": snapshot.created_at,
+        "level": snapshot.level,
+        "reasons": snapshot.reasons,
+    }
+    if snapshot.level == "ok":
+        return None, context
+    return "control_room_not_ok", context
+
+
+def _build_control_room_snapshot():
+    from mt5_bot.control_room import build_snapshot
+
+    return build_snapshot()
 
 
 def _session_bucket(hour_utc: int) -> str:

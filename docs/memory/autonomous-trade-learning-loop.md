@@ -793,3 +793,41 @@ supervisor did not have its own bilateral guard.
     `0/0`, process guard OK.
 - No trades, SL/TP, risk params, or strategy configs were changed.
 
+## 2026-07-03T13:32:00+00:00
+
+Claude flagged that the active 50-trade experiment could be contaminated by
+sidecar-stale windows. Verified with local report gaps and SQLite order history.
+
+- `data/live_position_supervisor.jsonl` gap:
+  `2026-07-03T07:53:25Z -> 2026-07-03T10:33:47Z`.
+- GBPJPY order send `9414675477` / opening deal `9081085058` was recorded at
+  local order timestamp `2026-07-03T07:55:55Z`, inside that stale supervisor
+  window.
+- The closing loss `9082174691` (`-1.00`, SL) is real account history but is
+  contaminated for clean experiment measurement.
+- Decision: keep raw post-baseline count visible (`1/50`) but reset the clean
+  post-restoration experiment count to `0/50`.
+- Evidence report:
+  `reports/mt5_experiment_contamination_audit_20260703_1332.md`.
+
+No trades, SL/TP, configs, or risk parameters were modified.
+
+## 2026-07-03T13:34:00+00:00
+
+Implemented the remaining Phase 0 hardening from Claude's review.
+
+- `run_trade` now blocks new entries when the full `CONTROL_ROOM` snapshot is
+  not `OK`; it records `pretrade_block=control_room_not_ok` or
+  `control_room_unavailable` and still runs the sleep/trailing-management path.
+- `MT5Gateway.initialize` now serializes MT5 Python initialization with a
+  lockfile mutex and retries transient init failures such as
+  `Authorization failed (-6)` with exponential backoff plus jitter.
+- Added tests for the control-room entry gate and MT5 init retry behavior.
+- Verification:
+  - focused tests: `25 passed`
+  - full suite: `154 passed`
+  - live status: `CONTROL_ROOM OK`, supervisor `demo_actions_enabled`, heat
+    `allow_new_entries`, positions `0/0`, process guard OK.
+
+No trades, SL/TP, strategy params, or risk configs were changed.
+

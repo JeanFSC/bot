@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 from mt5_bot.cli import (
     _connect_and_validate,
+    _control_room_entry_block_reason,
     _new_daily_risk_state,
     _runtime_trading_block_reason,
     _should_stop_after_action,
@@ -89,6 +90,51 @@ def test_runtime_trading_block_reason_allows_clean_permissions():
     terminal = SimpleNamespace(connected=True, trade_allowed=True, tradeapi_disabled=False)
 
     assert _runtime_trading_block_reason(account, terminal) is None
+
+
+def test_control_room_entry_block_reason_allows_ok(monkeypatch):
+    monkeypatch.setattr(
+        "mt5_bot.cli._build_control_room_snapshot",
+        lambda: SimpleNamespace(
+            created_at="2026-07-03T13:00:00+00:00",
+            level="ok",
+            reasons=["ok"],
+        ),
+    )
+
+    reason, context = _control_room_entry_block_reason()
+
+    assert reason is None
+    assert context["level"] == "ok"
+
+
+def test_control_room_entry_block_reason_blocks_warn(monkeypatch):
+    monkeypatch.setattr(
+        "mt5_bot.cli._build_control_room_snapshot",
+        lambda: SimpleNamespace(
+            created_at="2026-07-03T13:00:00+00:00",
+            level="warn",
+            reasons=["portfolio_heat_stale"],
+        ),
+    )
+
+    reason, context = _control_room_entry_block_reason()
+
+    assert reason == "control_room_not_ok"
+    assert context["level"] == "warn"
+    assert context["reasons"] == ["portfolio_heat_stale"]
+
+
+def test_control_room_entry_block_reason_blocks_unavailable(monkeypatch):
+    def raise_error():
+        raise RuntimeError("broken snapshot")
+
+    monkeypatch.setattr("mt5_bot.cli._build_control_room_snapshot", raise_error)
+
+    reason, context = _control_room_entry_block_reason()
+
+    assert reason == "control_room_unavailable"
+    assert context["level"] == "critical"
 
 
 def test_trade_loop_skips_dynamic_management_when_supervisor_owns_it():
