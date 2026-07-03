@@ -831,6 +831,36 @@ Implemented the remaining Phase 0 hardening from Claude's review.
 
 No trades, SL/TP, strategy params, or risk configs were changed.
 
+## 2026-07-03T13:50:00+00:00
+
+Jean approved running the 50-trade experiment.
+
+- Verified current live state:
+  - total closed deals across active `data/pro_*.sqlite`: `67`
+  - clean experiment closed count since `2026-07-03T13:01:34Z`: `0/50`
+  - `CONTROL_ROOM OK`
+  - supervisor `demo_actions_enabled`
+  - heat `allow_new_entries`
+  - positions `0/0`
+- Updated OpenClaw cron `26739878-7775-48af-946c-3f216bb78b92`:
+  - name remains `mt5-50-trade-experiment-watch-20260702`
+  - frequency remains every 2h to protect tokens
+  - prompt now uses clean baseline `67`
+  - it must ignore contaminated GBPJPY `9082174691` for clean sample
+  - it should run the cheap local exit-reason report only on new clean close or non-OK state.
+- Watch report updated:
+  `reports/mt5_50_trade_experiment_watch_20260702.md`.
+
+Experiment rules remain:
+
+- Do not touch exits or params before enough clean sample.
+- At clean `n=10`: diagnose only.
+- Before `n=10`: intervene early only if 2 large clean full-SL losses appear.
+- At clean `n=30`: PF `<0.9` rollback; PF `0.9-1.1` extend; healthy PF continues to 50.
+- At clean `n=50`: evaluate promotion only if PF, expectancy, payoff, drawdown, and sidecar stability pass.
+
+No trades, SL/TP, strategy params, or risk configs were changed.
+
 ## 2026-07-03T13:46:00+00:00
 
 Advanced Phase 0/1 after Jean asked Bobby to continue without Claude.
