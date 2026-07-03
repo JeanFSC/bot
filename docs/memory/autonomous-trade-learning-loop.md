@@ -732,3 +732,43 @@ Report: `reports\autonomous_trade_reviews\review_20260702_234502.md`
 
 - USDCAD SELL ticket=9074782639 pnl=-7.33 causes=closed_by_sl action=record_only
 
+## 2026-07-03T02:30:03.010720+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260703_023003.md`
+
+- AUDUSD BUY ticket=9075342570 pnl=-7.20 causes=closed_by_sl action=record_only
+
+## 2026-07-03T09:15:02.724539+00:00
+
+Report: `reports\autonomous_trade_reviews\review_20260703_091502.md`
+
+- GBPJPY SELL ticket=9082174691 pnl=-1.00 causes=closed_by_sl action=record_only
+
+## 2026-07-03T10:35:00+00:00
+
+Jean asked to fix the stale supervisor and audit trades.
+
+- Supervisor issue: `CONTROL_ROOM WARN` from `supervisor_report_stale`.
+- Root cause found in `logs/live_position_supervisor_actions.err.log`: action-enabled supervisor stopped after `MT5 initialize failed: (-6, 'Terminal: Authorization failed')`.
+- Fix applied: restarted `MT5_AGENT.bat supervisor-bg` in report-only mode only.
+- Verification: `CONTROL_ROOM OK`, supervisor age `3s`, heat age `10s`, watchdog age `408s`, positions `0/0`, unknown `0`, unprotected `0`, `PROCESS_GUARD_OK`.
+- Trade audit: `65` closed, `57W / 8L`, win rate `87.69%`, net PnL `-0.98`, PF `0.98`.
+- Payout diagnosis: average win `+0.85`, average loss `-6.20`, payoff ratio `0.14`; last 24h PF `0.30`, net PnL `-17.56`.
+- Decision: do not scale; keep 50-trade experiment on strict watch. Action-enabled supervisor remains unauthorized until Jean explicitly approves demo position modifications.
+- Evidence report: `reports/supervisor_trade_audit_20260703_1035.md`.
+
+## 2026-07-03T10:40:00+00:00
+
+Jean explicitly approved enabling the action-capable demo supervisor.
+
+- Replaced the `report_only` live-position supervisor with `MT5_AGENT.bat supervisor-demo-bg`.
+- Verification after startup:
+  - `CONTROL_ROOM OK`
+  - supervisor mode `demo_actions_enabled`
+  - action policy `portfolio_heat_allows_actions`
+  - heat decision `allow_new_entries`
+  - positions `0/0`, unknown `0`, unprotected `0`
+  - `PROCESS_GUARD_OK`, no duplicate supervisors
+- No positions were open at activation time, so no supervisor actions were applied.
+- Guardrail remains: supervisor actions depend on fresh `data/portfolio_heat.jsonl`; if heat is stale, action policy should block modifications.
+
