@@ -98,6 +98,26 @@ class BotStorage:
                 mae_profit REAL
             );
 
+            CREATE TABLE IF NOT EXISTS position_metrics_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                archived_at TEXT NOT NULL,
+                ticket INTEGER NOT NULL,
+                symbol TEXT NOT NULL,
+                magic INTEGER,
+                opened_at TEXT,
+                updated_at TEXT NOT NULL,
+                side INTEGER,
+                volume REAL,
+                entry_price REAL,
+                current_price REAL,
+                current_profit REAL,
+                current_pips REAL,
+                mfe_pips REAL,
+                mae_pips REAL,
+                mfe_profit REAL,
+                mae_profit REAL
+            );
+
             CREATE TABLE IF NOT EXISTS deals (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 ticket INTEGER NOT NULL UNIQUE,
@@ -428,18 +448,52 @@ class BotStorage:
         return dict(row)
 
     def prune_position_metrics(self, symbol: str, magic: int, open_tickets: set[int]) -> int:
-        """Remove stale telemetry rows for positions no longer open in MT5."""
+        """Archive and remove telemetry rows for positions no longer open in MT5."""
         cursor = self.connection.execute(
             """
-            SELECT ticket
+            SELECT ticket, symbol, magic, opened_at, updated_at, side, volume,
+                   entry_price, current_price, current_profit, current_pips,
+                   mfe_pips, mae_pips, mfe_profit, mae_profit
             FROM position_metrics
             WHERE symbol = ? AND magic = ?
             """,
             (symbol, magic),
         )
-        stale = [int(row["ticket"]) for row in cursor.fetchall() if int(row["ticket"]) not in open_tickets]
+        stale_rows = [row for row in cursor.fetchall() if int(row["ticket"]) not in open_tickets]
+        stale = [int(row["ticket"]) for row in stale_rows]
         if not stale:
             return 0
+        archived_at = _now()
+        self.connection.executemany(
+            """
+            INSERT INTO position_metrics_history (
+                archived_at, ticket, symbol, magic, opened_at, updated_at, side, volume,
+                entry_price, current_price, current_profit, current_pips,
+                mfe_pips, mae_pips, mfe_profit, mae_profit
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    archived_at,
+                    row["ticket"],
+                    row["symbol"],
+                    row["magic"],
+                    row["opened_at"],
+                    row["updated_at"],
+                    row["side"],
+                    row["volume"],
+                    row["entry_price"],
+                    row["current_price"],
+                    row["current_profit"],
+                    row["current_pips"],
+                    row["mfe_pips"],
+                    row["mae_pips"],
+                    row["mfe_profit"],
+                    row["mae_profit"],
+                )
+                for row in stale_rows
+            ],
+        )
         self.connection.executemany(
             "DELETE FROM position_metrics WHERE ticket = ?",
             [(ticket,) for ticket in stale],

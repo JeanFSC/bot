@@ -831,3 +831,32 @@ Implemented the remaining Phase 0 hardening from Claude's review.
 
 No trades, SL/TP, strategy params, or risk configs were changed.
 
+## 2026-07-03T13:46:00+00:00
+
+Advanced Phase 0/1 after Jean asked Bobby to continue without Claude.
+
+- Ran controlled control-room chaos test:
+  - precheck `CONTROL_ROOM OK`, positions `0/0`
+  - stopped only the `supervisor-demo-bg` process chain
+  - after 35s, `CONTROL_ROOM WARN` with `supervisor_report_stale`
+  - active trade loop recorded `pretrade_block=control_room_not_ok`
+  - no new successful send orders appeared after chaos-test start
+  - restarted `supervisor-demo-bg`; final `CONTROL_ROOM OK`
+- Evidence report:
+  `reports/control_room_chaos_test_20260703_1341.md`.
+- Added deterministic local script `scripts/audit_exit_reasons.py` to produce
+  cheap exit-reason reports without using agent/LLM tokens.
+- Generated `reports/exit_reason_audit_20260703_1342.md`:
+  - `65` closed rows since `2026-07-01`
+  - `sl_loss`: `7` trades, net `-47.23`, avg loss `-6.75`
+  - `bot_client_close_original_comment`: `34` trades, net `+29.68`,
+    avg win `+0.87`
+  - `protective_sl_profit`: `15` trades, net `+8.35`, avg win `+0.56`
+  - conclusion: payout problem is still dominated by a small number of large
+    SL losses wiping many small winners.
+- Fixed observability gap: `position_metrics` rows are now archived to
+  `position_metrics_history` before pruning, so future closed trades should
+  retain MFE/MAE evidence.
+
+No trades, SL/TP, strategy params, or risk configs were changed.
+
