@@ -271,7 +271,7 @@ def _management_signal(gateway: MT5Gateway, config: BotConfig):
         trend_bars = max(config.strategy.trend_ema * 3, 200)
         trend_rates = gateway.copy_rates_from_pos(config.symbol, config.trend_timeframe, 0, trend_bars)
         return detect_signal_mtf(signal_rates, trend_rates, strategy_config, symbol=config.symbol)
-    return detect_signal(signal_rates, strategy_config)
+    return detect_signal(signal_rates, strategy_config, symbol=config.symbol)
 
 
 def _current_spread(gateway: MT5Gateway, config: BotConfig) -> float:

@@ -1,7 +1,13 @@
 from datetime import date
 from types import SimpleNamespace
 
-from mt5_bot.cli import _connect_and_validate, _new_daily_risk_state, _runtime_trading_block_reason, _should_stop_after_action
+from mt5_bot.cli import (
+    _connect_and_validate,
+    _new_daily_risk_state,
+    _runtime_trading_block_reason,
+    _should_stop_after_action,
+    _trade_loop_owns_dynamic_management,
+)
 
 
 def test_new_daily_risk_state_starts_with_zero_trades():
@@ -83,3 +89,9 @@ def test_runtime_trading_block_reason_allows_clean_permissions():
     terminal = SimpleNamespace(connected=True, trade_allowed=True, tradeapi_disabled=False)
 
     assert _runtime_trading_block_reason(account, terminal) is None
+
+
+def test_trade_loop_skips_dynamic_management_when_supervisor_owns_it():
+    assert _trade_loop_owns_dynamic_management(SimpleNamespace(dynamic_management_owner="supervisor")) is False
+    assert _trade_loop_owns_dynamic_management(SimpleNamespace(dynamic_management_owner="trade_loop")) is True
+    assert _trade_loop_owns_dynamic_management(SimpleNamespace()) is True

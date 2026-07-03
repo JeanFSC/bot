@@ -520,7 +520,7 @@ def run_trade(
             if use_mtf:
                 signal = detect_signal_mtf(signal_rates, trend_rates, strategy_config, symbol=config.symbol)
             else:
-                signal = detect_signal(signal_rates, strategy_config)
+                signal = detect_signal(signal_rates, strategy_config, symbol=config.symbol)
 
             storage.record_signal(config.symbol, signal)
             LOGGER.info(
@@ -531,44 +531,45 @@ def run_trade(
                 f"{signal.adx:.1f}" if signal.adx else "n/a",
             )
 
-            # Open-position management/telemetry every tick, before new entries.
+            # Open-position telemetry every tick, before new entries.
             for pm in executor.record_position_metrics():
                 LOGGER.debug("PositionMetrics status=%s reason=%s", pm.status, pm.reason)
-            if signal.atr_pips:
-                for ee in executor.manage_no_favorable_excursion(signal.atr_pips):
-                    LOGGER.info("EarlyExit status=%s reason=%s", ee.status, ee.reason)
-            for ts in executor.manage_time_stops():
-                LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
+            if _trade_loop_owns_dynamic_management(config):
+                if signal.atr_pips:
+                    for ee in executor.manage_no_favorable_excursion(signal.atr_pips):
+                        LOGGER.info("EarlyExit status=%s reason=%s", ee.status, ee.reason)
+                for ts in executor.manage_time_stops():
+                    LOGGER.info("TimeStop status=%s reason=%s", ts.status, ts.reason)
 
-            if signal.atr_pips:
-                for ws in executor.manage_winner_scaling(signal.atr_pips, signal.adx, current_spread):
-                    LOGGER.info("WinnerScale status=%s reason=%s", ws.status, ws.reason)
+                if signal.atr_pips:
+                    for ws in executor.manage_winner_scaling(signal.atr_pips, signal.adx, current_spread):
+                        LOGGER.info("WinnerScale status=%s reason=%s", ws.status, ws.reason)
 
-            if signal.atr_pips:
-                for pl in executor.manage_profit_lock(signal.atr_pips):
-                    LOGGER.info("ProfitLock status=%s reason=%s", pl.status, pl.reason)
-                    if pl.status == "profit_lock" and pl.request:
-                        notifier.trade_closed(
-                            config.symbol, profit=0.0, magic=config.execution.magic,
-                            reason="profit_lock_retrace",
-                            volume=pl.request.get("volume"), partial=False,
-                        )
+                if signal.atr_pips:
+                    for pl in executor.manage_profit_lock(signal.atr_pips):
+                        LOGGER.info("ProfitLock status=%s reason=%s", pl.status, pl.reason)
+                        if pl.status == "profit_lock" and pl.request:
+                            notifier.trade_closed(
+                                config.symbol, profit=0.0, magic=config.execution.magic,
+                                reason="profit_lock_retrace",
+                                volume=pl.request.get("volume"), partial=False,
+                            )
 
-            # Partial close at TP1 (every tick, before entry check)
-            if signal.atr_pips:
-                for pc in executor.manage_partial_close(signal.atr_pips):
-                    LOGGER.info("PartialClose status=%s reason=%s", pc.status, pc.reason)
-                    if pc.status == "partial_close" and pc.request:
-                        notifier.trade_closed(
-                            config.symbol, profit=0.0, magic=config.execution.magic,
-                            reason="partial_close_tp1",
-                            volume=pc.request.get("volume"), partial=True,
-                        )
+                # Partial close at TP1 (every tick, before entry check)
+                if signal.atr_pips:
+                    for pc in executor.manage_partial_close(signal.atr_pips):
+                        LOGGER.info("PartialClose status=%s reason=%s", pc.status, pc.reason)
+                        if pc.status == "partial_close" and pc.request:
+                            notifier.trade_closed(
+                                config.symbol, profit=0.0, magic=config.execution.magic,
+                                reason="partial_close_tp1",
+                                volume=pc.request.get("volume"), partial=True,
+                            )
 
-            # Trailing stop (every tick)
-            if strategy_config.use_trailing_stop and signal.atr_pips:
-                for tr in executor.manage_trailing_stops(signal.atr_pips):
-                    LOGGER.info("TrailingStop status=%s reason=%s", tr.status, tr.reason)
+                # Trailing stop (every tick)
+                if strategy_config.use_trailing_stop and signal.atr_pips:
+                    for tr in executor.manage_trailing_stops(signal.atr_pips):
+                        LOGGER.info("TrailingStop status=%s reason=%s", tr.status, tr.reason)
 
             # â”€â”€ Correlation guard â€” reduce risk on correlated pairs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             # EURUSD & GBPUSD ~85% correlated. If both signal same direction
@@ -1216,10 +1217,14 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
     try:
         for pm in executor.record_position_metrics():
             LOGGER.debug("PositionMetrics (idle) status=%s reason=%s", pm.status, pm.reason)
-        for ts in executor.manage_time_stops():
-            LOGGER.info("TimeStop (idle) status=%s reason=%s", ts.status, ts.reason)
+        if _trade_loop_owns_dynamic_management(config):
+            for ts in executor.manage_time_stops():
+                LOGGER.info("TimeStop (idle) status=%s reason=%s", ts.status, ts.reason)
     except Exception as exc:
         LOGGER.debug("Position management during idle: %s", exc)
+    if not _trade_loop_owns_dynamic_management(config):
+        time.sleep(config.poll_seconds)
+        return
     if config.strategy.use_trailing_stop:
         try:
             signal_rates = executor.gateway.copy_rates_from_pos(
@@ -1230,7 +1235,7 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
                 f: getattr(config.strategy, f)
                 for f in StrategyConfig.__dataclass_fields__
             })
-            sig = detect_signal(signal_rates, sc)
+            sig = detect_signal(signal_rates, sc, symbol=config.symbol)
             if sig.atr_pips and sig.atr_pips > 0:
                 for ee in executor.manage_no_favorable_excursion(sig.atr_pips):
                     LOGGER.info("EarlyExit (idle) status=%s reason=%s", ee.status, ee.reason)
@@ -1246,5 +1251,9 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
         except Exception as exc:
             LOGGER.debug("Trailing stop during idle: %s", exc)
     time.sleep(config.poll_seconds)
+
+
+def _trade_loop_owns_dynamic_management(config) -> bool:
+    return getattr(config, "dynamic_management_owner", "trade_loop") == "trade_loop"
 
 

@@ -23,6 +23,24 @@ def _rates(closes):
     )
 
 
+def _rates_with_ranges(closes, ranges):
+    return pd.DataFrame(
+        {
+            "time": [
+                datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(minutes=i)
+                for i in range(len(closes))
+            ],
+            "open": closes,
+            "high": [price + rng for price, rng in zip(closes, ranges)],
+            "low": [price - rng for price, rng in zip(closes, ranges)],
+            "close": closes,
+            "tick_volume": [100] * len(closes),
+            "spread": [8] * len(closes),
+            "real_volume": [100] * len(closes),
+        }
+    )
+
+
 def test_rsi_returns_extreme_value_in_all_gain_market():
     values = pd.Series([float(i) for i in range(1, 25)])
 
@@ -56,6 +74,26 @@ def test_detect_signal_blocks_buy_when_rsi_is_overbought():
 
     assert signal.type is SignalType.NONE
     assert signal.reason == "rsi_buy_filter"
+
+
+def test_detect_signal_blocks_cross_when_atr_percentile_is_too_low():
+    closes = [1.1000] * 100 + [1.0995] * 25 + [1.0996, 1.0996]
+    ranges = [0.0015] * 120 + [0.00005] * (len(closes) - 120)
+    config = StrategyConfig(
+        fast_ema=3,
+        slow_ema=7,
+        use_rsi_filter=False,
+        use_atr_filter=False,
+        use_adx_filter=False,
+        use_atr_percentile_filter=True,
+        atr_percentile_lookback=100,
+        atr_min_percentile=30,
+    )
+
+    signal = detect_signal(_rates_with_ranges(closes, ranges), config, symbol="EURUSD")
+
+    assert signal.type is SignalType.NONE
+    assert signal.reason.startswith("atr_percentile_too_low")
 
 
 def test_adx_handles_zero_di_without_object_dtype_crash():

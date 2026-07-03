@@ -43,6 +43,9 @@ class StrategyConfig:
     atr_period: int = 14
     min_atr_pips: float = 1.0
     use_atr_filter: bool = True
+    use_atr_percentile_filter: bool = False
+    atr_percentile_lookback: int = 100
+    atr_min_percentile: float = 30.0
     # ── ATR-based dynamic SL / TP multipliers ─────────────────────────────────
     atr_sl_multiplier: float = 1.5
     atr_tp_multiplier: float = 3.0
@@ -162,9 +165,9 @@ def _none(
 # Core detection — single timeframe (backward compatible)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def detect_signal(rates: pd.DataFrame, config: StrategyConfig) -> Signal:
+def detect_signal(rates: pd.DataFrame, config: StrategyConfig, symbol: str = "EURUSD") -> Signal:
     """Single-timeframe entry signal. Calls detect_signal_mtf without trend layer."""
-    return detect_signal_mtf(rates, None, config)
+    return detect_signal_mtf(rates, None, config, symbol=symbol)
 
 
 def _pip_size_for_symbol(symbol: str) -> float:
@@ -264,8 +267,10 @@ def detect_signal_mtf(
     needed = [config.slow_ema + 3]  # +3: need at least [-1], [-2], [-3]
     if config.use_rsi_filter or config.use_rsi_momentum:
         needed.append(config.rsi_period)
-    if config.use_atr_filter or config.use_atr_sl_tp:
+    if config.use_atr_filter or config.use_atr_sl_tp or config.use_atr_percentile_filter:
         needed.append(config.atr_period)
+    if config.use_atr_percentile_filter:
+        needed.append(config.atr_period + config.atr_percentile_lookback + 3)
     if config.use_adx_filter:
         needed.append(config.adx_period * 2)
     min_bars = max(needed)
@@ -358,6 +363,17 @@ def detect_signal_mtf(
         if atr_curr < config.min_atr_pips * pip:
             return _none("atr_too_low", fast_curr, slow_curr, rsi_curr,
                          atr_curr, atr_pips_v, trend_bias, adx_curr)
+    if config.use_atr_percentile_filter and atr_curr is not None:
+        lookback = max(10, int(config.atr_percentile_lookback))
+        hist = candles["atr_val"].iloc[-(lookback + 2):-2].dropna()
+        if len(hist) >= min(lookback, 30):
+            threshold = float(hist.quantile(float(config.atr_min_percentile) / 100.0))
+            if atr_curr < threshold:
+                return _none(
+                    f"atr_percentile_too_low_{atr_pips_v:.1f}",
+                    fast_curr, slow_curr, rsi_curr, atr_curr, atr_pips_v,
+                    trend_bias, adx_curr,
+                )
 
     # ── ADX trend-strength gate ───────────────────────────────────────────────
     if config.use_adx_filter:

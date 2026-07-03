@@ -30,6 +30,7 @@ partial_close_ratio: 0.35
 profit_target_usd: null
 baseline_equity: 3000.0
 database_path: data/pro_eurusd_m5.sqlite
+dynamic_management_owner: supervisor
 risk:
   mode: percent_equity
   risk_pct: 0.35
@@ -49,8 +50,11 @@ strategy:
   atr_period: 14
   min_atr_pips: 1.5
   use_atr_filter: true
+  use_atr_percentile_filter: true
+  atr_percentile_lookback: 100
+  atr_min_percentile: 30.0
   adx_period: 14
-  adx_min_value: 18
+  adx_min_value: 22
   use_adx_filter: true
   atr_sl_multiplier: 1.5
   atr_tp_multiplier: 4.0
@@ -89,10 +93,12 @@ max_spread_to_sl_ratio: 0.2
 min_sl_atr_ratio: 0.6
 min_effective_sl_pips: 8.0
 profit_lock_enabled: true
-profit_lock_trigger_rr: 0.25
+profit_lock_trigger_rr: 0.50
 profit_lock_min_pips: 2.0
-profit_lock_retrace_rr: 0.35
+profit_lock_retrace_rr: 0.45
 profit_lock_buffer_pips: 0.5
+breakeven_trigger_rr: 0.50
+partial_close_trigger_rr: 0.50
 winner_scaling_enabled: true
 winner_scaling_trigger_rr: 0.45
 winner_scaling_min_mfe_pips: 2.0
@@ -102,3 +108,4 @@ winner_scaling_add_volume_ratio: 0.50
 winner_scaling_max_addon_risk_pct: 0.10
 winner_scaling_min_adx: 24
 winner_scaling_max_spread_atr_ratio: 0.12
+

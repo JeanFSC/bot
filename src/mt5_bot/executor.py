@@ -459,7 +459,6 @@ class TradeExecutor:
             pip         = pip_size(symbol_info)
             digits      = int(symbol_info.digits)
             constants   = self.gateway.constants()
-            trigger_pips = atr_pips * self.config.strategy.breakeven_atr_multiplier
             event_exists = getattr(self.storage, "runtime_event_exists", None)
             event_recorder = getattr(self.storage, "record_runtime_event", None)
 
@@ -478,8 +477,16 @@ class TradeExecutor:
 
                 is_buy      = int(position.type) == MT5_BUY_POSITION
                 entry_price = float(position.price_open)
+                current_sl  = float(getattr(position, "sl", 0.0) or 0.0)
                 cur_price   = float(tick.bid) if is_buy else float(tick.ask)
                 volume      = float(position.volume)
+                trigger_pips = self._management_trigger_pips(
+                    position=position,
+                    pip=pip,
+                    rr=getattr(self.config, "partial_close_trigger_rr", 0.0),
+                    fallback_pips=atr_pips * self.config.strategy.breakeven_atr_multiplier,
+                    current_sl=current_sl,
+                )
 
                 profit_pips = (
                     (cur_price - entry_price) / pip if is_buy
@@ -596,7 +603,7 @@ class TradeExecutor:
             pip         = pip_size(symbol_info)
             digits      = int(symbol_info.digits)
 
-            be_threshold    = atr_pips * self.config.strategy.breakeven_atr_multiplier
+            be_fallback     = atr_pips * self.config.strategy.breakeven_atr_multiplier
             trail_threshold = atr_pips * self.config.strategy.trailing_atr_multiplier
 
             for position in own_positions:
@@ -605,6 +612,13 @@ class TradeExecutor:
                 current_sl   = float(position.sl)
                 current_tp   = float(position.tp)
                 cur_price    = float(tick.bid) if is_buy else float(tick.ask)
+                be_threshold = self._management_trigger_pips(
+                    position=position,
+                    pip=pip,
+                    rr=getattr(self.config, "breakeven_trigger_rr", 0.0),
+                    fallback_pips=be_fallback,
+                    current_sl=current_sl,
+                )
 
                 profit_pips = (
                     (cur_price - entry_price) / pip if is_buy
@@ -669,6 +683,27 @@ class TradeExecutor:
         return results
 
     # ── Position telemetry + time stop ───────────────────────────────────────
+
+    def _management_trigger_pips(
+        self,
+        position,
+        pip: float,
+        rr: float,
+        fallback_pips: float,
+        current_sl: float | None = None,
+    ) -> float:
+        """Use an R-based trigger when configured; otherwise keep ATR behavior."""
+        rr = float(rr or 0.0)
+        if rr <= 0:
+            return float(fallback_pips)
+        entry_price = float(position.price_open)
+        sl_price = float(current_sl if current_sl is not None else getattr(position, "sl", 0.0) or 0.0)
+        sl_distance_pips = abs(entry_price - sl_price) / pip if sl_price > 0 else 0.0
+        if sl_distance_pips <= 0:
+            sl_distance_pips = float(getattr(self.config.risk, "sl_pips", 0.0) or 0.0)
+        if sl_distance_pips <= 0:
+            return float(fallback_pips)
+        return sl_distance_pips * rr
 
     def manage_profit_lock(self, atr_pips: Optional[float] = None) -> list[ExecutionResult]:
         """Close profitable positions when the move fades before TP."""

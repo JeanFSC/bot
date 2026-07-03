@@ -43,6 +43,9 @@ class StrategySettings:
     atr_period: int = 14
     min_atr_pips: float = 1.0
     use_atr_filter: bool = True
+    use_atr_percentile_filter: bool = False
+    atr_percentile_lookback: int = 100
+    atr_min_percentile: float = 30.0
     atr_sl_multiplier: float = 1.5
     atr_tp_multiplier: float = 3.0
     use_atr_sl_tp: bool = False
@@ -101,6 +104,8 @@ class BotConfig:
     profit_lock_min_pips: float = 0.0
     profit_lock_retrace_rr: float = 0.35
     profit_lock_buffer_pips: float = 0.5
+    breakeven_trigger_rr: float = 0.0
+    partial_close_trigger_rr: float = 0.0
     winner_scaling_enabled: bool = False
     winner_scaling_trigger_rr: float = 0.45
     winner_scaling_min_mfe_pips: float = 0.0
@@ -141,6 +146,7 @@ class BotConfig:
     portfolio_heat_max_age_seconds: int = 90
     portfolio_heat_required: bool = True
     portfolio_heat_reduce_risk_multiplier: float = 0.50
+    dynamic_management_owner: str = "trade_loop"
     account: Optional[AccountConfig] = None
     risk: RiskConfig = field(default_factory=RiskConfig)
     strategy: StrategySettings = field(default_factory=StrategySettings)
@@ -215,6 +221,8 @@ def load_config(path: str | Path) -> BotConfig:
         profit_lock_min_pips=float(raw.get("profit_lock_min_pips", 0.0)),
         profit_lock_retrace_rr=float(raw.get("profit_lock_retrace_rr", 0.35)),
         profit_lock_buffer_pips=float(raw.get("profit_lock_buffer_pips", 0.5)),
+        breakeven_trigger_rr=float(raw.get("breakeven_trigger_rr", 0.0)),
+        partial_close_trigger_rr=float(raw.get("partial_close_trigger_rr", 0.0)),
         winner_scaling_enabled=bool(raw.get("winner_scaling_enabled", False)),
         winner_scaling_trigger_rr=float(raw.get("winner_scaling_trigger_rr", 0.45)),
         winner_scaling_min_mfe_pips=float(raw.get("winner_scaling_min_mfe_pips", 0.0)),
@@ -253,6 +261,7 @@ def load_config(path: str | Path) -> BotConfig:
         portfolio_heat_max_age_seconds=int(raw.get("portfolio_heat_max_age_seconds", 90)),
         portfolio_heat_required=bool(raw.get("portfolio_heat_required", True)),
         portfolio_heat_reduce_risk_multiplier=float(raw.get("portfolio_heat_reduce_risk_multiplier", 0.50)),
+        dynamic_management_owner=str(raw.get("dynamic_management_owner", "trade_loop")),
         account=account,
         risk=RiskConfig(**risk_raw),
         strategy=StrategySettings(**strategy_kwargs),
@@ -295,6 +304,10 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("risk.mode must be fixed_lot or percent_equity")
     if config.risk.sl_pips <= 0 or config.risk.tp_pips <= 0:
         raise ValueError("SL and TP must be positive")
+    if config.strategy.atr_percentile_lookback < 30:
+        raise ValueError("atr_percentile_lookback must be >= 30")
+    if not (0.0 < config.strategy.atr_min_percentile < 100.0):
+        raise ValueError("atr_min_percentile must be between 0 and 100")
     if config.max_open_positions != 1:
         raise ValueError("V1 supports exactly one open position")
     if config.poll_seconds < 1:
@@ -327,6 +340,10 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("profit_lock_retrace_rr must be > 0 and <= 1")
     if config.profit_lock_buffer_pips < 0:
         raise ValueError("profit_lock_buffer_pips must be >= 0")
+    if not (0.0 <= config.breakeven_trigger_rr <= 1.0):
+        raise ValueError("breakeven_trigger_rr must be between 0 and 1")
+    if not (0.0 <= config.partial_close_trigger_rr <= 1.0):
+        raise ValueError("partial_close_trigger_rr must be between 0 and 1")
     if not (0.0 < config.winner_scaling_trigger_rr <= 1.0):
         raise ValueError("winner_scaling_trigger_rr must be > 0 and <= 1")
     if config.winner_scaling_min_mfe_pips < 0:
@@ -357,5 +374,7 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError("portfolio_heat_max_age_seconds must be >= 1")
     if not (0.0 <= config.portfolio_heat_reduce_risk_multiplier <= 1.0):
         raise ValueError("portfolio_heat_reduce_risk_multiplier must be between 0 and 1")
+    if config.dynamic_management_owner not in {"trade_loop", "supervisor"}:
+        raise ValueError("dynamic_management_owner must be trade_loop or supervisor")
     if not (0.0 < config.partial_close_ratio < 1.0):
         raise ValueError("partial_close_ratio must be between 0 and 1 (exclusive)")

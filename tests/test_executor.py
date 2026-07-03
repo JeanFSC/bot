@@ -246,6 +246,25 @@ def test_partial_close_does_not_repeat_same_ticket_from_runtime_event():
     assert gateway.sent_requests == []
 
 
+def test_partial_close_waits_for_configured_half_r_trigger():
+    gateway = _GatewayForPartialCloseBelowHalfR()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        use_partial_close=True,
+        partial_close_ratio=0.5,
+        partial_close_trigger_rr=0.5,
+        strategy=SimpleNamespace(breakeven_atr_multiplier=0.8, use_trailing_stop=True),
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=600, tp_pips=1200),
+        execution=ExecutionConfig(magic=260440, deviation=20, filling_mode="AUTO", trade_enabled=True),
+    )
+
+    results = TradeExecutor(gateway, storage, config).manage_partial_close(atr_pips=100)
+
+    assert results == []
+    assert gateway.sent_requests == []
+
+
 def test_trailing_breakeven_uses_spread_buffer():
     gateway = _GatewayForTrailingStop()
     storage = _StorageSpy()
@@ -264,6 +283,27 @@ def test_trailing_breakeven_uses_spread_buffer():
     assert result.status == "trailing_stop"
     # Sell entry 4708.08, spread 0.17 = 17 pips, buffer = spread + 1 pip -> SL 4707.90.
     assert gateway.modified[0][1] == 4707.9
+
+
+def test_trailing_breakeven_waits_for_configured_half_r_trigger():
+    gateway = _GatewayForTrailingStopBelowHalfR()
+    storage = _StorageSpy()
+    config = SimpleNamespace(
+        symbol="XAUUSD",
+        strategy=SimpleNamespace(
+            use_trailing_stop=True,
+            breakeven_atr_multiplier=0.8,
+            trailing_atr_multiplier=99.0,
+        ),
+        breakeven_trigger_rr=0.5,
+        risk=RiskConfig(mode="fixed_lot", fixed_lot=0.1, risk_pct=0.35, sl_pips=600, tp_pips=1200),
+        execution=ExecutionConfig(magic=260440, deviation=20, filling_mode="AUTO", trade_enabled=True),
+    )
+
+    results = TradeExecutor(gateway, storage, config).manage_trailing_stops(atr_pips=100)
+
+    assert results == []
+    assert gateway.modified == []
 
 
 def test_execute_applies_minimum_effective_sl_floor():
@@ -594,6 +634,11 @@ class _GatewayForPartialClose(_GatewayWithInvalidFirstFill):
         return SimpleNamespace(retcode=10009, comment="Request executed")
 
 
+class _GatewayForPartialCloseBelowHalfR(_GatewayForPartialClose):
+    def symbol_info_tick(self, symbol):
+        return SimpleNamespace(bid=4705.33, ask=4705.50)
+
+
 class _GatewayForTrailingStop(_GatewayForPartialClose):
     def __init__(self):
         super().__init__()
@@ -612,6 +657,11 @@ class _GatewayForTrailingStop(_GatewayForPartialClose):
     def order_modify(self, ticket, sl, tp):
         self.modified.append((ticket, sl, tp))
         return SimpleNamespace(retcode=10009, comment="Request executed")
+
+
+class _GatewayForTrailingStopBelowHalfR(_GatewayForTrailingStop):
+    def symbol_info_tick(self, symbol):
+        return SimpleNamespace(bid=4704.03, ask=4704.20)
 
 
 class _GatewayForProfitLock(_GatewayWithInvalidFirstFill):

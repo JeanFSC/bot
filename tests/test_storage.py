@@ -35,3 +35,15 @@ def test_get_pnl_last_hour_includes_commission_and_swap(tmp_path):
     assert storage.get_pnl_last_hour("EURUSD", 260430) == -13.0
 
     storage.close()
+
+
+def test_storage_enables_wal_and_busy_timeout(tmp_path):
+    storage = BotStorage(tmp_path / "trades.sqlite")
+
+    journal_mode = storage.connection.execute("PRAGMA journal_mode").fetchone()[0]
+    busy_timeout = storage.connection.execute("PRAGMA busy_timeout").fetchone()[0]
+
+    assert journal_mode.lower() == "wal"
+    assert busy_timeout == 30000
+
+    storage.close()

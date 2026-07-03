@@ -1,4 +1,4 @@
-# Agente autonomo - MODO CONTINUO DEMO
+﻿# Agente autonomo - MODO CONTINUO DEMO
 # Bucle infinito con aprendizaje constante y guardrails duros.
 # El agente opera sin detenerse hasta que toque floor_equity.
 
@@ -23,11 +23,10 @@ configs:
   - config/pro_gbp_m5_aggressive.yaml
   - config/pro_nzdusd_m5_aggressive.yaml
   - config/pro_usdcad.yaml
-  - config/pro_gold.yaml
-  - config/pro_silver_m5_safe.yaml
 
 # HABILITADO para demo real con monitoreo.
 allow_demo_orders: true
 
 # Riesgo demo activo. Cada config mantiene sus propios caps y firewalls.
 reduced_risk_pct: 0.35
+
