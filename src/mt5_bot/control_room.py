@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Sequence
 
+from mt5_bot.agent_runner import load_agent_config
+from mt5_bot.config import load_config
 from mt5_bot.process_guard import audit_duplicate_trades
 
 
@@ -26,6 +28,7 @@ def build_snapshot(
     supervisor_path: str | Path = "data/live_position_supervisor.jsonl",
     heat_path: str | Path = "data/portfolio_heat.jsonl",
     watchdog_path: str | Path = "data/watchdog_health.jsonl",
+    agent_config_path: str | Path | None = "config/autonomous_agent.yaml",
     supervisor_stale_after_seconds: int = 20,
     heat_stale_after_seconds: int = 60,
     watchdog_stale_after_seconds: int = 1800,
@@ -55,6 +58,10 @@ def build_snapshot(
             policy = str(supervisor.get("action_policy", "unknown"))
             if policy != "portfolio_heat_allows_actions":
                 reasons.append(f"supervisor_action_policy_{policy}")
+            owner_mismatches = dynamic_management_owner_mismatches(agent_config_path)
+            if owner_mismatches:
+                supervisor["dynamic_management_owner_mismatches"] = owner_mismatches
+                reasons.append("dynamic_management_owner_mismatch")
     if heat is None:
         reasons.append("portfolio_heat_missing")
     else:
@@ -88,6 +95,27 @@ def build_snapshot(
         portfolio_heat=heat,
         watchdog=watchdog,
     )
+
+
+def dynamic_management_owner_mismatches(agent_config_path: str | Path | None) -> list[dict[str, Any]]:
+    if agent_config_path is None:
+        return []
+    try:
+        agent_config = load_agent_config(agent_config_path)
+        mismatches: list[dict[str, Any]] = []
+        for config_path in agent_config.configs:
+            config = load_config(config_path)
+            owner = str(getattr(config, "dynamic_management_owner", "trade_loop"))
+            if owner != "supervisor":
+                mismatches.append({
+                    "config": str(config_path),
+                    "symbol": config.symbol,
+                    "magic": int(config.execution.magic),
+                    "dynamic_management_owner": owner,
+                })
+        return mismatches
+    except Exception as exc:
+        return [{"error": type(exc).__name__, "detail": str(exc)}]
 
 
 def read_latest_jsonl(path: str | Path) -> dict[str, Any] | None:

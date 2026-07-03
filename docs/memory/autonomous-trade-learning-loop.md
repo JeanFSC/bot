@@ -772,3 +772,24 @@ Jean explicitly approved enabling the action-capable demo supervisor.
 - No positions were open at activation time, so no supervisor actions were applied.
 - Guardrail remains: supervisor actions depend on fresh `data/portfolio_heat.jsonl`; if heat is stale, action policy should block modifications.
 
+## 2026-07-03T13:25:00+00:00
+
+Claude audited commits `538f4c0` and `7c7cbe1` and identified one medium-risk gap:
+the trade loop respected `dynamic_management_owner`, but the action-capable
+supervisor did not have its own bilateral guard.
+
+- Implemented supervisor-side guard: `_manage_config_positions` now blocks and
+  records `dynamic_management_owner_not_supervisor` if a config is not owned by
+  the supervisor.
+- Implemented control-room alert: when `demo_actions_enabled` is active,
+  `CONTROL_ROOM` warns with `dynamic_management_owner_mismatch` if any active
+  agent config declares a dynamic management owner other than `supervisor`.
+- Added tests for both protections.
+- Verification:
+  - targeted tests: `24 passed`
+  - full suite: `149 passed`
+  - live status after change: `CONTROL_ROOM OK`, supervisor mode
+    `demo_actions_enabled`, policy `portfolio_heat_allows_actions`, positions
+    `0/0`, process guard OK.
+- No trades, SL/TP, risk params, or strategy configs were changed.
+

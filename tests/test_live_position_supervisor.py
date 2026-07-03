@@ -1,5 +1,6 @@
 from pathlib import Path
 from types import SimpleNamespace
+from dataclasses import replace
 
 import pytest
 
@@ -12,6 +13,7 @@ def _config(symbol: str, magic: int) -> BotConfig:
         symbol=symbol,
         baseline_equity=3000.0,
         database_path=Path(f"data/test_{symbol.lower()}.sqlite"),
+        dynamic_management_owner="supervisor",
         execution=ExecutionConfig(magic=magic, trade_enabled=False),
         risk=RiskConfig(mode="fixed_lot", fixed_lot=0.01, risk_pct=0.1, sl_pips=10, tp_pips=20),
     )
@@ -199,3 +201,36 @@ def test_action_enabled_management_blocks_when_policy_blocks(monkeypatch, tmp_pa
 
     assert any(action.status == "blocked" for action in actions)
     assert any(action.reason == "supervisor_actions_blocked_portfolio_heat_stale" for action in actions)
+
+
+def test_supervisor_skips_dynamic_management_when_owner_is_trade_loop(tmp_path):
+    cfg = replace(
+        _config("EURUSD", 260001),
+        database_path=tmp_path / "owner.sqlite",
+        dynamic_management_owner="trade_loop",
+        execution=ExecutionConfig(magic=260001, trade_enabled=True),
+        profit_lock_enabled=True,
+    )
+
+    class FakeGateway:
+        def positions_get(self, symbol=None):
+            raise AssertionError("owner mismatch must skip position management calls")
+
+        def order_check(self, request):
+            raise AssertionError("owner mismatch must not call order_check")
+
+        def order_send(self, request):
+            raise AssertionError("owner mismatch must not call order_send")
+
+        def order_modify(self, ticket, sl, tp):
+            raise AssertionError("owner mismatch must not call order_modify")
+
+    actions = supervisor._manage_config_positions(
+        FakeGateway(),
+        cfg,
+        action_policy=supervisor.ActionPolicy(True, True, "portfolio_heat_allows_actions"),
+    )
+
+    assert actions == [
+        supervisor.SupervisorAction("EURUSD", 260001, "blocked", "dynamic_management_owner_not_supervisor")
+    ]

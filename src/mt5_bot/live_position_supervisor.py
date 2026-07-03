@@ -152,6 +152,18 @@ def _manage_config_positions(
     actions: list[SupervisorAction] = []
     action_policy = action_policy or ActionPolicy(False, False, "report_only")
     try:
+        if not _supervisor_owns_dynamic_management(config):
+            reason = "dynamic_management_owner_not_supervisor"
+            storage.record_runtime_event(
+                "live_position_supervisor",
+                reason,
+                symbol=config.symbol,
+                magic=config.execution.magic,
+                level="warning",
+                context={"dynamic_management_owner": config.dynamic_management_owner},
+            )
+            actions.append(SupervisorAction(config.symbol, int(config.execution.magic), "blocked", reason))
+            return actions
         _record_missing_sl_tp(gateway, storage, config, actions)
         actions.extend(_wrap_results(config, executor.record_position_metrics()))
         if not config.execution.trade_enabled:
@@ -195,6 +207,10 @@ def _manage_config_positions(
     finally:
         storage.close()
     return actions
+
+
+def _supervisor_owns_dynamic_management(config: BotConfig) -> bool:
+    return getattr(config, "dynamic_management_owner", "trade_loop") == "supervisor"
 
 
 def _action_policy(
