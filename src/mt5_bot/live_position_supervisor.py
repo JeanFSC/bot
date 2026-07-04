@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import time
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
@@ -16,6 +17,8 @@ from mt5_bot.mt5_gateway import MT5Gateway
 from mt5_bot.risk import spread_pips
 from mt5_bot.storage import BotStorage
 from mt5_bot.strategy import StrategyConfig, detect_signal, detect_signal_mtf
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -117,15 +120,20 @@ def run_continuous(
 ) -> int:
     report_file = Path(report_path)
     report_file.parent.mkdir(parents=True, exist_ok=True)
+    sleep_seconds = max(1, interval_seconds)
     while True:
-        report = run_once(
-            agent_config_path,
-            allow_trade_actions=allow_trade_actions,
-            heat_report_path=heat_report_path,
-            heat_max_age_seconds=heat_max_age_seconds,
-        )
-        _append_report(report_file, report)
-        time.sleep(max(1, interval_seconds))
+        try:
+            report = run_once(
+                agent_config_path,
+                allow_trade_actions=allow_trade_actions,
+                heat_report_path=heat_report_path,
+                heat_max_age_seconds=heat_max_age_seconds,
+            )
+            _append_report(report_file, report)
+        except Exception as exc:
+            LOGGER.exception("live_position_supervisor continuous check failed; retrying after %.0fs", sleep_seconds)
+            _append_runtime_error(report_file, allow_trade_actions=allow_trade_actions, exc=exc)
+        time.sleep(sleep_seconds)
 
 
 def _load_config_map(config_paths: Sequence[Path], *, allow_trade_actions: bool) -> dict[tuple[str, int], BotConfig]:
@@ -347,6 +355,28 @@ def _append_report(path: Path, report: SupervisorReport) -> None:
         "action_mode": report.action_mode,
         "action_policy": report.action_policy,
         "actions": [action.__dict__ for action in report.actions],
+    }
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+
+
+def _append_runtime_error(path: Path, *, allow_trade_actions: bool, exc: Exception) -> None:
+    payload = {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "checked_positions": 0,
+        "managed_positions": 0,
+        "unknown_positions": 0,
+        "action_mode": _action_mode(allow_trade_actions),
+        "action_policy": "monitor_error",
+        "actions": [
+            {
+                "symbol": "",
+                "magic": 0,
+                "status": "blocked",
+                "reason": f"monitor_error_{type(exc).__name__}",
+            }
+        ],
+        "error": str(exc),
     }
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, sort_keys=True) + "\n")

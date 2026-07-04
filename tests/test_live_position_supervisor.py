@@ -1,6 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 from dataclasses import replace
+import json
 
 import pytest
 
@@ -234,3 +235,24 @@ def test_supervisor_skips_dynamic_management_when_owner_is_trade_loop(tmp_path):
     assert actions == [
         supervisor.SupervisorAction("EURUSD", 260001, "blocked", "dynamic_management_owner_not_supervisor")
     ]
+
+
+def test_run_continuous_records_errors_without_exiting(monkeypatch, tmp_path):
+    report_path = tmp_path / "supervisor.jsonl"
+
+    monkeypatch.setattr(supervisor, "run_once", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(supervisor.time, "sleep", lambda seconds: (_ for _ in ()).throw(KeyboardInterrupt()))
+
+    with pytest.raises(KeyboardInterrupt):
+        supervisor.run_continuous(
+            "config/autonomous_agent.yaml",
+            allow_trade_actions=True,
+            interval_seconds=5,
+            report_path=report_path,
+        )
+
+    payload = json.loads(report_path.read_text(encoding="utf-8").strip())
+    assert payload["action_mode"] == "demo_actions_enabled"
+    assert payload["action_policy"] == "monitor_error"
+    assert payload["actions"][0]["reason"] == "monitor_error_RuntimeError"
+    assert payload["error"] == "boom"

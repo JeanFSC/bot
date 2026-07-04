@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -13,6 +14,8 @@ from mt5_bot.cli import _connect_and_validate, setup_logging
 from mt5_bot.config import BotConfig, load_config
 from mt5_bot.mt5_gateway import MT5Gateway
 from mt5_bot.portfolio_guard import symbol_currencies
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -156,10 +159,15 @@ def run_continuous(
 ) -> int:
     report_file = Path(report_path)
     report_file.parent.mkdir(parents=True, exist_ok=True)
+    sleep_seconds = max(5, interval_seconds)
     while True:
-        report = run_once(agent_config_path)
-        _append_report(report_file, report)
-        time.sleep(max(5, interval_seconds))
+        try:
+            report = run_once(agent_config_path)
+            _append_report(report_file, report)
+        except Exception as exc:
+            LOGGER.exception("portfolio_heat continuous check failed; retrying after %.0fs", sleep_seconds)
+            _append_runtime_error(report_file, exc)
+        time.sleep(sleep_seconds)
 
 
 def _position_heat(gateway, position) -> PositionHeat:
@@ -265,6 +273,31 @@ def _report_payload(report: PortfolioHeatReport) -> dict:
 
 def _append_report(path: Path, report: PortfolioHeatReport) -> None:
     payload = {"created_at": datetime.now(timezone.utc).isoformat(), **_report_payload(report)}
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+
+
+def _append_runtime_error(path: Path, exc: Exception) -> None:
+    payload = {
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "checked_positions": 0,
+        "owned_positions": 0,
+        "unknown_positions": 0,
+        "equity": 0.0,
+        "margin": 0.0,
+        "margin_pct": 0.0,
+        "floating_pnl": 0.0,
+        "risk_to_sl_usd": 0.0,
+        "risk_to_sl_pct": 0.0,
+        "reward_to_tp_usd": 0.0,
+        "unprotected_positions": 0,
+        "decision": "monitor_error",
+        "reasons": [type(exc).__name__],
+        "error": str(exc),
+        "currency_exposure": {},
+        "symbol_exposure": {},
+        "positions": [],
+    }
     with path.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, sort_keys=True) + "\n")
 

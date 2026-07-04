@@ -1,7 +1,9 @@
 from types import SimpleNamespace
+import json
 
 import pytest
 
+from mt5_bot import portfolio_heat
 from mt5_bot.config import BotConfig, ExecutionConfig
 from mt5_bot.portfolio_heat import build_config_map, build_heat_report
 
@@ -106,3 +108,18 @@ def test_build_heat_report_recommends_reduction_for_crowded_currency():
 
     assert report.decision == "reduce_or_wait_recommended"
     assert any(reason.startswith("crowded_currency_USD:6") for reason in report.reasons)
+
+
+def test_run_continuous_records_errors_without_exiting(monkeypatch, tmp_path):
+    report_path = tmp_path / "portfolio_heat.jsonl"
+
+    monkeypatch.setattr(portfolio_heat, "run_once", lambda path: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(portfolio_heat.time, "sleep", lambda seconds: (_ for _ in ()).throw(KeyboardInterrupt()))
+
+    with pytest.raises(KeyboardInterrupt):
+        portfolio_heat.run_continuous("config/autonomous_agent.yaml", interval_seconds=5, report_path=report_path)
+
+    payload = json.loads(report_path.read_text(encoding="utf-8").strip())
+    assert payload["decision"] == "monitor_error"
+    assert payload["reasons"] == ["RuntimeError"]
+    assert payload["error"] == "boom"
