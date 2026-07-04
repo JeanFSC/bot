@@ -43,6 +43,9 @@ class StrategySettings:
     atr_period: int = 14
     min_atr_pips: float = 1.0
     use_atr_filter: bool = True
+    use_atr_percentile_filter: bool = False
+    atr_percentile_lookback: int = 100
+    atr_min_percentile: float = 30.0
     atr_sl_multiplier: float = 1.5
     atr_tp_multiplier: float = 3.0
     use_atr_sl_tp: bool = False
@@ -81,11 +84,46 @@ class BotConfig:
     tick_window_seconds: int = 30
     max_spread_pips: float = 2.0
     max_open_positions: int = 1
+    max_order_volume: float = 0.0
+    risk_firewall_enabled: bool = True
+    risk_firewall_tolerance: float = 1.15
     max_daily_loss_pct: float = 2.0
     max_trades_per_day: int = 20
+    max_trades_per_symbol_per_hour: int = 0
     cooldown_seconds: int = 60
+    reverse_cooldown_seconds: int = 0
+    max_loss_per_symbol_per_hour_pct: float = 0.0
+    max_symbol_daily_loss_pct: float = 1.0
+    max_symbol_weekly_loss_pct: float = 2.0
+    max_effective_risk_pct: float = 1.0
+    max_spread_to_sl_ratio: float = 0.25
+    min_sl_atr_ratio: float = 0.50
+    min_effective_sl_pips: float = 0.0
+    profit_lock_enabled: bool = False
+    profit_lock_trigger_rr: float = 0.45
+    profit_lock_min_pips: float = 0.0
+    profit_lock_retrace_rr: float = 0.35
+    profit_lock_buffer_pips: float = 0.5
+    breakeven_trigger_rr: float = 0.0
+    partial_close_trigger_rr: float = 0.0
+    winner_scaling_enabled: bool = False
+    winner_scaling_trigger_rr: float = 0.45
+    winner_scaling_min_mfe_pips: float = 0.0
+    winner_scaling_min_current_mfe_ratio: float = 0.75
+    winner_scaling_max_mae_mfe_ratio: float = 0.35
+    winner_scaling_add_volume_ratio: float = 0.50
+    winner_scaling_max_addon_risk_pct: float = 0.10
+    winner_scaling_min_adx: float = 24.0
+    winner_scaling_max_spread_atr_ratio: float = 0.12
+    early_exit_enabled: bool = False
+    early_exit_min_minutes: int = 0
+    early_exit_min_mfe_pips: float = 0.0
+    early_exit_min_mfe_rr: float = 0.0
+    early_exit_max_mae_rr: float = 0.0
+    max_position_minutes: int = 0
+    time_stop_min_profit_pips: float = 0.0
     profit_target_usd: Optional[float] = None
-    baseline_equity: float = 102000.0
+    baseline_equity: float = 0.0
     database_path: Path = Path("data/trades.sqlite")
     use_partial_close: bool = False
     partial_close_ratio: float = 0.5
@@ -94,6 +132,7 @@ class BotConfig:
     news_minutes_after: int = 15
     use_equity_curve_filter: bool = False
     max_consecutive_losses: int = 3
+    max_symbol_consecutive_losses: int = 1
     lot_reduction_factor: float = 0.5
     # Portfolio-level guardrails. These do NOT cap winning trades; they only
     # block new entries when the whole account is already too exposed.
@@ -101,6 +140,13 @@ class BotConfig:
     max_total_margin_pct: float = 85.0
     max_portfolio_open_positions: int = 3
     max_same_currency_positions: int = 2
+    max_same_direction_theme_positions: int = 1
+    use_portfolio_heat_gate: bool = False
+    portfolio_heat_report_path: Path = Path("data/portfolio_heat.jsonl")
+    portfolio_heat_max_age_seconds: int = 90
+    portfolio_heat_required: bool = True
+    portfolio_heat_reduce_risk_multiplier: float = 0.50
+    dynamic_management_owner: str = "trade_loop"
     account: Optional[AccountConfig] = None
     risk: RiskConfig = field(default_factory=RiskConfig)
     strategy: StrategySettings = field(default_factory=StrategySettings)
@@ -155,11 +201,46 @@ def load_config(path: str | Path) -> BotConfig:
         tick_window_seconds=int(raw.get("tick_window_seconds", 30)),
         max_spread_pips=float(raw.get("max_spread_pips", 2.0)),
         max_open_positions=int(raw.get("max_open_positions", 1)),
+        max_order_volume=float(raw.get("max_order_volume", 0.0)),
+        risk_firewall_enabled=bool(raw.get("risk_firewall_enabled", True)),
+        risk_firewall_tolerance=float(raw.get("risk_firewall_tolerance", 1.15)),
         max_daily_loss_pct=float(raw.get("max_daily_loss_pct", 2.0)),
         max_trades_per_day=int(raw.get("max_trades_per_day", 20)),
+        max_trades_per_symbol_per_hour=int(raw.get("max_trades_per_symbol_per_hour", 0)),
         cooldown_seconds=int(raw.get("cooldown_seconds", 60)),
+        reverse_cooldown_seconds=int(raw.get("reverse_cooldown_seconds", 0)),
+        max_loss_per_symbol_per_hour_pct=float(raw.get("max_loss_per_symbol_per_hour_pct", 0.0)),
+        max_symbol_daily_loss_pct=float(raw.get("max_symbol_daily_loss_pct", 1.0)),
+        max_symbol_weekly_loss_pct=float(raw.get("max_symbol_weekly_loss_pct", 2.0)),
+        max_effective_risk_pct=float(raw.get("max_effective_risk_pct", 1.0)),
+        max_spread_to_sl_ratio=float(raw.get("max_spread_to_sl_ratio", 0.25)),
+        min_sl_atr_ratio=float(raw.get("min_sl_atr_ratio", 0.50)),
+        min_effective_sl_pips=float(raw.get("min_effective_sl_pips", 0.0)),
+        profit_lock_enabled=bool(raw.get("profit_lock_enabled", False)),
+        profit_lock_trigger_rr=float(raw.get("profit_lock_trigger_rr", 0.45)),
+        profit_lock_min_pips=float(raw.get("profit_lock_min_pips", 0.0)),
+        profit_lock_retrace_rr=float(raw.get("profit_lock_retrace_rr", 0.35)),
+        profit_lock_buffer_pips=float(raw.get("profit_lock_buffer_pips", 0.5)),
+        breakeven_trigger_rr=float(raw.get("breakeven_trigger_rr", 0.0)),
+        partial_close_trigger_rr=float(raw.get("partial_close_trigger_rr", 0.0)),
+        winner_scaling_enabled=bool(raw.get("winner_scaling_enabled", False)),
+        winner_scaling_trigger_rr=float(raw.get("winner_scaling_trigger_rr", 0.45)),
+        winner_scaling_min_mfe_pips=float(raw.get("winner_scaling_min_mfe_pips", 0.0)),
+        winner_scaling_min_current_mfe_ratio=float(raw.get("winner_scaling_min_current_mfe_ratio", 0.75)),
+        winner_scaling_max_mae_mfe_ratio=float(raw.get("winner_scaling_max_mae_mfe_ratio", 0.35)),
+        winner_scaling_add_volume_ratio=float(raw.get("winner_scaling_add_volume_ratio", 0.50)),
+        winner_scaling_max_addon_risk_pct=float(raw.get("winner_scaling_max_addon_risk_pct", 0.10)),
+        winner_scaling_min_adx=float(raw.get("winner_scaling_min_adx", 24.0)),
+        winner_scaling_max_spread_atr_ratio=float(raw.get("winner_scaling_max_spread_atr_ratio", 0.12)),
+        early_exit_enabled=bool(raw.get("early_exit_enabled", False)),
+        early_exit_min_minutes=int(raw.get("early_exit_min_minutes", 0)),
+        early_exit_min_mfe_pips=float(raw.get("early_exit_min_mfe_pips", 0.0)),
+        early_exit_min_mfe_rr=float(raw.get("early_exit_min_mfe_rr", 0.0)),
+        early_exit_max_mae_rr=float(raw.get("early_exit_max_mae_rr", 0.0)),
+        max_position_minutes=int(raw.get("max_position_minutes", 0)),
+        time_stop_min_profit_pips=float(raw.get("time_stop_min_profit_pips", 0.0)),
         profit_target_usd=float(_profit_target_raw) if _profit_target_raw is not None else None,
-        baseline_equity=float(raw.get("baseline_equity", 102000.0)),
+        baseline_equity=float(raw["baseline_equity"]) if "baseline_equity" in raw else 0.0,
         database_path=Path(raw.get("database_path", "data/trades.sqlite")),
         use_partial_close=bool(raw.get("use_partial_close", False)),
         partial_close_ratio=float(raw.get("partial_close_ratio", 0.5)),
@@ -168,11 +249,19 @@ def load_config(path: str | Path) -> BotConfig:
         news_minutes_after=int(raw.get("news_minutes_after", 15)),
         use_equity_curve_filter=bool(raw.get("use_equity_curve_filter", False)),
         max_consecutive_losses=int(raw.get("max_consecutive_losses", 3)),
+        max_symbol_consecutive_losses=int(raw.get("max_symbol_consecutive_losses", 1)),
         lot_reduction_factor=float(raw.get("lot_reduction_factor", 0.5)),
         use_global_risk_guard=bool(raw.get("use_global_risk_guard", True)),
         max_total_margin_pct=float(raw.get("max_total_margin_pct", 85.0)),
         max_portfolio_open_positions=int(raw.get("max_portfolio_open_positions", 3)),
         max_same_currency_positions=int(raw.get("max_same_currency_positions", 2)),
+        max_same_direction_theme_positions=int(raw.get("max_same_direction_theme_positions", 1)),
+        use_portfolio_heat_gate=bool(raw.get("use_portfolio_heat_gate", False)),
+        portfolio_heat_report_path=Path(raw.get("portfolio_heat_report_path", "data/portfolio_heat.jsonl")),
+        portfolio_heat_max_age_seconds=int(raw.get("portfolio_heat_max_age_seconds", 90)),
+        portfolio_heat_required=bool(raw.get("portfolio_heat_required", True)),
+        portfolio_heat_reduce_risk_multiplier=float(raw.get("portfolio_heat_reduce_risk_multiplier", 0.50)),
+        dynamic_management_owner=str(raw.get("dynamic_management_owner", "trade_loop")),
         account=account,
         risk=RiskConfig(**risk_raw),
         strategy=StrategySettings(**strategy_kwargs),
@@ -207,13 +296,85 @@ def validate_config(config: BotConfig) -> None:
         raise ValueError(f"Unsupported timeframe '{config.timeframe}'. Choose from: {', '.join(sorted(supported_timeframes))}")
     if config.trend_timeframe not in supported_timeframes:
         raise ValueError(f"Unsupported trend_timeframe '{config.trend_timeframe}'.")
+    if config.max_order_volume < 0:
+        raise ValueError("max_order_volume must be >= 0")
+    if config.risk_firewall_tolerance < 1.0:
+        raise ValueError("risk_firewall_tolerance must be >= 1.0")
     if config.risk.mode not in {"fixed_lot", "percent_equity"}:
         raise ValueError("risk.mode must be fixed_lot or percent_equity")
     if config.risk.sl_pips <= 0 or config.risk.tp_pips <= 0:
         raise ValueError("SL and TP must be positive")
+    if config.strategy.atr_percentile_lookback < 30:
+        raise ValueError("atr_percentile_lookback must be >= 30")
+    if not (0.0 < config.strategy.atr_min_percentile < 100.0):
+        raise ValueError("atr_min_percentile must be between 0 and 100")
     if config.max_open_positions != 1:
         raise ValueError("V1 supports exactly one open position")
     if config.poll_seconds < 1:
         raise ValueError("poll_seconds must be >= 1")
+    if config.reverse_cooldown_seconds < 0:
+        raise ValueError("reverse_cooldown_seconds must be >= 0")
+    if config.max_loss_per_symbol_per_hour_pct < 0:
+        raise ValueError("max_loss_per_symbol_per_hour_pct must be >= 0")
+    if config.baseline_equity <= 0:
+        raise ValueError("baseline_equity must be explicitly set to a positive value")
+    if config.max_symbol_daily_loss_pct < 0:
+        raise ValueError("max_symbol_daily_loss_pct must be >= 0")
+    if config.max_symbol_weekly_loss_pct < 0:
+        raise ValueError("max_symbol_weekly_loss_pct must be >= 0")
+    if config.max_symbol_consecutive_losses < 0:
+        raise ValueError("max_symbol_consecutive_losses must be >= 0")
+    if config.max_effective_risk_pct <= 0:
+        raise ValueError("max_effective_risk_pct must be > 0")
+    if config.max_spread_to_sl_ratio < 0:
+        raise ValueError("max_spread_to_sl_ratio must be >= 0")
+    if config.min_sl_atr_ratio < 0:
+        raise ValueError("min_sl_atr_ratio must be >= 0")
+    if config.min_effective_sl_pips < 0:
+        raise ValueError("min_effective_sl_pips must be >= 0")
+    if not (0.0 < config.profit_lock_trigger_rr <= 1.0):
+        raise ValueError("profit_lock_trigger_rr must be > 0 and <= 1")
+    if config.profit_lock_min_pips < 0:
+        raise ValueError("profit_lock_min_pips must be >= 0")
+    if not (0.0 < config.profit_lock_retrace_rr <= 1.0):
+        raise ValueError("profit_lock_retrace_rr must be > 0 and <= 1")
+    if config.profit_lock_buffer_pips < 0:
+        raise ValueError("profit_lock_buffer_pips must be >= 0")
+    if not (0.0 <= config.breakeven_trigger_rr <= 1.0):
+        raise ValueError("breakeven_trigger_rr must be between 0 and 1")
+    if not (0.0 <= config.partial_close_trigger_rr <= 1.0):
+        raise ValueError("partial_close_trigger_rr must be between 0 and 1")
+    if not (0.0 < config.winner_scaling_trigger_rr <= 1.0):
+        raise ValueError("winner_scaling_trigger_rr must be > 0 and <= 1")
+    if config.winner_scaling_min_mfe_pips < 0:
+        raise ValueError("winner_scaling_min_mfe_pips must be >= 0")
+    if not (0.0 < config.winner_scaling_min_current_mfe_ratio <= 1.0):
+        raise ValueError("winner_scaling_min_current_mfe_ratio must be > 0 and <= 1")
+    if not (0.0 <= config.winner_scaling_max_mae_mfe_ratio <= 1.0):
+        raise ValueError("winner_scaling_max_mae_mfe_ratio must be between 0 and 1")
+    if not (0.0 < config.winner_scaling_add_volume_ratio <= 1.0):
+        raise ValueError("winner_scaling_add_volume_ratio must be > 0 and <= 1")
+    if config.winner_scaling_max_addon_risk_pct <= 0:
+        raise ValueError("winner_scaling_max_addon_risk_pct must be > 0")
+    if config.winner_scaling_min_adx < 0:
+        raise ValueError("winner_scaling_min_adx must be >= 0")
+    if config.winner_scaling_max_spread_atr_ratio < 0:
+        raise ValueError("winner_scaling_max_spread_atr_ratio must be >= 0")
+    if config.early_exit_min_minutes < 0:
+        raise ValueError("early_exit_min_minutes must be >= 0")
+    if config.early_exit_min_mfe_pips < 0:
+        raise ValueError("early_exit_min_mfe_pips must be >= 0")
+    if config.early_exit_min_mfe_rr < 0:
+        raise ValueError("early_exit_min_mfe_rr must be >= 0")
+    if config.early_exit_max_mae_rr < 0:
+        raise ValueError("early_exit_max_mae_rr must be >= 0")
+    if config.max_same_direction_theme_positions < 0:
+        raise ValueError("max_same_direction_theme_positions must be >= 0")
+    if config.portfolio_heat_max_age_seconds < 1:
+        raise ValueError("portfolio_heat_max_age_seconds must be >= 1")
+    if not (0.0 <= config.portfolio_heat_reduce_risk_multiplier <= 1.0):
+        raise ValueError("portfolio_heat_reduce_risk_multiplier must be between 0 and 1")
+    if config.dynamic_management_owner not in {"trade_loop", "supervisor"}:
+        raise ValueError("dynamic_management_owner must be trade_loop or supervisor")
     if not (0.0 < config.partial_close_ratio < 1.0):
         raise ValueError("partial_close_ratio must be between 0 and 1 (exclusive)")

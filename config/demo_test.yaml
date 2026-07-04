@@ -18,6 +18,7 @@ max_daily_loss_pct: 2.0
 max_trades_per_day: 10
 cooldown_seconds: 30
 database_path: data/demo_test.sqlite
+baseline_equity: 3000.0
 
 risk:
   mode: fixed_lot

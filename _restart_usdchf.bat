@@ -18,7 +18,7 @@ if errorlevel 1 (
 )
 echo [%TIME%] [USDCHF] CHECK OK -- arrancando TRADE loop... >> logs\bot_usdchf.log
 echo [%TIME%] [USDCHF] CHECK OK -- arrancando TRADE loop...
-python -m mt5_bot trade --config config/pro_usdchf.yaml --db data/pro_usdchf.sqlite --trade-enabled >> logs\bot_usdchf.log 2>&1
+python -m mt5_bot trade --config config/pro_usdchf.yaml --db data/pro_usdchf.sqlite %* >> logs\bot_usdchf.log 2>&1
 if errorlevel 1 (
     echo [%TIME%] [USDCHF] Bot crasheo -- reiniciando en 10s... >> logs\bot_usdchf.log
     echo [%TIME%] [USDCHF] Bot crasheo -- reiniciando en 10s...
@@ -28,3 +28,4 @@ if errorlevel 1 (
 echo [%TIME%] [USDCHF] Bot detenido por el usuario. >> logs\bot_usdchf.log
 echo [%TIME%] [USDCHF] Bot detenido por el usuario.
 pause
+

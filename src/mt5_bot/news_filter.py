@@ -29,6 +29,7 @@ LOGGER = logging.getLogger("mt5_bot.news_filter")
 _CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
 _CACHE_TTL_SECONDS = 3600  # refresh cache every hour
 _STALE_CACHE_SECONDS = 6 * 3600  # on 429/network errors, stale news is better than none
+_FAIL_MODE_ENV = "MT5_NEWS_FAIL_MODE"
 _CACHE_FILE = Path(os.getenv("MT5_NEWS_CACHE_FILE", "data/forexfactory_calendar_cache.json"))
 _LOCK_FILE = _CACHE_FILE.with_suffix(".lock")
 
@@ -152,6 +153,16 @@ def fetch_calendar(force: bool = False) -> list[dict]:
             _release_fetch_lock()
 
 
+def _fail_closed() -> bool:
+    """Return True when missing calendar data should block entries.
+
+    Missing high-impact news data is a risk-control failure, not a market
+    signal. Default to fail-closed; allow an explicit MT5_NEWS_FAIL_MODE=open
+    override for demo experiments where continuity is preferred over safety.
+    """
+    return os.getenv(_FAIL_MODE_ENV, "closed").strip().lower() not in {"open", "fail-open", "allow"}
+
+
 def _currencies_for_symbol(symbol: str) -> list[str]:
     """Extract the two currencies from a forex symbol.
 
@@ -212,8 +223,16 @@ def is_high_impact_news_nearby(
 
     events = fetch_calendar()
     if not events:
-        # If we can't fetch calendar, be conservative and allow trading
-        LOGGER.debug("news_filter: no calendar data — allowing entry")
+        if _fail_closed():
+            LOGGER.warning(
+                "news_filter: no calendar data; blocking entry because %s=closed",
+                _FAIL_MODE_ENV,
+            )
+            return True
+        LOGGER.warning(
+            "news_filter: no calendar data; allowing entry because %s=open",
+            _FAIL_MODE_ENV,
+        )
         return False
 
     window_start = now - timedelta(minutes=minutes_after)

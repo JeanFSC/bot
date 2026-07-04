@@ -1,9 +1,17 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import datetime
-from typing import Any
+import os
+from pathlib import Path
+import random
+import tempfile
+from typing import Any, Callable, TypeVar
+import time
 
 import pandas as pd
+
+T = TypeVar("T")
 
 
 TIMEFRAMES = {
@@ -24,10 +32,144 @@ class MT5Gateway:
             raise RuntimeError("MetaTrader5 package is not installed. Run: pip install -r requirements.txt") from exc
         self.mt5 = mt5
 
-    def initialize(self, terminal_path: str | None = None) -> None:
-        ok = self.mt5.initialize(path=terminal_path) if terminal_path else self.mt5.initialize()
-        if not ok:
-            raise RuntimeError(f"MT5 initialize failed: {self.mt5.last_error()}")
+    def _last_error(self) -> Any:
+        try:
+            return self.mt5.last_error()
+        except Exception:
+            return None
+
+    @staticmethod
+    def _is_transient_ipc_error(error: Any) -> bool:
+        text = str(error).lower()
+        return "ipc" in text or "-10001" in text or "send failed" in text
+
+    @classmethod
+    def _is_transient_initialize_error(cls, error: Any) -> bool:
+        text = str(error).lower()
+        return (
+            cls._is_transient_ipc_error(error)
+            or "-6" in text
+            or "authorization failed" in text
+            or "terminal: authorization" in text
+        )
+
+    @staticmethod
+    def _initialize_lock_path() -> Path:
+        configured = os.getenv("MT5_INIT_LOCK_PATH")
+        if configured:
+            return Path(configured)
+        return Path(tempfile.gettempdir()) / "mt5_python_initialize.lock"
+
+    @staticmethod
+    def _initialize_attempts() -> int:
+        try:
+            return max(1, int(os.getenv("MT5_INIT_ATTEMPTS", "4")))
+        except ValueError:
+            return 4
+
+    @staticmethod
+    def _initialize_lock_timeout_seconds() -> float:
+        try:
+            return max(1.0, float(os.getenv("MT5_INIT_LOCK_TIMEOUT_SECONDS", "20")))
+        except ValueError:
+            return 20.0
+
+    @contextmanager
+    def _initialize_lock(self):
+        lock_path = self._initialize_lock_path()
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+b") as handle:
+            self._lock_file(handle)
+            try:
+                yield
+            finally:
+                self._unlock_file(handle)
+
+    def _lock_file(self, handle) -> None:
+        deadline = time.monotonic() + self._initialize_lock_timeout_seconds()
+        if os.name == "nt":
+            import msvcrt
+
+            while True:
+                try:
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+                    return
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        raise RuntimeError("MT5 initialize lock timeout") from exc
+                    time.sleep(0.1)
+        else:
+            import fcntl
+
+            while True:
+                try:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    return
+                except OSError as exc:
+                    if time.monotonic() >= deadline:
+                        raise RuntimeError("MT5 initialize lock timeout") from exc
+                    time.sleep(0.1)
+
+    def _unlock_file(self, handle) -> None:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+    def _call_read(self, label: str, func: Callable[[], T | None], attempts: int = 3, delay: float = 0.35) -> T:
+        """Call a non-trading MT5 read API with a small retry for transient IPC hiccups.
+
+        MT5's Python bridge can briefly return None with (-10001, 'IPC send failed')
+        when several bot processes query the terminal at the same moment. Retrying
+        read-only calls avoids false crashes without duplicating any trade action.
+        """
+        last_error: Any = None
+        for attempt in range(1, attempts + 1):
+            result = func()
+            if result is not None:
+                return result
+            last_error = self._last_error()
+            if attempt >= attempts or not self._is_transient_ipc_error(last_error):
+                break
+            time.sleep(delay * attempt)
+        raise RuntimeError(f"MT5 {label} failed: {last_error}")
+
+    def initialize(
+        self,
+        terminal_path: str | None = None,
+        login: int | None = None,
+        password: str | None = None,
+        server: str | None = None,
+    ) -> None:
+        kwargs: dict[str, Any] = {}
+        if terminal_path:
+            kwargs["path"] = terminal_path
+        if login is not None:
+            kwargs["login"] = int(login)
+        if password:
+            kwargs["password"] = password
+        if server:
+            kwargs["server"] = server
+
+        attempts = self._initialize_attempts()
+        last_error: Any = None
+        for attempt in range(1, attempts + 1):
+            with self._initialize_lock():
+                ok = self.mt5.initialize(**kwargs) if kwargs else self.mt5.initialize()
+            if ok:
+                return
+            last_error = self._last_error()
+            if attempt >= attempts or not self._is_transient_initialize_error(last_error):
+                break
+            delay = min(4.0, 0.5 * (2 ** (attempt - 1))) + random.uniform(0.0, 0.25)
+            time.sleep(delay)
+        raise RuntimeError(f"MT5 initialize failed: {last_error}")
 
     def login(self, login: int, password: str, server: str) -> None:
         ok = self.mt5.login(login, password=password, server=server)
@@ -38,16 +180,10 @@ class MT5Gateway:
         self.mt5.shutdown()
 
     def account_info(self):
-        info = self.mt5.account_info()
-        if info is None:
-            raise RuntimeError(f"MT5 account_info failed: {self.mt5.last_error()}")
-        return info
+        return self._call_read("account_info", self.mt5.account_info)
 
     def terminal_info(self):
-        info = self.mt5.terminal_info()
-        if info is None:
-            raise RuntimeError(f"MT5 terminal_info failed: {self.mt5.last_error()}")
-        return info
+        return self._call_read("terminal_info", self.mt5.terminal_info)
 
     def symbol_info(self, symbol: str):
         info = self.mt5.symbol_info(symbol)
@@ -61,50 +197,55 @@ class MT5Gateway:
             raise RuntimeError(f"MT5 symbol_select failed for {symbol}: {self.mt5.last_error()}")
 
     def symbol_info_tick(self, symbol: str):
-        tick = self.mt5.symbol_info_tick(symbol)
-        if tick is None:
-            raise RuntimeError(f"MT5 symbol_info_tick failed for {symbol}: {self.mt5.last_error()}")
-        return tick
+        return self._call_read(f"symbol_info_tick for {symbol}", lambda: self.mt5.symbol_info_tick(symbol))
 
     def copy_rates_from_pos(self, symbol: str, timeframe: str, start_pos: int, count: int) -> pd.DataFrame:
         mt5_timeframe = getattr(self.mt5, TIMEFRAMES[timeframe])
-        rates = self.mt5.copy_rates_from_pos(symbol, mt5_timeframe, start_pos, count)
-        if rates is None:
-            raise RuntimeError(f"MT5 copy_rates_from_pos failed: {self.mt5.last_error()}")
+        rates = self._call_read(
+            "copy_rates_from_pos",
+            lambda: self.mt5.copy_rates_from_pos(symbol, mt5_timeframe, start_pos, count),
+        )
         frame = pd.DataFrame(rates)
         frame["time"] = pd.to_datetime(frame["time"], unit="s", utc=True)
         return frame
 
     def copy_rates_range(self, symbol: str, timeframe: str, date_from: datetime, date_to: datetime) -> pd.DataFrame:
         mt5_timeframe = getattr(self.mt5, TIMEFRAMES[timeframe])
-        rates = self.mt5.copy_rates_range(symbol, mt5_timeframe, date_from, date_to)
-        if rates is None:
-            raise RuntimeError(f"MT5 copy_rates_range failed: {self.mt5.last_error()}")
+        rates = self._call_read(
+            "copy_rates_range",
+            lambda: self.mt5.copy_rates_range(symbol, mt5_timeframe, date_from, date_to),
+        )
         frame = pd.DataFrame(rates)
         frame["time"] = pd.to_datetime(frame["time"], unit="s", utc=True)
         return frame
 
     def copy_ticks_from(self, symbol: str, from_time: datetime, count: int, flags: int | None = None) -> pd.DataFrame:
         flags = self.mt5.COPY_TICKS_ALL if flags is None else flags
-        ticks = self.mt5.copy_ticks_from(symbol, from_time, count, flags)
-        if ticks is None:
-            raise RuntimeError(f"MT5 copy_ticks_from failed: {self.mt5.last_error()}")
+        ticks = self._call_read(
+            "copy_ticks_from",
+            lambda: self.mt5.copy_ticks_from(symbol, from_time, count, flags),
+        )
         frame = pd.DataFrame(ticks)
         if not frame.empty and "time" in frame:
             frame["time"] = pd.to_datetime(frame["time"], unit="s", utc=True)
         return frame
 
     def positions_get(self, symbol: str | None = None):
-        positions = self.mt5.positions_get(symbol=symbol) if symbol else self.mt5.positions_get()
-        if positions is None:
-            raise RuntimeError(f"MT5 positions_get failed: {self.mt5.last_error()}")
+        positions = self._call_read(
+            "positions_get",
+            lambda: self.mt5.positions_get(symbol=symbol) if symbol else self.mt5.positions_get(),
+        )
         return list(positions)
 
     def order_check(self, request: dict[str, Any]):
-        result = self.mt5.order_check(request)
-        if result is None:
-            raise RuntimeError(f"MT5 order_check failed: {self.mt5.last_error()}")
-        return result
+        return self._call_read("order_check", lambda: self.mt5.order_check(request))
+
+    def order_calc_profit(self, order_type: int, symbol: str, volume: float, price_open: float, price_close: float) -> float:
+        value = self._call_read(
+            "order_calc_profit",
+            lambda: self.mt5.order_calc_profit(order_type, symbol, volume, price_open, price_close),
+        )
+        return float(value)
 
     def order_send(self, request: dict[str, Any]):
         result = self.mt5.order_send(request)
@@ -130,9 +271,11 @@ class MT5Gateway:
         return result
 
     def history_deals_get(self, date_from: datetime, date_to: datetime, group: str | None = None):
-        deals = self.mt5.history_deals_get(date_from, date_to, group=group) if group else self.mt5.history_deals_get(date_from, date_to)
-        if deals is None:
-            raise RuntimeError(f"MT5 history_deals_get failed: {self.mt5.last_error()}")
+        deals = self._call_read(
+            "history_deals_get",
+            lambda: self.mt5.history_deals_get(date_from, date_to, group=group)
+            if group else self.mt5.history_deals_get(date_from, date_to),
+        )
         return list(deals)
 
     def constants(self) -> dict[str, int]:

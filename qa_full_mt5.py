@@ -40,7 +40,7 @@ for rel in CORE_CONFIGS:
     assert c.execution.trade_enabled is False, rel
     assert c.execution.magic not in magics, f"duplicate magic {c.execution.magic}"
     magics.add(c.execution.magic)
-    assert c.max_portfolio_open_positions == 5, rel
+    assert 0 < c.max_portfolio_open_positions <= 3, rel
     assert c.use_global_risk_guard is True, rel
     assert c.max_daily_loss_pct <= 5.0, rel
     assert c.risk.risk_pct > 0, rel
@@ -54,7 +54,7 @@ for rel in CORE_CONFIGS:
     stem = Path(rel).stem.replace("pro", "").strip("_") or "eurusd"
 for bat in sorted(ROOT.glob("_restart_*.bat")):
     s = bat.read_text(encoding="utf-8", errors="replace")
-    assert "--trade-enabled" in s, bat.name
+    assert "--trade-enabled" not in s, f"{bat.name} must respect config execution.trade_enabled=false by default"
     assert ">> logs\\bot_" in s, bat.name
     assert "python -m mt5_bot check" in s, bat.name
     assert "python -m mt5_bot trade" in s, bat.name
