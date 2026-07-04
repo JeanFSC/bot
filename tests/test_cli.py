@@ -141,3 +141,64 @@ def test_trade_loop_skips_dynamic_management_when_supervisor_owns_it():
     assert _trade_loop_owns_dynamic_management(SimpleNamespace(dynamic_management_owner="supervisor")) is False
     assert _trade_loop_owns_dynamic_management(SimpleNamespace(dynamic_management_owner="trade_loop")) is True
     assert _trade_loop_owns_dynamic_management(SimpleNamespace()) is True
+
+
+def test_new_daily_risk_state_seeds_trades_count_from_persisted_value():
+    """A restart mid-day must not silently reset the daily trade-count guardrail."""
+    state = _new_daily_risk_state(
+        date(2026, 6, 28), account_equity=100_000.0, persisted_start_equity=None,
+        persisted_trades_count=7,
+    )
+
+    assert state.trades_count == 7
+
+
+def test_sleep_and_manage_trailing_skips_winner_scaling_when_disallowed(monkeypatch):
+    from mt5_bot import cli as cli_module
+    from mt5_bot.strategy import Signal, SignalType, StrategyConfig
+
+    fake_signal = Signal(
+        type=SignalType.NONE, price=None, time=None, reason="test",
+        fast_ema=None, slow_ema=None, rsi=None, atr=None,
+        atr_pips=5.0, trend_bias=None, adx=25.0,
+    )
+    monkeypatch.setattr("mt5_bot.strategy.detect_signal", lambda *a, **k: fake_signal)
+
+    calls = {"winner_scaling": 0, "trailing_stop": 0}
+
+    class FakeExecutor:
+        gateway = SimpleNamespace(copy_rates_from_pos=lambda *a, **k: object())
+
+        def record_position_metrics(self):
+            return []
+
+        def manage_time_stops(self):
+            return []
+
+        def manage_no_favorable_excursion(self, atr_pips):
+            return []
+
+        def manage_winner_scaling(self, atr_pips, adx, spread):
+            calls["winner_scaling"] += 1
+            return []
+
+        def manage_profit_lock(self, atr_pips):
+            return []
+
+        def manage_trailing_stops(self, atr_pips):
+            calls["trailing_stop"] += 1
+            return []
+
+    config = SimpleNamespace(
+        symbol="EURUSD",
+        timeframe="M5",
+        poll_seconds=0,
+        dynamic_management_owner="trade_loop",
+        strategy=StrategyConfig(use_trailing_stop=True),
+        use_partial_close=False,
+    )
+
+    cli_module._sleep_and_manage_trailing(FakeExecutor(), config, current_spread=1.0, allow_winner_scaling=False)
+
+    assert calls["winner_scaling"] == 0
+    assert calls["trailing_stop"] == 1

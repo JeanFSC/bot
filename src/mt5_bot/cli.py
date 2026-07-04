@@ -51,12 +51,13 @@ def _new_daily_risk_state(
     day: date,
     account_equity: float,
     persisted_start_equity: float | None,
+    persisted_trades_count: int = 0,
 ) -> DailyRiskState:
     return DailyRiskState(
         day=day,
         start_equity=float(persisted_start_equity or account_equity),
         current_equity=float(account_equity),
-        trades_count=0,
+        trades_count=int(persisted_trades_count),
     )
 
 
@@ -331,10 +332,14 @@ def run_trade(
             if daily_state is None or daily_state.day != today:
                 day_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
                 persisted_start_equity = storage.get_day_start_equity(day_start)
+                persisted_trades_count = storage.get_sent_order_count_since(
+                    config.symbol, config.execution.magic, day_start,
+                )
                 daily_state = _new_daily_risk_state(
                     today,
                     account_equity=float(account.equity),
                     persisted_start_equity=persisted_start_equity,
+                    persisted_trades_count=persisted_trades_count,
                 )
             else:
                 daily_state = DailyRiskState(
@@ -364,7 +369,7 @@ def run_trade(
                     level="critical" if control_room_context.get("level") == "critical" else "warning",
                     context=control_room_context,
                 )
-                _sleep_and_manage_trailing(executor, config, current_spread)
+                _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                 continue
 
             if is_daily_loss_limit_hit(daily_state, config.max_daily_loss_pct):
@@ -378,7 +383,7 @@ def run_trade(
                     context={"equity": float(account.equity), "start_equity": daily_state.start_equity, "max_daily_loss_pct": config.max_daily_loss_pct},
                 )
                 notifier.daily_limit_hit("daily_loss_pct", float(account.equity), config.symbol)
-                _sleep_and_manage_trailing(executor, config, current_spread)
+                _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                 continue
             if is_trade_count_limit_hit(daily_state, config.max_trades_per_day):
                 LOGGER.warning("Daily trade count limit hit. New entries blocked.")
@@ -391,7 +396,7 @@ def run_trade(
                     context={"trades_count": daily_state.trades_count, "max_trades_per_day": config.max_trades_per_day},
                 )
                 notifier.daily_limit_hit("max_trades_per_day", float(account.equity), config.symbol)
-                _sleep_and_manage_trailing(executor, config, current_spread)
+                _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                 continue
 
             if current_spread > config.max_spread_pips:
@@ -403,7 +408,7 @@ def run_trade(
                     magic=config.execution.magic,
                     context={"spread_pips": current_spread, "max_spread_pips": config.max_spread_pips},
                 )
-                _sleep_and_manage_trailing(executor, config, current_spread)
+                _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                 continue
 
             if config.use_global_risk_guard:
@@ -422,10 +427,20 @@ def run_trade(
                             level="warning",
                             context={"margin_pct": guard.margin_pct, "open_positions": guard.open_positions},
                         )
-                        _sleep_and_manage_trailing(executor, config, current_spread)
+                        _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                         continue
                 except Exception as exc:
-                    LOGGER.warning("Portfolio guard unavailable: %s", exc)
+                    LOGGER.warning("Portfolio guard unavailable: %s -- blocking new entries this cycle", exc)
+                    storage.record_runtime_event(
+                        "pretrade_block",
+                        "portfolio_guard_unavailable",
+                        symbol=config.symbol,
+                        magic=config.execution.magic,
+                        level="warning",
+                        context={"error": str(exc)},
+                    )
+                    _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
+                    continue
 
             portfolio_heat_risk_factor = 1.0
             portfolio_heat_reason = "disabled"
@@ -458,7 +473,7 @@ def run_trade(
                             "required": config.portfolio_heat_required,
                         },
                     )
-                    _sleep_and_manage_trailing(executor, config, current_spread)
+                    _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                     continue
                 if heat_gate.risk_multiplier < 1.0:
                     LOGGER.warning(
@@ -507,7 +522,7 @@ def run_trade(
                             "session2_end_hour": getattr(strategy_config, "session2_end_hour", 0),
                         },
                     )
-                    _sleep_and_manage_trailing(executor, config, current_spread)
+                    _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                     continue
 
             # â”€â”€ MEJORA 3: News filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -527,7 +542,7 @@ def run_trade(
                         level="warning",
                         context={"minutes_before": config.news_minutes_before, "minutes_after": config.news_minutes_after},
                     )
-                    _sleep_and_manage_trailing(executor, config, current_spread)
+                    _sleep_and_manage_trailing(executor, config, current_spread, allow_winner_scaling=False)
                     continue
 
             signal_rates = gateway.copy_rates_from_pos(config.symbol, config.timeframe, 0, signal_bars)
@@ -1256,7 +1271,9 @@ def _slippage_pips(result, signal, symbol_info) -> float | None:
         return None
 
 
-def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: float) -> None:
+def _sleep_and_manage_trailing(
+    executor: TradeExecutor, config, current_spread: float, allow_winner_scaling: bool = True,
+) -> None:
     """Sleep one poll cycle while keeping exits/telemetry active."""
     try:
         for pm in executor.record_position_metrics():
@@ -1283,8 +1300,9 @@ def _sleep_and_manage_trailing(executor: TradeExecutor, config, current_spread: 
             if sig.atr_pips and sig.atr_pips > 0:
                 for ee in executor.manage_no_favorable_excursion(sig.atr_pips):
                     LOGGER.info("EarlyExit (idle) status=%s reason=%s", ee.status, ee.reason)
-                for ws in executor.manage_winner_scaling(sig.atr_pips, sig.adx, current_spread):
-                    LOGGER.info("WinnerScale (idle) status=%s reason=%s", ws.status, ws.reason)
+                if allow_winner_scaling:
+                    for ws in executor.manage_winner_scaling(sig.atr_pips, sig.adx, current_spread):
+                        LOGGER.info("WinnerScale (idle) status=%s reason=%s", ws.status, ws.reason)
                 for pl in executor.manage_profit_lock(sig.atr_pips):
                     LOGGER.info("ProfitLock (idle) status=%s reason=%s", pl.status, pl.reason)
                 for tr in executor.manage_trailing_stops(sig.atr_pips):

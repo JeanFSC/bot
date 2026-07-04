@@ -5,6 +5,7 @@ __pycache__/
 .pytest_cache/
 .pytest_tmp/
 *.pyc
+*.egg-info/
 
 # Runtime databases/caches
 data/*.sqlite
