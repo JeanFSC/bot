@@ -1,2 +1,0 @@
-[console_scripts]
-mt5-mcp = mt5_bot.mcp_server:main
